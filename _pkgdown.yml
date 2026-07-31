@@ -1,0 +1,58 @@
+url: https://skalkidou-lab.github.io/mht/
+
+# House style shared with the other packages in the family (swereg, batchit).
+# The template package supplies bootstrap 5, the typography, the palette, and
+# the navbar/footer structure, including the family strip in the footer.
+# Everything under `params: hero:` is this package's own copy for the home-page
+# hero band.
+template:
+  package: pkgdowntemplate
+  params:
+    hero:
+      overline: "R package · Menopausal hormone therapy"
+      title: "MHT exposure from Swedish prescription data."
+      lede: >
+        Categorise dispensed menopausal hormone therapy products, correct the
+        durations that the register records unreliably, bridge the gaps between
+        consecutive prescriptions, and write the approach-based exposure
+        definitions onto a person-week skeleton.
+      cta:
+        primary:
+          text: "Get started"
+          href: "reference/x2026_add_lmed.html"
+        secondary:
+          text: "Browse the reference →"
+          href: "reference/index.html"
+
+authors:
+  footer:
+    roles: [cre, aut]
+    text: "Crafted by"
+  sidebar:
+    roles: [cre, aut, cph]
+  before: "This package is proudly brought to you by:"
+  after: "See the [changelog](news/index.html) for other contributors."
+  Richard Aubrey White:
+    href: "https://www.rwhite.no"
+
+reference:
+- title: MHT exposure entry points
+  desc: >
+    One function per study definition. Each takes a person-week skeleton and a
+    table of dispensed prescriptions, and writes the derived exposure columns
+    onto the skeleton BY REFERENCE. They differ in the LMED identifier column
+    they read, in how the product categories are flagged, and in whether the
+    `rd_approach*` exposure variables are produced.
+  contents:
+  - x2026_add_lmed
+  - x2023_add_lmed
+
+- title: Synthetic fixtures
+  desc: >
+    Small synthetic tables carrying no real person data, used by the examples
+    and by the test suite. The prescription tables differ only in the name of
+    the person identifier column.
+  contents:
+  - fake_lmed_2026
+  - fake_lmed_2023
+  - fake_skeleton_mht

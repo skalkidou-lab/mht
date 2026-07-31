@@ -1,0 +1,15 @@
+^dev$
+^_pkgdown\.yml$
+^index\.md$
+^docs$
+^\.github$
+^\.claude$
+^CLAUDE\.md$
+^.*\.Rproj$
+^\.Rproj\.user$
+^\.git$
+^\.gitignore$
+^\.Rhistory$
+^\.DS_Store$
+^.*\.Rcheck$
+^.*\.tar\.gz$

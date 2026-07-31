@@ -1,0 +1,21 @@
+.Rproj.user
+.Rhistory
+.RData
+.Ruserdata
+*.Rproj
+docs/
+inst/doc/
+..Rcheck/
+*.Rcheck/
+.DS_Store
+
+# Output files from R CMD build
+/*.tar.gz
+# R environment variables
+.Renviron
+# Agent scratch
+.claude/
+# knitr and R markdown caches
+*_cache/
+*.utf8.md
+*.knit.md

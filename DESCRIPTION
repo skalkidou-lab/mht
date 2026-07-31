@@ -1,0 +1,34 @@
+Package: mht
+Title: Menopausal Hormone Therapy Exposure Definitions for Swedish Registry Data
+Version: 26.7.31
+Authors@R: person(c("Richard","Aubrey"), "White", email = "hello@rwhite.no", role = c("aut", "cre"),
+    comment = c(ORCID = "0000-0002-6747-1726"))
+Description: Derives menopausal hormone therapy (MHT) exposure from Swedish
+    prescription registry (LMED) data. Categorises dispensed product names into
+    MHT groups, corrects dispensed durations for products whose recorded defined
+    daily doses are unreliable, and bridges gaps between consecutive
+    prescriptions. Applies the approach-based exposure definitions used by the
+    Skalkidou-lab MHT studies to person-week skeletons of the form produced by
+    'swereg', on which it does not depend.
+Depends: R (>= 4.1.0)
+License: MIT + file LICENSE
+URL: https://github.com/skalkidou-lab/mht, https://skalkidou-lab.github.io/mht/
+BugReports: https://github.com/skalkidou-lab/mht/issues
+Encoding: UTF-8
+LazyData: true
+Config/Needs/website: papadopoulos-lab/pkgdowntemplate
+Config/roxygen2/version: 8.0.0
+Config/testthat/edition: 3
+Imports:
+    cstime,
+    data.table,
+    dplyr,
+    glue,
+    readxl,
+    stats,
+    stringr
+Suggests:
+    knitr,
+    rmarkdown,
+    testthat (>= 3.0.0),
+    withr
