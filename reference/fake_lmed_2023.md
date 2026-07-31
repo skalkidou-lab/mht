@@ -1,7 +1,7 @@
 # Synthetic LMED prescriptions in the 2023 column layout
 
 A small synthetic dispensed-prescription table shaped like the Swedish
-prescribed drug register (LMED) extract that \[x2023_add_lmed()\]
+prescribed drug register (LMED) extract that \[add_lmed_v20230509()\]
 consumes. It carries no real person data.
 
 ## Usage

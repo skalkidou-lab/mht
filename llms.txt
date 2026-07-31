@@ -37,9 +37,9 @@ columns onto the skeleton BY REFERENCE. They differ in the LMED
 identifier column they read, in how the product categories are flagged,
 and in whether the `rd_approach*` exposure variables are produced.
 
-- [`x2026_add_lmed()`](https://skalkidou-lab.github.io/mht/reference/x2026_add_lmed.md)
+- [`add_lmed_v20250909()`](https://skalkidou-lab.github.io/mht/reference/add_lmed_v20250909.md)
   : Add 2026 MHT exposure variables to a person-week skeleton
-- [`x2023_add_lmed()`](https://skalkidou-lab.github.io/mht/reference/x2023_add_lmed.md)
+- [`add_lmed_v20230509()`](https://skalkidou-lab.github.io/mht/reference/add_lmed_v20230509.md)
   : Add 2023 MHT exposure variables to a person-week skeleton
 
 ## Synthetic fixtures

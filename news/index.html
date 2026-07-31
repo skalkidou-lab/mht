@@ -7,7 +7,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">mht</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">26.7.31</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">26.7.31.1</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -33,13 +33,27 @@
     </div>
 
     <div class="section level2">
+<h2 class="pkg-version" data-toc-text="26.7.31.1" id="mht-267311">mht 26.7.31.1<a class="anchor" aria-label="anchor" href="#mht-267311"></a></h2>
+<ul><li>
+<strong>Both exported entry points are renamed, and the suffix dates the METHODOLOGY.</strong> <code>x2023_add_lmed()</code> becomes <code><a href="../reference/add_lmed_v20230509.html">add_lmed_v20230509()</a></code>; <code>x2026_add_lmed()</code> becomes <code><a href="../reference/add_lmed_v20250909.html">add_lmed_v20250909()</a></code>. The eleven internal helpers take the same suffix and drop the <code>x20xx_</code> prefix.</li>
+<li>The <code>v&lt;YYYYMMDD&gt;</code> suffix is <strong>not</strong> the study year and <strong>not</strong> the release date. It is the date on which that definition’s methodology was created:
+<ul><li>
+<code>v20230509</code> — the approach layer (<code>post_grouping</code>, the approach definitions) was created <strong>2023-05-09</strong>, in the <code>2022-mht</code> repository, commit <code>ce396c2</code>.</li>
+<li>
+<code>v20250909</code> — the <code>rd_approach{1,2,3}_*</code> methodology and its sensitivity variants were created <strong>2025-09-09</strong>, in the <code>structural-mht-registry-data</code> repository, commit <code>3603214</code>. That is five months before the code was written into <code>swereg</code>, which is why the old <code>x2026</code> prefix was misleading: 2026 was the study year, not the year the method was devised.</li>
+</ul></li>
+<li>Behaviour is unchanged. This release is a rename only, proven against the frozen goldens in <code>inst/testdata/</code> with <code><a href="https://rdrr.io/r/base/identical.html" class="external-link">identical()</a></code>.</li>
+<li>See the three-column migration map in <code>README.md</code> if you are coming from either earlier name.</li>
+</ul></div>
+    <div class="section level2">
 <h2 class="pkg-version" data-toc-text="26.7.31" id="mht-26731">mht 26.7.31<a class="anchor" aria-label="anchor" href="#mht-26731"></a></h2>
 <ul><li>First release. <code>mht</code> carries the MHT-specific code that previously lived in <code>swereg</code>, extracted into a package of its own so the MHT exposure definitions can be versioned and reviewed separately from the general registry tooling.</li>
-<li>Function names drop the <code>mht</code> infix, because the package name now supplies it. <code>swereg::x2023_mht_add_lmed()</code> becomes <code><a href="../reference/x2023_add_lmed.html">mht::x2023_add_lmed()</a></code>, and <code>swereg::x2026_mht_add_lmed()</code> becomes <code><a href="../reference/x2026_add_lmed.html">mht::x2026_add_lmed()</a></code>. See the migration map in <code>README.md</code>.</li>
+<li>Function names drop the <code>mht</code> infix, because the package name now supplies it. <code>swereg::x2023_mht_add_lmed()</code> becomes <code>mht::x2023_add_lmed()</code>, and <code>swereg::x2026_mht_add_lmed()</code> becomes <code>mht::x2026_add_lmed()</code>. See the migration map in <code>README.md</code>.</li>
 <li>
 <code>mht</code> does not depend on <code>swereg</code>. It operates on person-week skeletons of the form <code>swereg</code> produces, but takes them as plain <code>data.table</code> arguments, so the two packages can be installed and upgraded independently.</li>
 </ul></div>
-  </main></div>
+  </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
+    </nav></aside></div>
 
 
     <footer><div class="pkgdown-footer-left">

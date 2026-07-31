@@ -1,7 +1,7 @@
 # Synthetic LMED prescriptions in the 2026 column layout
 
 A small synthetic dispensed-prescription table shaped like the Swedish
-prescribed drug register (LMED) extract that \[x2026_add_lmed()\]
+prescribed drug register (LMED) extract that \[add_lmed_v20250909()\]
 consumes. It carries no real person data.
 
 ## Usage
@@ -31,7 +31,7 @@ A \[data.table::data.table\] with 128 rows and 4 columns:
 - fddd:
 
   numeric. Dispensed duration in days. One row is deliberately negative,
-  so that \[x2026_add_lmed()\] drops it with a warning.
+  so that \[add_lmed_v20250909()\] drops it with a warning.
 
 ## Source
 
