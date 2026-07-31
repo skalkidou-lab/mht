@@ -1,0 +1,121 @@
+# Add 2026 MHT exposure variables to a person-week skeleton
+
+Derives menopausal hormone therapy (MHT) exposure from Swedish
+prescription registry (LMED) data, using the definitions pinned for the
+2026 MHT study. Categorises dispensed product names into MHT groups,
+corrects the dispensed durations of products whose recorded defined
+daily doses are unreliable, derives the approach-based treatment
+variables, and then builds the \`rd_approach\*\` exposure variables on
+top of them.
+
+## Usage
+
+``` r
+x2026_add_lmed(skeleton, lmed, verbose = TRUE)
+```
+
+## Arguments
+
+- skeleton:
+
+  A \`data.table\` person-week skeleton with an integer \`id\` column
+  and a character \`isoyearweek\` column of the form \`"YYYY-WW"\`.
+  Modified by reference; see \`Value\`.
+
+- lmed:
+
+  A \`data.table\` of dispensed prescriptions. Exactly four columns are
+  read: \`lopnr\` (person identifier, matched against \`skeleton\$id\`),
+  \`produkt\` (product name), \`edatum\` (\`Date\` of dispensing) and
+  \`fddd\` (numeric dispensed duration in days). NOT modified: the
+  function first subsets \`lmed\` to the identifiers present in
+  \`skeleton\`, which allocates a new \`data.table\`, and every
+  subsequent \`:=\` writes to that internal subset. The caller's own
+  \`lmed\` is left untouched.
+
+- verbose:
+
+  Logical. If \`TRUE\` (the default), report progress with
+  \`message()\`. Set to \`FALSE\` for a silent run.
+
+## Value
+
+An internal logical flag, NOT the skeleton. Never assign the result:
+\`skel \<- x2026_add_lmed(skel, lmed)\` would overwrite your skeleton
+with that flag. Call the function for its effect, then carry on using
+the object you passed in.
+
+\`skeleton\` is MODIFIED BY REFERENCE. The caller's own object gains one
+logical column per MHT product category (\`A1\` ... \`I2\`), the
+character columns \`approach1\`, \`approach2\` and \`approach3\`, and
+the eight exposure columns \`rd_approach1_single\`,
+\`rd_approach1_multiple\`, \`rd_approach2_single\`,
+\`rd_approach2_multiple\`, \`rd_approach3_single\`,
+\`rd_approach3_multiple\`, \`rd_approach3b_single\` and
+\`rd_approach3b_multiple\`. If you still need the input skeleton
+unchanged, pass \`data.table::copy(skeleton)\`.
+
+\`lmed\` is NOT modified. Only \`skeleton\` is modified in place.
+
+## Details
+
+This function performs several steps:
+
+- Restricts the LMED data to individuals present in \`skeleton\`
+
+- Categorises products into MHT groups (\`A1\` ... \`I2\`) from product
+  names
+
+- Applies duration fixes for specific products (IUDs, minimum doses)
+
+- Flags the product categories in force in each person-week
+
+- Derives the approach variables, bridging gaps of up to four weeks
+
+- Builds the \`rd_approach\*\` exposure variables, applying the
+  \`previous\` / \`exclude\` and minimum-duration rules
+
+## Note
+
+This entry point differs from the earlier one in four ways. It flags the
+product categories with a \`data.table::foverlaps()\` interval join
+instead of a nested loop over categories and ISO weeks. It reads the
+LMED identifier from \`lopnr\`. It takes a \`verbose\` argument. And it
+additionally computes the \`rd_approach\*\` exposure variables, which
+the earlier entry point does not produce.
+
+Prescription rows whose dispensed interval is missing or inverted, which
+a missing or negative \`fddd\` produces, are dropped with a warning.
+
+## See also
+
+\[fake_lmed_2026\] and \[fake_skeleton_mht\] for the synthetic fixtures
+used below.
+
+Other MHT exposure entry points:
+[`x2023_add_lmed()`](https://skalkidou-lab.github.io/mht/reference/x2023_add_lmed.md)
+
+## Examples
+
+``` r
+library(data.table)
+
+# copy() the skeleton: it is modified in place. `lmed` is not modified,
+# but copy() it too so the shipped fixture is never altered by accident.
+skeleton <- copy(fake_skeleton_mht)
+lmed <- copy(fake_lmed_2026)
+
+# the fixture deliberately holds one negative-duration row, which warns
+suppressWarnings(x2026_add_lmed(skeleton, lmed, verbose = FALSE))
+#> [1] FALSE
+
+# `skeleton` itself now carries the derived columns
+skeleton[, .N, keyby = .(rd_approach1_single)]
+#> Key: <rd_approach1_single>
+#>    rd_approach1_single     N
+#>                 <char> <int>
+#> 1:             exclude  2560
+#> 2:   local_or_none_mht  2196
+#> 3:            previous   140
+#> 4:        systemic_mht   720
+```

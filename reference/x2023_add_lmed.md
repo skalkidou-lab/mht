@@ -1,0 +1,105 @@
+# Add 2023 MHT exposure variables to a person-week skeleton
+
+Derives menopausal hormone therapy (MHT) exposure from Swedish
+prescription registry (LMED) data, using the definitions pinned for the
+2023 MHT study. Categorises dispensed product names into MHT groups,
+corrects the dispensed durations of products whose recorded defined
+daily doses are unreliable, and derives the approach-based treatment
+variables.
+
+## Usage
+
+``` r
+x2023_add_lmed(skeleton, lmed)
+```
+
+## Arguments
+
+- skeleton:
+
+  A \`data.table\` person-week skeleton with an integer \`id\` column
+  and a character \`isoyearweek\` column of the form \`"YYYY-WW"\`.
+  Modified by reference; see \`Value\`.
+
+- lmed:
+
+  A \`data.table\` of dispensed prescriptions. Exactly four columns are
+  read: \`p1163_lopnr_personnr\` (person identifier, matched against
+  \`skeleton\$id\`), \`produkt\` (product name), \`edatum\` (\`Date\` of
+  dispensing) and \`fddd\` (numeric dispensed duration in days). NOT
+  modified: the function first subsets \`lmed\` to the identifiers
+  present in \`skeleton\`, which allocates a new \`data.table\`, and
+  every subsequent \`:=\` writes to that internal subset. The caller's
+  own \`lmed\` is left untouched.
+
+## Value
+
+An internal logical flag, NOT the skeleton. Never assign the result:
+\`skel \<- x2023_add_lmed(skel, lmed)\` would overwrite your skeleton
+with that flag. Call the function for its effect, then carry on using
+the object you passed in.
+
+\`skeleton\` is MODIFIED BY REFERENCE. The caller's own object gains one
+logical column per MHT product category (\`A1\` ... \`I2\`) and the
+character columns \`approach1\`, \`approach2\` and \`approach3\`. If you
+still need the input skeleton unchanged, pass
+\`data.table::copy(skeleton)\`.
+
+\`lmed\` is NOT modified. Only \`skeleton\` is modified in place.
+
+## Details
+
+This function performs several steps:
+
+- Restricts the LMED data to individuals present in \`skeleton\`
+
+- Categorises products into MHT groups (\`A1\` ... \`I2\`) from product
+  names
+
+- Applies duration fixes for specific products (IUDs, minimum doses)
+
+- Flags the product categories in force in each person-week
+
+- Derives the approach variables, bridging gaps of up to four weeks
+
+## Note
+
+This entry point is pinned to the 2023 study definitions. It flags the
+product categories with a nested loop over categories and ISO weeks, it
+reads the LMED identifier from \`p1163_lopnr_personnr\`, and it has no
+\`verbose\` argument: progress is always reported with \`message()\`.
+
+## See also
+
+\[x2026_add_lmed()\] for the 2026 definitions, and \[fake_lmed_2023\]
+and \[fake_skeleton_mht\] for the synthetic fixtures used below.
+
+Other MHT exposure entry points:
+[`x2026_add_lmed()`](https://skalkidou-lab.github.io/mht/reference/x2026_add_lmed.md)
+
+## Examples
+
+``` r
+library(data.table)
+#> 
+#> Attaching package: ‘data.table’
+#> The following object is masked from ‘package:base’:
+#> 
+#>     %notin%
+
+# copy() the skeleton: it is modified in place. `lmed` is not modified,
+# but copy() it too so the shipped fixture is never altered by accident.
+skeleton <- copy(fake_skeleton_mht)
+lmed <- copy(fake_lmed_2023)
+
+suppressMessages(x2023_add_lmed(skeleton, lmed))
+#> [1] FALSE
+
+# `skeleton` itself now carries the derived columns
+skeleton[, .N, keyby = .(approach1)]
+#> Key: <approach1>
+#>            approach1     N
+#>               <char> <int>
+#> 1: local_or_none_mht  4773
+#> 2:      systemic_mht   843
+```
