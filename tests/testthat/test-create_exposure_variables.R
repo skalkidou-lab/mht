@@ -1,4 +1,4 @@
-# Pins `x2026_create_exposure_variables()`, in particular the three-year
+# Pins `create_exposure_variables_v20250909()`, in particular the three-year
 # minimum-duration rule `last_session_on_mht < 3 * 52` (156 weeks).
 #
 # The skeleton here is built INLINE on purpose. The shipped fixture
@@ -69,7 +69,7 @@ tail_values <- function(d, person_id, column, n) {
 
 test_that("the eight rd_approach* columns are created", {
   d <- build_skeleton()
-  mht:::x2026_create_exposure_variables(d)
+  mht:::create_exposure_variables_v20250909(d)
   expect_true(all(
     c(
       "rd_approach1_single",
@@ -88,7 +88,7 @@ test_that("the eight rd_approach* columns are created", {
 test_that("an episode of 155 weeks is too short: the following weeks are 'exclude'", {
   # below the boundary. 155 < 3 * 52, so "previous" is downgraded to "exclude".
   d <- build_skeleton()
-  mht:::x2026_create_exposure_variables(d)
+  mht:::create_exposure_variables_v20250909(d)
   for (v in c(
     "rd_approach1_single",
     "rd_approach1_multiple",
@@ -106,7 +106,7 @@ test_that("an episode of 155 weeks is too short: the following weeks are 'exclud
 test_that("an episode of exactly 156 weeks qualifies: the following weeks are 'previous'", {
   # exactly on the boundary. 156 < 3 * 52 is FALSE, so "previous" survives.
   d <- build_skeleton()
-  mht:::x2026_create_exposure_variables(d)
+  mht:::create_exposure_variables_v20250909(d)
   for (v in c(
     "rd_approach1_single",
     "rd_approach1_multiple",
@@ -124,7 +124,7 @@ test_that("an episode of exactly 156 weeks qualifies: the following weeks are 'p
 test_that("an episode of 157 weeks qualifies: the following weeks are 'previous'", {
   # above the boundary.
   d <- build_skeleton()
-  mht:::x2026_create_exposure_variables(d)
+  mht:::create_exposure_variables_v20250909(d)
   for (v in c(
     "rd_approach1_single",
     "rd_approach1_multiple",
@@ -143,7 +143,7 @@ test_that("the 155 / 156 / 157 persons differ only at the boundary", {
   # the same three assertions read as one table, so a threshold moved by one
   # week cannot pass by coincidence
   d <- build_skeleton()
-  mht:::x2026_create_exposure_variables(d)
+  mht:::create_exposure_variables_v20250909(d)
   got <- vapply(
     1:3,
     function(i) unique(tail_values(d, i, "rd_approach1_single", 20L)),
@@ -154,7 +154,7 @@ test_that("the 155 / 156 / 157 persons differ only at the boundary", {
 
 test_that("weeks on MHT keep their treatment level in every approach", {
   d <- build_skeleton()
-  mht:::x2026_create_exposure_variables(d)
+  mht:::create_exposure_variables_v20250909(d)
   expect_identical(
     unique(person_values(d, 3L, "rd_approach1_single")[1:157]),
     "systemic_mht"
@@ -171,7 +171,7 @@ test_that("weeks on MHT keep their treatment level in every approach", {
 
 test_that("re-initiation is excluded under 'single' and allowed under 'multiple'", {
   d <- build_skeleton()
-  mht:::x2026_create_exposure_variables(d)
+  mht:::create_exposure_variables_v20250909(d)
   # id 4: 160 on, 10 off, 10 on. 160 >= 156, so the off weeks are "previous".
   expect_identical(tail_values(d, 4L, "rd_approach1_single", 20L),
                    c(rep("previous", 10L), rep("exclude", 10L)))
@@ -181,7 +181,7 @@ test_that("re-initiation is excluded under 'single' and allowed under 'multiple'
 
 test_that("a person who was never on MHT stays 'local_or_none_mht'", {
   d <- build_skeleton()
-  mht:::x2026_create_exposure_variables(d)
+  mht:::create_exposure_variables_v20250909(d)
   expect_identical(unique(person_values(d, 5L, "rd_approach1_single")), off_mht)
   expect_identical(unique(person_values(d, 5L, "rd_approach1_multiple")), off_mht)
   expect_identical(unique(person_values(d, 5L, "rd_approach3b_single")), off_mht)
@@ -189,7 +189,7 @@ test_that("a person who was never on MHT stays 'local_or_none_mht'", {
 
 test_that("approach3b collapses the two progesterone subtypes into one level", {
   d <- build_skeleton()
-  mht:::x2026_create_exposure_variables(d)
+  mht:::create_exposure_variables_v20250909(d)
   expect_identical(
     unique(person_values(d, 3L, "rd_approach3b_single")[1:157]),
     "estrogen_progesterone"
@@ -206,14 +206,14 @@ test_that("the synthetic progesterone level also collapses to estrogen_progester
     approach2 = rep("peroral_estrogen", 10L),
     approach3 = rep("estrogen_progesterone_synthetic", 10L)
   )
-  mht:::x2026_create_exposure_variables(d)
+  mht:::create_exposure_variables_v20250909(d)
   expect_identical(unique(d$rd_approach3b_multiple), "estrogen_progesterone")
 })
 
 test_that("the skeleton is modified by reference: the caller's object gains the columns", {
   d <- build_skeleton()
   expect_false("rd_approach1_single" %in% names(d))
-  invisible(mht:::x2026_create_exposure_variables(d))
+  invisible(mht:::create_exposure_variables_v20250909(d))
   expect_true("rd_approach1_single" %in% names(d))
   # the helper columns the function builds are all removed again
   expect_false(any(

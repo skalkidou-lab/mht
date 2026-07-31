@@ -12,8 +12,8 @@ categorize <- function(fn, produkt) {
 }
 
 both_ladders <- list(
-  x2023 = mht:::x2023_lmed_categorize_product_names,
-  x2026 = mht:::x2026_lmed_categorize_product_names
+  v20230509 = mht:::lmed_categorize_product_names_v20230509,
+  v20250909 = mht:::lmed_categorize_product_names_v20250909
 )
 
 test_that("products that classify correctly keep their category", {
@@ -64,7 +64,7 @@ test_that("spaces are stripped from the product name but hyphens are not", {
   # `produkt_clean` is assigned twice: the hyphen-stripping assignment is
   # immediately overwritten by the space-stripping one, so only spaces survive.
   x <- data.table::data.table(produkt = c("Femoston conti", "Femoston-conti"))
-  mht:::x2026_lmed_categorize_product_names(x)
+  mht:::lmed_categorize_product_names_v20250909(x)
   expect_identical(x$produkt_clean, c("Femostonconti", "Femoston-conti"))
   expect_identical(x$product_category, c("B4", "B11"))
 })
@@ -167,7 +167,7 @@ test_that("the 2023 and 2026 ladders return the same category for every probe", 
     "Paracetamol"
   )
   expect_identical(
-    categorize(both_ladders$x2023, probe),
-    categorize(both_ladders$x2026, probe)
+    categorize(both_ladders$v20230509, probe),
+    categorize(both_ladders$v20250909, probe)
   )
 })

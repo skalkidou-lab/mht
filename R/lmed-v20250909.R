@@ -6,7 +6,7 @@
 #' @param x A `data.table` of dispensed prescriptions with a `produkt` column.
 #' @return `x`, modified by reference.
 #' @noRd
-x2026_lmed_categorize_product_names <- function(x) {
+lmed_categorize_product_names_v20250909 <- function(x) {
   # Declare variables for data.table non-standard evaluation
   produkt_clean <- product_category <- produkt <- NULL
 
@@ -165,7 +165,7 @@ x2026_lmed_categorize_product_names <- function(x) {
 #' @param verbose Logical. If `TRUE`, report each category with `message()`.
 #' @return `skeleton`, modified by reference.
 #' @noRd
-x2026_apply_lmed_categories_to_skeleton <- function(
+apply_lmed_categories_to_skeleton_v20250909 <- function(
   skeleton,
   LMED,
   verbose = TRUE
@@ -285,7 +285,7 @@ x2026_apply_lmed_categories_to_skeleton <- function(
 #' @param x A logical vector, in person-week order.
 #' @return A logical vector with every `FALSE` run of length <= 4 set to `TRUE`.
 #' @noRd
-x2026_replace_false_runs <- function(x) {
+replace_false_runs_v20250909 <- function(x) {
   runs <- rle(x)
   runs$values[runs$values == FALSE & runs$lengths <= 4] <- TRUE
   inverse.rle(runs)
@@ -296,7 +296,7 @@ x2026_replace_false_runs <- function(x) {
 #' @param x A logical vector, in person-week order.
 #' @return A numeric vector: weeks elapsed within the current `TRUE` run.
 #' @noRd
-x2026_cumulative_reset <- function(x) {
+cumulative_reset_v20250909 <- function(x) {
   grp_id <- rleid(!x)
   cumsum_reset <- ave(x, grp_id, FUN = cumsum)
   return(cumsum_reset)
@@ -313,7 +313,7 @@ x2026_cumulative_reset <- function(x) {
 #'   category columns.
 #' @return `skeleton`, modified by reference.
 #' @noRd
-x2026_apply_lmed_approaches_to_skeleton <- function(skeleton) {
+apply_lmed_approaches_to_skeleton_v20250909 <- function(skeleton) {
   # Declare variables for data.table non-standard evaluation
   . <- NULL
   approach <- id <- row_min <- num_of_approaches_at_row_min <- NULL
@@ -356,7 +356,7 @@ x2026_apply_lmed_approaches_to_skeleton <- function(skeleton) {
       if (j == "local_or_none_mht") {
         next()
       }
-      skeleton[, (j) := x2026_replace_false_runs(get(j)), by = .(id)]
+      skeleton[, (j) := replace_false_runs_v20250909(get(j)), by = .(id)]
     }
 
     # how long they've been taking the drug for
@@ -367,7 +367,7 @@ x2026_apply_lmed_approaches_to_skeleton <- function(skeleton) {
       }
       var <- paste0("run_", j)
       run_vars <- c(run_vars, var)
-      skeleton[, (var) := x2026_cumulative_reset(get(j)), by = .(id)]
+      skeleton[, (var) := cumulative_reset_v20250909(get(j)), by = .(id)]
       skeleton[get(var) == 0, (var) := 999999999]
     }
 
@@ -442,7 +442,7 @@ x2026_apply_lmed_approaches_to_skeleton <- function(skeleton) {
 #'   `message()`. Set to `FALSE` for a silent run.
 #'
 #' @return An internal logical flag, NOT the skeleton. Never assign the
-#'   result: `skel <- x2026_add_lmed(skel, lmed)` would overwrite your
+#'   result: `skel <- add_lmed_v20250909(skel, lmed)` would overwrite your
 #'   skeleton with that flag. Call the function for its effect, then carry on
 #'   using the object you passed in.
 #'
@@ -492,12 +492,12 @@ x2026_apply_lmed_approaches_to_skeleton <- function(skeleton) {
 #' lmed <- copy(fake_lmed_2026)
 #'
 #' # the fixture deliberately holds one negative-duration row, which warns
-#' suppressWarnings(x2026_add_lmed(skeleton, lmed, verbose = FALSE))
+#' suppressWarnings(add_lmed_v20250909(skeleton, lmed, verbose = FALSE))
 #'
 #' # `skeleton` itself now carries the derived columns
 #' skeleton[, .N, keyby = .(rd_approach1_single)]
 #' @export
-x2026_add_lmed <- function(skeleton, lmed, verbose = TRUE) {
+add_lmed_v20250909 <- function(skeleton, lmed, verbose = TRUE) {
   # Declare variables for data.table non-standard evaluation
   lopnr <- start_isoyearweek <- stop_isoyearweek <- start_date <- stop_date <- NULL
   product_category <- fddd <- produkt <- edatum <- NULL
@@ -512,7 +512,7 @@ x2026_add_lmed <- function(skeleton, lmed, verbose = TRUE) {
   if (verbose) {
     message(Sys.time(), " LMED categorizing product names ")
   }
-  x2026_lmed_categorize_product_names(lmed)
+  lmed_categorize_product_names_v20250909(lmed)
 
   # fixing IUDS
   lmed[product_category == "D3", fddd := 1680] # IUDs
@@ -574,15 +574,15 @@ x2026_add_lmed <- function(skeleton, lmed, verbose = TRUE) {
   if (verbose) {
     message(Sys.time(), " LMED apply categories to skeleton ")
   }
-  x2026_apply_lmed_categories_to_skeleton(skeleton, lmed, verbose = verbose)
+  apply_lmed_categories_to_skeleton_v20250909(skeleton, lmed, verbose = verbose)
   if (verbose) {
     message(Sys.time(), " LMED apply approaches ")
   }
-  x2026_apply_lmed_approaches_to_skeleton(skeleton)
+  apply_lmed_approaches_to_skeleton_v20250909(skeleton)
   if (verbose) {
     message(Sys.time(), " LMED create exposure variables ")
   }
-  x2026_create_exposure_variables(skeleton)
+  create_exposure_variables_v20250909(skeleton)
   if (verbose) {
     message(Sys.time(), " LMED finished ")
   }

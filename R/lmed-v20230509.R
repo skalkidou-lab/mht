@@ -6,7 +6,7 @@
 #' @param x A `data.table` of dispensed prescriptions with a `produkt` column.
 #' @return `x`, modified by reference.
 #' @noRd
-x2023_lmed_categorize_product_names <- function(x){
+lmed_categorize_product_names_v20230509 <- function(x){
   # Declare variables for data.table non-standard evaluation
   produkt_clean <- product_category <- produkt <- NULL
 
@@ -176,7 +176,7 @@ x2023_lmed_categorize_product_names <- function(x){
 #'   `product_category` and `p1163_lopnr_personnr`.
 #' @return `skeleton`, modified by reference.
 #' @noRd
-x2023_apply_lmed_categories_to_skeleton <- function(skeleton, LMED){
+apply_lmed_categories_to_skeleton_v20230509 <- function(skeleton, LMED){
   # Declare variables for data.table non-standard evaluation
   . <- NULL
   start_isoyearweek <- stop_isoyearweek <- isoyearweek <- product_category <- id <- NULL
@@ -221,7 +221,7 @@ x2023_apply_lmed_categories_to_skeleton <- function(skeleton, LMED){
 #' @param x A logical vector, in person-week order.
 #' @return A logical vector with every `FALSE` run of length <= 4 set to `TRUE`.
 #' @noRd
-x2023_replace_false_runs <- function(x) {
+replace_false_runs_v20230509 <- function(x) {
   runs <- rle(x)
   runs$values[runs$values == FALSE & runs$lengths <= 4] <- TRUE
   inverse.rle(runs)
@@ -232,7 +232,7 @@ x2023_replace_false_runs <- function(x) {
 #' @param x A logical vector, in person-week order.
 #' @return A numeric vector: weeks elapsed within the current `TRUE` run.
 #' @noRd
-x2023_cumulative_reset <- function(x) {
+cumulative_reset_v20230509 <- function(x) {
   grp_id <- rleid(!x)
   cumsum_reset <- ave(x, grp_id, FUN = cumsum)
   return(cumsum_reset)
@@ -248,7 +248,7 @@ x2023_cumulative_reset <- function(x) {
 #'   category columns.
 #' @return `skeleton`, modified by reference.
 #' @noRd
-x2023_apply_lmed_approaches_to_skeleton <- function(skeleton){
+apply_lmed_approaches_to_skeleton_v20230509 <- function(skeleton){
   # Declare variables for data.table non-standard evaluation
   . <- NULL
   approach <- id <- row_min <- num_of_approaches_at_row_min <- NULL
@@ -283,7 +283,7 @@ x2023_apply_lmed_approaches_to_skeleton <- function(skeleton){
     # fill in the missing gaps (up to four weeks)
     for(j in unique(app$variable)){
       if(j=="local_or_none_mht") next()
-      skeleton[, (j) := x2023_replace_false_runs(get(j)), by=.(id)]
+      skeleton[, (j) := replace_false_runs_v20230509(get(j)), by=.(id)]
     }
 
     # how long they've been taking the drug for
@@ -292,7 +292,7 @@ x2023_apply_lmed_approaches_to_skeleton <- function(skeleton){
       if(j=="local_or_none_mht") next()
       var <- paste0("run_",j)
       run_vars <- c(run_vars, var)
-      skeleton[, (var) := x2023_cumulative_reset(get(j)), by=.(id)]
+      skeleton[, (var) := cumulative_reset_v20230509(get(j)), by=.(id)]
       skeleton[get(var)==0, (var) := 999999999]
     }
 
@@ -348,7 +348,7 @@ x2023_apply_lmed_approaches_to_skeleton <- function(skeleton){
 #'   that internal subset. The caller's own `lmed` is left untouched.
 #'
 #' @return An internal logical flag, NOT the skeleton. Never assign the
-#'   result: `skel <- x2023_add_lmed(skel, lmed)` would overwrite your
+#'   result: `skel <- add_lmed_v20230509(skel, lmed)` would overwrite your
 #'   skeleton with that flag. Call the function for its effect, then carry on
 #'   using the object you passed in.
 #'
@@ -375,7 +375,7 @@ x2023_apply_lmed_approaches_to_skeleton <- function(skeleton){
 #'   `verbose` argument: progress is always reported with `message()`.
 #'
 #' @family MHT exposure entry points
-#' @seealso [x2026_add_lmed()] for the 2026 definitions, and [fake_lmed_2023]
+#' @seealso [add_lmed_v20250909()] for the 2026 definitions, and [fake_lmed_2023]
 #'   and [fake_skeleton_mht] for the synthetic fixtures used below.
 #'
 #' @examples
@@ -386,12 +386,12 @@ x2023_apply_lmed_approaches_to_skeleton <- function(skeleton){
 #' skeleton <- copy(fake_skeleton_mht)
 #' lmed <- copy(fake_lmed_2023)
 #'
-#' suppressMessages(x2023_add_lmed(skeleton, lmed))
+#' suppressMessages(add_lmed_v20230509(skeleton, lmed))
 #'
 #' # `skeleton` itself now carries the derived columns
 #' skeleton[, .N, keyby = .(approach1)]
 #' @export
-x2023_add_lmed <- function(skeleton, lmed){
+add_lmed_v20230509 <- function(skeleton, lmed){
   # Declare variables for data.table non-standard evaluation
   p1163_lopnr_personnr <- start_isoyearweek <- stop_isoyearweek <- start_date <- stop_date <- NULL
   product_category <- fddd <- produkt <- edatum <- NULL
@@ -400,7 +400,7 @@ x2023_add_lmed <- function(skeleton, lmed){
   message(Sys.time(), " LMED restricting")
   lmed <- lmed[p1163_lopnr_personnr %in% unique(skeleton$id)]
   message(Sys.time(), " LMED categorizing product names ")
-  x2023_lmed_categorize_product_names(lmed)
+  lmed_categorize_product_names_v20230509(lmed)
 
   # fixing IUDS
   lmed[product_category=="D3", fddd := 1680] # IUDs
@@ -439,9 +439,9 @@ x2023_add_lmed <- function(skeleton, lmed){
   lmed[, stop_isoyearweek :=  cstime::date_to_isoyearweek_c(stop_date)]
 
   message(Sys.time(), " LMED apply categories to skeleton ")
-  x2023_apply_lmed_categories_to_skeleton(skeleton, lmed)
+  apply_lmed_categories_to_skeleton_v20230509(skeleton, lmed)
   message(Sys.time(), " LMED apply approaches ")
-  x2023_apply_lmed_approaches_to_skeleton(skeleton)
+  apply_lmed_approaches_to_skeleton_v20230509(skeleton)
   message(Sys.time(), " LMED finished ")
   data.table::shouldPrint(skeleton)
 }

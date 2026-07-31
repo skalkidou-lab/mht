@@ -8,14 +8,14 @@
 #'   `approach2` and `approach3`.
 #' @return `skeleton`, modified by reference.
 #' @noRd
-x2026_create_exposure_variables <- function(skeleton) {
+create_exposure_variables_v20250909 <- function(skeleton) {
   # ---------------------------------------------------------------------------
   # Exposure variable creation
   # ---------------------------------------------------------------------------
   #
   # INPUT
   # -----
-  # Requires columns from x2026_apply_lmed_approaches_to_skeleton():
+  # Requires columns from apply_lmed_approaches_to_skeleton_v20250909():
   #   approach1, approach2, approach3  (character, one row per person-week)
   #
   # OUTPUT
@@ -93,8 +93,8 @@ x2026_create_exposure_variables <- function(skeleton) {
   # UPSTREAM NOTE
   # -------------
   # The input approach1/approach2/approach3 columns have already had gaps of
-  # <= 4 weeks filled by x2026_replace_false_runs() inside
-  # x2026_apply_lmed_approaches_to_skeleton(). This means short treatment
+  # <= 4 weeks filled by replace_false_runs_v20250909() inside
+  # apply_lmed_approaches_to_skeleton_v20250909(). This means short treatment
   # interruptions (e.g., delayed prescription refills) are bridged before the
   # exposure logic below runs.
   #

@@ -23,15 +23,19 @@ Reference documentation: <https://skalkidou-lab.github.io/mht/>
 
 ## Migration from swereg
 
-The MHT code was previously part of `swereg`. Function names drop the `mht`
-infix, because the package name now supplies it.
+The MHT code was previously part of `swereg`. Two renames have happened since,
+so the map below carries three columns: use the rightmost one.
 
-| Old name | New name |
-|---|---|
-| `swereg::x2023_mht_add_lmed` | `mht::x2023_add_lmed` |
-| `swereg::x2026_mht_add_lmed` | `mht::x2026_add_lmed` |
+| swereg (removed) | mht 26.7.31 | mht 26.7.31.1 |
+|---|---|---|
+| `swereg::x2023_mht_add_lmed` | `mht::x2023_add_lmed` | `mht::add_lmed_v20230509` |
+| `swereg::x2026_mht_add_lmed` | `mht::x2026_add_lmed` | `mht::add_lmed_v20250909` |
 
-Arguments and return values are unchanged.
+Arguments and return values are unchanged at every step. Only the names moved.
+
+The `v<YYYYMMDD>` suffix is the date the **methodology** was created, not the
+study year and not the release date. See `NEWS.md` for the evidence behind each
+date.
 
 ## License
 

@@ -42,23 +42,23 @@ test_that("the frozen goldens ship with the installed package", {
   }
 })
 
-test_that("x2026_add_lmed() reproduces the frozen 2026 golden exactly", {
+test_that("add_lmed_v20250909() reproduces the frozen 2026 golden exactly", {
   skeleton <- data.table::copy(readRDS(testdata("input_skeleton_2026.rds")))
   lmed <- data.table::copy(readRDS(testdata("input_lmed_2026.rds")))
   expected <- readRDS(testdata("expected_2026.rds"))
 
   # the fixture deliberately holds one negative-duration row, which warns
-  suppressWarnings(x2026_add_lmed(skeleton, lmed, verbose = FALSE))
+  suppressWarnings(add_lmed_v20250909(skeleton, lmed, verbose = FALSE))
 
   expect_identical(strip_caches(skeleton), strip_caches(expected))
 })
 
-test_that("x2023_add_lmed() reproduces the frozen 2023 golden exactly", {
+test_that("add_lmed_v20230509() reproduces the frozen 2023 golden exactly", {
   skeleton <- data.table::copy(readRDS(testdata("input_skeleton_2023.rds")))
   lmed <- data.table::copy(readRDS(testdata("input_lmed_2023.rds")))
   expected <- readRDS(testdata("expected_2023.rds"))
 
-  suppressMessages(suppressWarnings(x2023_add_lmed(skeleton, lmed)))
+  suppressMessages(suppressWarnings(add_lmed_v20230509(skeleton, lmed)))
 
   expect_identical(strip_caches(skeleton), strip_caches(expected))
 })
