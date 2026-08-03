@@ -7,7 +7,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">mht</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">26.7.31.1</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">26.8.3</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -32,6 +32,19 @@
       <small>Source: <a href="https://github.com/skalkidou-lab/mht/blob/main/NEWS.md" class="external-link"><code>NEWS.md</code></a></small>
     </div>
 
+    <div class="section level2">
+<h2 class="pkg-version" data-toc-text="26.8.3" id="mht-2683">mht 26.8.3<a class="anchor" aria-label="anchor" href="#mht-2683"></a></h2>
+<ul><li>
+<strong>New codebook version <code>dataDictionary20260803.xlsx</code> ships, and NOTHING reads it yet.</strong> It is staged for the next dated entry point. Both existing entry points keep reading <code>dataDictionary20241105.xlsx</code>, unchanged.</li>
+<li>
+<strong>A dated function is frozen, and so are its inputs.</strong> <code><a href="../reference/add_lmed_v20230509.html">add_lmed_v20230509()</a></code> and <code><a href="../reference/add_lmed_v20250909.html">add_lmed_v20250909()</a></code> are dated, therefore immutable — repointing either at a new codebook would change a frozen artefact, even when the change is behaviourally inert. <strong>To adopt <code>dataDictionary20260803.xlsx</code>, create a new dated entry point that reads it. Do not edit an existing one.</strong>
+</li>
+<li>
+<strong>The only change to the codebook itself is an annotation on the <code>Rules</code> sheet.</strong> <code>MHT_groups</code>, <code>post_grouping</code>, <code>FDDD</code> and <code>covariates</code> are identical between the two files, verified cell by cell. No code reads <code>Rules</code>. So classification, duration and exposure output are unchanged — the 17 golden tests pass untouched, and no reclean is needed.</li>
+<li>The annotation marks <code>Rules</code> item 4 <strong>superseded, item 4 only</strong>. Item 4 rounds down to whole treatment <strong>periods</strong>. A later study decision, taken in November 2024, replaced it with rounding down to whole <strong>months</strong> — the rule that added <code>minimum_monthly_dose</code> and <code>minimum_months</code> to <code>MHT_groups</code>, and the one the minimum-dose loop in <code>R/lmed-v20230509.R</code> has implemented ever since. Items 1, 2, 3 and 5 are unaffected.</li>
+<li>The annotation states the difference in full: the two rules agree only when <code>fddd</code> is a multiple of <code>minimum_monthly_dose</code> times <code>minimum_months</code>, and 15 of the 18 products carrying a rule are affected. <strong>The decision itself, and the correspondence recording it, are held in the study’s own project record, which is not public.</strong>
+</li>
+</ul></div>
     <div class="section level2">
 <h2 class="pkg-version" data-toc-text="26.7.31.1" id="mht-267311">mht 26.7.31.1<a class="anchor" aria-label="anchor" href="#mht-267311"></a></h2>
 <ul><li>
