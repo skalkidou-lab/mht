@@ -903,21 +903,33 @@ test_that("the duration pins detect a one-day change in BOTH directions", {
   iud_sun <- span_2026("Mirena", 1, "E1", weeks, sun)
   expect_identical(iud_sun, span_2026("Divigel", 1680, "A1", weeks, sun))
   expect_false(identical(iud_sun, span_2026("Divigel", 1681, "A1", weeks, sun)))
-  # the blind direction, pinned as blind so nobody later reads it as covered
-  expect_identical(iud_sun, span_2026("Divigel", 1679, "A1", weeks, sun))
+  # the blind direction, pinned as blind so nobody later reads it as covered.
+  # It is still an assertion, at week resolution -- see the note below.
+  expect_identical(iud_sun, span_2026("Divigel", 1679, "A1", weeks, sun)) # blind
 
   # ---- shortening: seen from the Monday anchor, invisible from Sunday
   iud_mon <- span_2026("Mirena", 1, "E1", weeks, mon)
   expect_identical(iud_mon, span_2026("Divigel", 1680, "A1", weeks, mon))
   expect_false(identical(iud_mon, span_2026("Divigel", 1679, "A1", weeks, mon)))
-  expect_identical(iud_mon, span_2026("Divigel", 1681, "A1", weeks, mon))
+  expect_identical(iud_mon, span_2026("Divigel", 1681, "A1", weeks, mon)) # blind
 
-  # the Jaydess duration behaves the same way, in both directions
+  # ---- the Jaydess duration behaves the same way, in both directions, and
+  # each anchor's blind direction is pinned here too. A "blind" assertion is
+  # NOT a tautology: it says the observed span equals the span of the
+  # neighbouring-day duration, which stops holding as soon as the rule's
+  # duration leaves that ISO week. So it detects a change, at week resolution
+  # rather than day resolution. Both are proven red below by moving the
+  # Jaydess constant a full week: 1008 -> 1001 breaks the Sunday one,
+  # 1008 -> 1015 breaks the Monday one.
   jay_sun <- span_2026("Jaydess", 1, "E1", weeks, sun)
+  expect_identical(jay_sun, span_2026("Divigel", 1008, "A1", weeks, sun))
   expect_false(identical(jay_sun, span_2026("Divigel", 1009, "A1", weeks, sun)))
+  expect_identical(jay_sun, span_2026("Divigel", 1007, "A1", weeks, sun)) # blind
+
   jay_mon <- span_2026("Jaydess", 1, "E1", weeks, mon)
-  expect_false(identical(jay_mon, span_2026("Divigel", 1007, "A1", weeks, mon)))
   expect_identical(jay_mon, span_2026("Divigel", 1008, "A1", weeks, mon))
+  expect_false(identical(jay_mon, span_2026("Divigel", 1007, "A1", weeks, mon)))
+  expect_identical(jay_mon, span_2026("Divigel", 1009, "A1", weeks, mon)) # blind
 })
 
 test_that("the Jaydess rule overrides the IUD rule", {

@@ -48,8 +48,12 @@
   blind to one day shorter; a Monday anchor is the mirror image. Running both
   gives one-day sensitivity in each direction. Measured, then verified by
   mutation: 1680 to 1681 is red from the Sunday anchor, 1680 to 1679 from the
-  Monday one. Pins that name no anchor use the Sunday default and detect
-  lengthening only, which the test file states.
+  Monday one. Each anchor's blind direction is asserted too, for both the IUD
+  and the Jaydess duration: a blind assertion is not a tautology, it holds only
+  while the duration stays inside that ISO week, so it still detects a change at
+  week resolution. Also verified by mutation, by moving each constant a full
+  week. Pins that name no anchor use the Sunday default and detect lengthening
+  only, which the test file states.
 * **The documented contract is pinned as it really behaves.** An entry point
   returns a length-1 logical, not the skeleton. It reorders the caller's
   skeleton, deletes caller columns whose names collide with its own working
