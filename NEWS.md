@@ -1,3 +1,39 @@
+# mht 26.8.3.1
+
+* **New test file `tests/testthat/test-classifier-invariants.R` pins the whole
+  exposure pipeline stage by stage, defects included.** No code changed. Every
+  expectation was obtained by running the exported entry points; none was read
+  out of the codebook or derived from the ladder source. When a repair lands,
+  the diff of that file is the record of what changed.
+* Pinned per stage: which rows enter, what a raw product name becomes, which
+  ladder rung a name reaches under first-match ordering, which categories can
+  be materialised as skeleton columns, how the minimum-dose loop resolves, how
+  the duration rules take precedence over each other, which approach columns a
+  category set produces, and what reaches the caller's skeleton.
+* **The pinned defects.** Three ladder rungs are shadowed by an earlier rung
+  and can never fire, so `B10`, `C5` and `D1` are unreachable for every input.
+  Seven category columns therefore stay `FALSE` over the whole codebook product
+  universe: `B10`, `B12`, `C2`, `C5`, `D1`, `D4` and `I1`. Category `G1` is
+  produced by the ladder but is absent from the column list, so a `G1`
+  prescription is classified and then reaches no column at all. Categories
+  `F1`, `G1` and `H1` are read by no approach rule, so adding one of them to a
+  person changes no approach value.
+* **The minimum-dose loop compounds.** It writes the duration once per matching
+  codebook row and each iteration reads the previous result, so a product name
+  matching two rows has the rule applied twice. It also matches the RAW product
+  name while the ladder matches the normalised one, and it writes last, so it
+  overrides both the IUD and the Jaydess duration rules rather than yielding to
+  them.
+* **The exposure duration is observable only to the ISO week** through an
+  exported entry point, so the duration pins cannot detect a change of fewer
+  than seven days. Stated in the test file.
+* **The documented contract is pinned as it really behaves.** An entry point
+  returns a length-1 logical, not the skeleton. It reorders the caller's
+  skeleton, deletes caller columns whose names collide with its own working
+  columns, and attaches a `data.table` index to the caller's `lmed`. "Mutates
+  by reference and only adds columns" is not an accurate description, and the
+  contract needs a decision.
+
 # mht 26.8.3
 
 * **New codebook version `dataDictionary20260803.xlsx` ships, and NOTHING reads
