@@ -3,6 +3,9 @@ on:
     branches: [main, develop]
   pull_request:
     branches: [main]
+  # Lets a pkgdowntemplate change be rolled out here without a dummy commit:
+  #   gh workflow run check-and-pkgdown.yml --repo skalkidou-lab/mht
+  workflow_dispatch:
 
 name: Check and pkgdown
 
