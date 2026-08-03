@@ -1,6 +1,6 @@
 Package: mht
 Title: Menopausal Hormone Therapy Exposure Definitions for Swedish Registry Data
-Version: 26.7.31.1
+Version: 26.8.3
 Authors@R: person(c("Richard","Aubrey"), "White", email = "hello@rwhite.no", role = c("aut", "cre"),
     comment = c(ORCID = "0000-0002-6747-1726"))
 Description: Derives menopausal hormone therapy (MHT) exposure from Swedish
