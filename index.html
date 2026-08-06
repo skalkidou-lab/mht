@@ -31,7 +31,7 @@
 
     <a class="navbar-brand me-2" href="index.html">mht</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">26.8.3.2</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">26.8.6</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -82,7 +82,7 @@ What’s inside
 Product-name categorisation
 </h3>
 <p>
-Around 110 Swedish menopausal hormone therapy product names are mapped onto the A1–I2 category ladder: local and systemic estrogens, combined preparations, progestogens, implants, intrauterine systems, tibolone and testosterone.
+The classifier ladder maps around 110 Swedish menopausal hormone therapy product names onto the A1–I2 categories. Those categories cover local and systemic estrogens, combined preparations, progestogens, implants, intrauterine systems, tibolone and testosterone.
 </p>
 </div>
 <div class="rw-card">
@@ -93,7 +93,7 @@ Around 110 Swedish menopausal hormone therapy product names are mapped onto the 
 Duration correction and gap bridging
 </h3>
 <p>
-Dispensed durations are corrected for the products whose recorded defined daily dose is unreliable, intrauterine systems are given their real service life, and gaps of up to four weeks between consecutive prescriptions are bridged.
+<code>mht</code> corrects the dispensed durations of products whose recorded defined daily dose is unreliable. It gives intrauterine systems their real service life. It bridges gaps of up to four weeks between consecutive prescriptions.
 </p>
 </div>
 <div class="rw-card">
@@ -104,7 +104,7 @@ Dispensed durations are corrected for the products whose recorded defined daily 
 Approach-based exposure definitions
 </h3>
 <p>
-The <code>rd_approach{1,2,3,3b}_{single,multiple}</code> variables are written onto a person-week skeleton, applying the <code>previous</code> and <code>exclude</code> rules and the three-year minimum-duration rule used by the Skalkidou-lab MHT studies.
+<code>mht</code> writes the <code>rd_approach{1,2,3,3b}_{single,multiple}</code> variables onto a person-week skeleton. It applies the <code>previous</code> and <code>exclude</code> rules, and the three-year minimum-duration rule used by the Skalkidou-lab MHT studies.
 </p>
 </div>
 </div>
