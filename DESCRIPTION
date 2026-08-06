@@ -1,8 +1,16 @@
 Package: mht
 Title: Menopausal Hormone Therapy Exposure Definitions for Swedish Registry Data
 Version: 26.8.6
-Authors@R: person(c("Richard","Aubrey"), "White", email = "hello@rwhite.no", role = c("aut", "cre"),
-    comment = c(ORCID = "0000-0002-6747-1726"))
+Authors@R:
+    c(
+      person(
+        given = c("Richard", "Aubrey"),
+        family = "White",
+        email = "hello@rwhite.no",
+        role = c("aut", "cre", "cph"),
+        comment = c(ORCID = "0000-0002-6747-1726")
+      )
+    )
 Description: Derives menopausal hormone therapy (MHT) exposure from Swedish
     prescription registry (LMED) data. Categorises dispensed product names into
     MHT groups, corrects dispensed durations for products whose recorded defined

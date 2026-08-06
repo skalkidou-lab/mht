@@ -1,5 +1,15 @@
 # mht 26.8.6
 
+## Licensing
+
+* `DESCRIPTION` `Authors@R` now declares **Richard Aubrey White** as the
+  copyright holder, with `role = "cph"`. It declared none at all, and
+  neither did any other package in the fleet. Nothing in `R CMD check`
+  reports that.
+* The copyright year is now 2026. It read 2026.
+* `CLAUDE.md` now carries a Licensing section, so the year gets checked
+  rather than silently ageing.
+
 * Prose only. This release rewrites the roxygen documentation, `README.md`,
   `index.md` and `NEWS.md` to ASD-STE100 (Simplified Technical English). No
   package code changed.
