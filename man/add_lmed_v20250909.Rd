@@ -11,19 +11,24 @@ add_lmed_v20250909(skeleton, lmed, verbose = TRUE)
 column and a character `isoyearweek` column of the form `"YYYY-WW"`.
 Modified by reference; see `Value`.}
 
-\item{lmed}{A `data.table` of dispensed prescriptions. Exactly four columns
-are read: `lopnr` (person identifier, matched against `skeleton$id`),
-`produkt` (product name), `edatum` (`Date` of dispensing) and `fddd`
-(numeric dispensed duration in days). NOT modified: the function first
-subsets `lmed` to the identifiers present in `skeleton`, which allocates
-a new `data.table`, and every subsequent `:=` writes to that internal
-subset. The caller's own `lmed` is left untouched.}
+\item{lmed}{A `data.table` of dispensed prescriptions. The function reads
+exactly four columns:
+\itemize{
+  \item `lopnr` - person identifier, matched against `skeleton$id`
+  \item `produkt` - product name
+  \item `edatum` - `Date` of dispensing
+  \item `fddd` - numeric dispensed duration in days
+}
+`lmed` is NOT modified. The function first subsets `lmed` to the
+identifiers present in `skeleton`, which allocates a new `data.table`.
+Every subsequent `:=` then writes to that internal subset. The caller's
+own `lmed` is left untouched.}
 
 \item{verbose}{Logical. If `TRUE` (the default), report progress with
 `message()`. Set to `FALSE` for a silent run.}
 }
 \value{
-An internal logical flag, NOT the skeleton. Never assign the
+An internal logical flag, NOT the skeleton. You MUST NOT assign the
   result: `skel <- add_lmed_v20250909(skel, lmed)` would overwrite your
   skeleton with that flag. Call the function for its effect, then carry on
   using the object you passed in.
@@ -42,13 +47,13 @@ An internal logical flag, NOT the skeleton. Never assign the
 \description{
 Derives menopausal hormone therapy (MHT) exposure from Swedish prescription
 registry (LMED) data, using the definitions pinned for the 2026 MHT study.
-Categorises dispensed product names into MHT groups, corrects the dispensed
-durations of products whose recorded defined daily doses are unreliable,
-derives the approach-based treatment variables, and then builds the
-`rd_approach*` exposure variables on top of them.
+`add_lmed_v20250909()` categorises dispensed product names into MHT groups.
+It corrects the dispensed durations of products whose recorded defined daily
+doses are unreliable. It derives the approach-based treatment variables. It
+then builds the `rd_approach*` exposure variables on top of them.
 }
 \details{
-This function performs several steps:
+`add_lmed_v20250909()` performs several steps:
 \itemize{
   \item Restricts the LMED data to individuals present in `skeleton`
   \item Categorises products into MHT groups (`A1` ... `I2`) from product names

@@ -35,13 +35,13 @@ library(data.table)
 grDevices::pdf(NULL)
 
 CFG <- list(
-  bg      = "#251B31",
-  border  = "#C58FC8",
+  bg = "#251B31",
+  border = "#C58FC8",
   pill_lo = "#EBD3EC", # capsule's pale half, and the tablet body
   pill_hi = "#B173B8", # capsule's coloured half
-  score   = "#9C6BA4", # the tablet's score line
-  text    = "#F3E9F4",
-  out     = "man/figures/logo.png"
+  score = "#9C6BA4", # the tablet's score line
+  text = "#F3E9F4",
+  out = "man/figures/logo.png"
 )
 
 rot <- function(x, y, deg) {
@@ -57,7 +57,15 @@ circle <- function(cx, cy, r, n = 256) {
 # Half a stadium: a flat edge on the seam side, a semicircular cap on the other.
 # Two of these butted together make a capsule with a straight seam, which is how
 # a real two-piece capsule reads.
-half_capsule <- function(cx, cy, len, r, deg, side = c("right", "left"), n = 128) {
+half_capsule <- function(
+  cx,
+  cy,
+  len,
+  r,
+  deg,
+  side = c("right", "left"),
+  n = 128
+) {
   side <- match.arg(side)
   s <- if (side == "right") 1 else -1
   t <- seq(-pi / 2, pi / 2, length.out = n)
@@ -100,18 +108,18 @@ q <- q + theme(legend.position = "none")
 
 sticker(
   q,
-  package  = "mht",
-  p_size   = 26,
-  p_y      = 1.46,
-  p_color  = CFG$text,
+  package = "mht",
+  p_size = 26,
+  p_y = 1.46,
+  p_color = CFG$text,
   p_family = "sans",
-  s_x      = 1.0,
-  s_y      = 0.88,
-  s_width  = 1.52,
+  s_x = 1.0,
+  s_y = 0.88,
+  s_width = 1.52,
   s_height = 0.86,
-  h_fill   = CFG$bg,
-  h_color  = CFG$border,
-  h_size   = 1.5,
-  dpi      = 600,
+  h_fill = CFG$bg,
+  h_color = CFG$border,
+  h_size = 1.5,
+  dpi = 600,
   filename = CFG$out
 )

@@ -1,7 +1,7 @@
 #' Build the 2026 `rd_approach*` exposure variables
 #'
 #' Turns the `approach1`, `approach2` and `approach3` columns into the eight
-#' `rd_approach*_single` / `rd_approach*_multiple` exposure variables, applying
+#' `rd_approach*_single` / `rd_approach*_multiple` exposure variables. It applies
 #' the `previous` / `exclude` rules described in the comment block below.
 #'
 #' @param skeleton A person-week `data.table` already carrying `approach1`,
@@ -240,8 +240,11 @@ create_exposure_variables_v20250909 <- function(skeleton) {
     dst <- paste0("rd_approach3b_", p)
     skeleton[, (dst) := get(src)]
     skeleton[
-      get(dst) %in% c("estrogen_progesterone_bioidentical",
-                       "estrogen_progesterone_synthetic"),
+      get(dst) %in%
+        c(
+          "estrogen_progesterone_bioidentical",
+          "estrogen_progesterone_synthetic"
+        ),
       (dst) := "estrogen_progesterone"
     ]
   }

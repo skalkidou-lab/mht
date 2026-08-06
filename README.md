@@ -3,12 +3,16 @@
 Menopausal hormone therapy (MHT) exposure definitions for Swedish registry data.
 
 `mht` derives MHT exposure from Swedish prescription registry (LMED) data. It
-categorises dispensed product names into MHT groups, corrects dispensed
-durations for products whose recorded defined daily doses are unreliable,
-bridges gaps between consecutive prescriptions, and applies the approach-based
-exposure definitions used by the Skalkidou-lab MHT studies.
+does four things:
 
-It operates on person-week skeletons of the form `swereg` produces, but takes
+- It categorises dispensed product names into MHT groups.
+- It corrects dispensed durations for products whose recorded defined daily
+  doses are unreliable.
+- It bridges gaps between consecutive prescriptions.
+- It applies the approach-based exposure definitions used by the Skalkidou-lab
+  MHT studies.
+
+`mht` operates on person-week skeletons of the form `swereg` produces. It takes
 them as plain `data.table` arguments and **does not depend on `swereg`**.
 
 ## Installation
@@ -23,8 +27,8 @@ Reference documentation: <https://skalkidou-lab.github.io/mht/>
 
 ## Migration from swereg
 
-The MHT code was previously part of `swereg`. Two renames have happened since,
-so the map below carries three columns: use the rightmost one.
+The MHT code was previously part of `swereg`. Two renames happened since then,
+so the map below carries three columns. Use the rightmost column.
 
 | swereg (removed) | mht 26.7.31 | mht 26.7.31.1 |
 |---|---|---|
