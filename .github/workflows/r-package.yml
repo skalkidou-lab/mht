@@ -1,0 +1,14 @@
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+name: Check and pkgdown
+
+jobs:
+  r-package:
+    permissions:
+      contents: write
+    uses: papadopoulos-lab/pptemplate/.github/workflows/r-package.yml@e4e2e58921921752e26a1b6b503a62bbc84e3d18

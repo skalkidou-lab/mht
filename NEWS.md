@@ -3,6 +3,10 @@
 * **The pkgdown template package is renamed to `pptemplate`.** `DESCRIPTION`
   `Config/Needs/website` and `_pkgdown.yml` `template: package:` both name
   `papadopoulos-lab/pptemplate` now. The house style itself is unchanged.
+* **A caller of the shared `papadopoulos-lab/pptemplate` workflow replaces
+  `.github/workflows/check-and-pkgdown.yml`.** The shared workflow runs
+  `loc-limit`, then `R-CMD-check`, then `pkgdown`. No file in `R/` is over 1000
+  code lines, so the caller needs no `loc-allowlist`.
 
 # mht 26.8.6
 
