@@ -6,7 +6,7 @@ url: https://skalkidou-lab.github.io/mht/
 # Everything under `params: hero:` is this package's own copy for the home-page
 # hero band.
 template:
-  package: pkgdowntemplate
+  package: pptemplate
   params:
     hero:
       overline: "R package · Menopausal hormone therapy"

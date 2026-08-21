@@ -1,6 +1,6 @@
 Package: mht
 Title: Menopausal Hormone Therapy Exposure Definitions for Swedish Registry Data
-Version: 26.8.6
+Version: 26.8.21
 Authors@R:
     c(
       person(
@@ -24,7 +24,7 @@ URL: https://github.com/skalkidou-lab/mht, https://skalkidou-lab.github.io/mht/
 BugReports: https://github.com/skalkidou-lab/mht/issues
 Encoding: UTF-8
 LazyData: true
-Config/Needs/website: papadopoulos-lab/pkgdowntemplate
+Config/Needs/website: papadopoulos-lab/pptemplate
 Config/roxygen2/version: 8.0.0
 Config/testthat/edition: 3
 Imports:
