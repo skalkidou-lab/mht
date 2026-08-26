@@ -11,7 +11,7 @@ jobs:
   r-package:
     permissions:
       contents: write
-    uses: papadopoulos-lab/pptemplate/.github/workflows/r-package.yml@568e122a8adef696dcf4ea05f2ee652ddc6775f3
+    uses: papadopoulos-lab/pptemplate/.github/workflows/r-package.yml@33abc413dbe3dbe21b37b2a4ba515cdda1c008e6
     with:
       # Every entry below is a DATED, FROZEN artefact. mht changes behaviour by
       # creating a new dated function, never by editing an existing one, so
