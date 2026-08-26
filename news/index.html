@@ -7,7 +7,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">mht</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">26.8.21</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">26.8.26</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -31,6 +31,17 @@
       <small>Source: <a href="https://github.com/skalkidou-lab/mht/blob/main/NEWS.md" class="external-link"><code>NEWS.md</code></a></small>
     </div>
 
+    <div class="section level2">
+<h2 class="pkg-version" data-toc-text="26.8.26" id="mht-26826">mht 26.8.26<a class="anchor" aria-label="anchor" href="#mht-26826"></a></h2>
+<ul><li>
+<strong><code>tests/testthat/test-clash-and-exclude.R</code> pins how <code>clashingprescriptions</code> and <code>exclude</code> reach <code>previous</code>.</strong> The transition rule that records a woman as a former MHT user fires only when she moves from an active level to <code>local_or_none_mht</code>. Which levels count as active decides whether she can re-enter a new-user analysis, and the two levels behave differently.</li>
+<li>
+<strong><code>clashingprescriptions</code> is an active level.</strong> A clash that ends in no treatment records the later weeks as <code>previous</code>, exactly as stopping systemic MHT does.</li>
+<li>
+<strong><code>exclude</code> is inert, and the file pins that as a defect.</strong> The sequence <code>local_or_none_mht</code> to <code>exclude</code> to <code>local_or_none_mht</code> contains no stop for the transition rule to find, so no <code>previous</code> is ever recorded and the untreated weeks after the exclusion are absorbed into it. An overlap repair written by putting <code>exclude</code> into the clashing weeks would therefore never lift.</li>
+<li>
+<strong>A clash that resolves into a group is pinned as a defect.</strong> Where clashing weeks are followed by <code>systemic_mht</code>, no earlier week carries the value <code>systemic_mht</code>. The target-trial specs exclude prior use by testing that one value, so such a woman passes as treatment-naive and enrols as an initiator while already treated.</li>
+</ul></div>
     <div class="section level2">
 <h2 class="pkg-version" data-toc-text="26.8.21" id="mht-26821">mht 26.8.21<a class="anchor" aria-label="anchor" href="#mht-26821"></a></h2>
 <ul><li>
