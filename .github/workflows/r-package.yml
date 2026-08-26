@@ -11,4 +11,4 @@ jobs:
   r-package:
     permissions:
       contents: write
-    uses: papadopoulos-lab/pptemplate/.github/workflows/r-package.yml@0ec90b6e4686500bb242acbf4f9c560d814d88af
+    uses: papadopoulos-lab/pptemplate/.github/workflows/r-package.yml@568e122a8adef696dcf4ea05f2ee652ddc6775f3
