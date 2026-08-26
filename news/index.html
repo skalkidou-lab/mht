@@ -33,14 +33,13 @@
 
     <div class="section level2">
 <h2 class="pkg-version" data-toc-text="26.8.26" id="mht-26826">mht 26.8.26<a class="anchor" aria-label="anchor" href="#mht-26826"></a></h2>
-<ul><li>
-<strong><code>tests/testthat/test-clash-and-exclude.R</code> pins how <code>clashingprescriptions</code> and <code>exclude</code> reach <code>previous</code>.</strong> The transition rule that records a woman as a former MHT user fires only when she moves from an active level to <code>local_or_none_mht</code>. Which levels count as active decides whether she can re-enter a new-user analysis, and the two levels behave differently.</li>
-<li>
-<strong><code>clashingprescriptions</code> is an active level.</strong> A clash that ends in no treatment records the later weeks as <code>previous</code>, exactly as stopping systemic MHT does.</li>
-<li>
-<strong><code>exclude</code> is inert, and the file pins that as a defect.</strong> The sequence <code>local_or_none_mht</code> to <code>exclude</code> to <code>local_or_none_mht</code> contains no stop for the transition rule to find, so no <code>previous</code> is ever recorded and the untreated weeks after the exclusion are absorbed into it. An overlap repair written by putting <code>exclude</code> into the clashing weeks would therefore never lift.</li>
-<li>
-<strong>A clash that resolves into a group is pinned as a defect.</strong> Where clashing weeks are followed by <code>systemic_mht</code>, no earlier week carries the value <code>systemic_mht</code>. The target-trial specs exclude prior use by testing that one value, so such a woman passes as treatment-naive and enrols as an initiator while already treated.</li>
+<ul><li><p><strong><code>tests/testthat/test-clash-and-exclude.R</code> pins how <code>clashingprescriptions</code> and <code>exclude</code> reach <code>previous</code>.</strong> The transition rule that records a woman as a former MHT user fires only when she moves from an active level to <code>local_or_none_mht</code>. Which levels count as active decides whether she can re-enter a new-user analysis, and the two levels behave differently.</p></li>
+<li><p><strong><code>clashingprescriptions</code> is an active level.</strong> A clash that ends in no treatment records the later weeks as <code>previous</code>, exactly as stopping systemic MHT does.</p></li>
+<li><p><strong><code>exclude</code> is inert, and the file pins that as a defect.</strong> The sequence <code>local_or_none_mht</code> to <code>exclude</code> to <code>local_or_none_mht</code> contains no stop for the transition rule to find, so no <code>previous</code> is ever recorded and the untreated weeks after the exclusion are absorbed into it. An overlap repair written by putting <code>exclude</code> into the clashing weeks would therefore never lift.</p></li>
+<li><p><strong>A clash that resolves into a group is pinned as a defect.</strong> Where clashing weeks are followed by <code>systemic_mht</code>, no earlier week carries the value <code>systemic_mht</code>. The target-trial specs exclude prior use by testing that one value, so such a woman passes as treatment-naive and enrols as an initiator while already treated.</p></li>
+<li><p><strong>Two tests drive the real entry point, so the classifier produces the clash rather than receiving it.</strong> <code>Divigel</code> and <code>Femanest</code> dispensed on the same day start together and their run lengths stay equal, so the run-length rule cannot separate them.</p></li>
+<li><p><strong>Approach 1 can never clash, and the file pins that.</strong> A clash needs two groups tied on run length, the resolver skips <code>local_or_none_mht</code>, and approach 1 has one group left to time. Approaches 2 and 3 have two and three. This bounds the defect: it cannot reach an analysis that enrols on <code>rd_approach1_single</code>.</p></li>
+<li><p><strong>The flag outliving the overlap is pinned as a defect.</strong> Two prescriptions covering 365 days each overlap for about 52 weeks, and the flag then covers 278 of 300 weeks.</p></li>
 </ul></div>
     <div class="section level2">
 <h2 class="pkg-version" data-toc-text="26.8.21" id="mht-26821">mht 26.8.21<a class="anchor" aria-label="anchor" href="#mht-26821"></a></h2>

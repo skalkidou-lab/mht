@@ -8,20 +8,38 @@
   when she moves from an active level to `local_or_none_mht`. Which
   levels count as active decides whether she can re-enter a new-user
   analysis, and the two levels behave differently.
+
 - **`clashingprescriptions` is an active level.** A clash that ends in
   no treatment records the later weeks as `previous`, exactly as
   stopping systemic MHT does.
+
 - **`exclude` is inert, and the file pins that as a defect.** The
   sequence `local_or_none_mht` to `exclude` to `local_or_none_mht`
   contains no stop for the transition rule to find, so no `previous` is
   ever recorded and the untreated weeks after the exclusion are absorbed
   into it. An overlap repair written by putting `exclude` into the
   clashing weeks would therefore never lift.
+
 - **A clash that resolves into a group is pinned as a defect.** Where
   clashing weeks are followed by `systemic_mht`, no earlier week carries
   the value `systemic_mht`. The target-trial specs exclude prior use by
   testing that one value, so such a woman passes as treatment-naive and
   enrols as an initiator while already treated.
+
+- **Two tests drive the real entry point, so the classifier produces the
+  clash rather than receiving it.** `Divigel` and `Femanest` dispensed
+  on the same day start together and their run lengths stay equal, so
+  the run-length rule cannot separate them.
+
+- **Approach 1 can never clash, and the file pins that.** A clash needs
+  two groups tied on run length, the resolver skips `local_or_none_mht`,
+  and approach 1 has one group left to time. Approaches 2 and 3 have two
+  and three. This bounds the defect: it cannot reach an analysis that
+  enrols on `rd_approach1_single`.
+
+- **The flag outliving the overlap is pinned as a defect.** Two
+  prescriptions covering 365 days each overlap for about 52 weeks, and
+  the flag then covers 278 of 300 weeks.
 
 ## mht 26.8.21
 
