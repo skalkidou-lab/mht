@@ -20,6 +20,19 @@
   value, so such a woman passes as treatment-naive and enrols as an initiator
   while already treated.
 
+* **Two tests drive the real entry point, so the classifier produces the clash
+  rather than receiving it.** `Divigel` and `Femanest` dispensed on the same day
+  start together and their run lengths stay equal, so the run-length rule cannot
+  separate them.
+* **Approach 1 can never clash, and the file pins that.** A clash needs two
+  groups tied on run length, the resolver skips `local_or_none_mht`, and
+  approach 1 has one group left to time. Approaches 2 and 3 have two and three.
+  This bounds the defect: it cannot reach an analysis that enrols on
+  `rd_approach1_single`.
+* **The flag outliving the overlap is pinned as a defect.** Two prescriptions
+  covering 365 days each overlap for about 52 weeks, and the flag then covers
+  278 of 300 weeks.
+
 # mht 26.8.21
 
 * **The pkgdown template package is renamed to `pptemplate`.** `DESCRIPTION`

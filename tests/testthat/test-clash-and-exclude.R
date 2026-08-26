@@ -105,3 +105,53 @@ test_that("PINNED DEFECT: a clash that resolves into a group looks like a first 
   # she does reach `previous` once she stops, so only the entry is wrong
   expect_identical(unique(utils::tail(v, 10)), "previous")
 })
+
+# ------------------------------------- where the clash comes from, and how far --
+#
+# The tests above drive `create_exposure_variables_v20250909()` on a hand-built
+# skeleton. The two below drive the REAL entry point, so the clash is produced
+# by the classifier rather than supplied to it.
+#
+# `Divigel` is transdermal oestrogen and `Femanest` is peroral oestrogen. Given
+# the same dispensing date they start together, their run lengths stay equal,
+# and the run-length rule cannot separate them.
+
+clash_fixture <- function() {
+  weeks <- cstime::date_to_isoyearweek_c(as.Date("2010-01-04") + (seq_len(300) - 1L) * 7L)
+  skeleton <- data.table::data.table(id = 1L, isoyearweek = weeks)
+  lmed <- data.table::data.table(
+    lopnr = c(1L, 1L),
+    produkt = c("Divigel", "Femanest"),
+    edatum = as.Date(c("2010-06-07", "2010-06-07")),
+    fddd = c(365, 365)
+  )
+  suppressMessages(add_lmed_v20250909(skeleton, lmed, verbose = FALSE))
+  skeleton
+}
+
+test_that("approach 1 can never clash: it carries one run-length group", {
+  # A clash needs two groups tied on run length. The resolver skips
+  # `local_or_none_mht`, so approach 1 has exactly one group to time and the tie
+  # test can never be met. Approaches 2 and 3 have two and three.
+  #
+  # This bounds the defect below: it cannot reach an analysis that enrols on
+  # `rd_approach1_single`.
+  skeleton <- clash_fixture()
+
+  expect_false("clashingprescriptions" %in% skeleton[["approach1"]])
+  expect_true("clashingprescriptions" %in% skeleton[["approach2"]])
+})
+
+test_that("PINNED DEFECT: one clashing week is carried to the end of follow-up", {
+  # Both prescriptions cover 365 days, so the overlap lasts about 52 weeks. The
+  # flag outlives it by a factor of five.
+  skeleton <- clash_fixture()
+  v <- skeleton[["approach2"]]
+
+  expect_identical(which(v == "clashingprescriptions")[1], 23L)
+  expect_identical(v[length(v)], "clashingprescriptions")
+
+  # 278 of 300 weeks, against about 52 weeks of real overlap. The repair stops
+  # the flag at her first untreated week, so this count must fall when it lands.
+  expect_identical(sum(v == "clashingprescriptions"), 278L)
+})
