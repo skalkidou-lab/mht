@@ -2,6 +2,20 @@
 
 ## mht 26.8.26
 
+- **The lint gate is wired up.** The shared workflow’s `static-checks`
+  job was red on 22 lints, and `R-CMD-check` and `pkgdown` were skipped
+  behind it. Eleven `<path>:<linter>` pairs are now allowlisted in
+  `.github/workflows/r-package.yml`. Every one is in a dated, frozen
+  artefact: `lmed-v20230509.R`, `lmed-v20250909.R` and
+  `exposure-v20250909.R`. Those files cannot be fixed, because `mht`
+  changes behaviour by creating a new dated function rather than by
+  editing an existing one.
+
+- **`first_non_na()` gains an explicit
+  [`return()`](https://rdrr.io/r/base/function.html).** It was the only
+  lint in a file that is not frozen, so it is fixed rather than
+  allowlisted.
+
 - **`tests/testthat/test-clash-and-exclude.R` pins how
   `clashingprescriptions` and `exclude` reach `previous`.** The
   transition rule that records a woman as a former MHT user fires only
