@@ -6,6 +6,6 @@
 #' @param x Vector of any type
 #' @return First non-NA value in the vector
 #' @noRd
-first_non_na <- function(x){
-  dplyr::first(na.omit(x))
+first_non_na <- function(x) {
+  return(dplyr::first(na.omit(x)))
 }
