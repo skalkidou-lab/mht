@@ -1,7 +1,7 @@
 #!/usr/bin/env Rscript
 #
 # Check the 2026-08-28 ladder against the 2026-08-28 codebook and against the
-# 2026-08-26 clinician decisions.
+# decision table. Export MHT_DECISIONS_DIR to name the directory that holds it.
 #
 # Run it from the package root:
 #
@@ -41,11 +41,25 @@
 LADDER_FN <- "lmed_categorize_product_names_v20260828"
 SKELETON_FN <- "apply_lmed_categories_to_skeleton_v20260828"
 CODEBOOK <- "inst/2023-mht/dataDictionary20260828.xlsx"
-DECISIONS_CSV <- file.path(
-  "/home/raw996/skalkidou/structural-mht-registry-data",
-  "coauthor-questions",
-  "decisions-2026-08-26.csv"
-)
+DECISIONS_DIR_VAR <- "MHT_DECISIONS_DIR"
+DECISIONS_FILE <- "decisions-2026-08-26.csv"
+
+# The decision table lives outside this repository, so no directory of it is
+# written here. Export MHT_DECISIONS_DIR before you run the script.
+decisions_csv <- function() {
+  root <- Sys.getenv(DECISIONS_DIR_VAR, unset = NA_character_)
+  if (is.na(root) || !nzchar(root)) {
+    stop(
+      sprintf(
+        "Set %s to the directory that holds %s.",
+        DECISIONS_DIR_VAR,
+        DECISIONS_FILE
+      ),
+      call. = FALSE
+    )
+  }
+  return(file.path(root, DECISIONS_FILE))
+}
 
 # ================================================================ registers ====
 
@@ -59,8 +73,8 @@ EXEMPT_PRODUCTS <- c(
     "keys B10 on that register spelling, so the bare codebook name reaches A6."
   ),
   "Endovelle|C3" = paste(
-    "The codebook classifies Endovelle C3. The 2026-08-26 decision is NOT MHT.",
-    "The decision governs a clinical classification, so the ladder gives",
+    "The codebook classifies Endovelle C3. The decision table gives NOT MHT.",
+    "The decision table governs a clinical classification, so the ladder gives",
     "Endovelle no rung and the codebook keeps the row, unreachable. The Rules",
     "sheet of the same codebook already excludes Endovelle upstream, for too",
     "few users."
@@ -69,8 +83,8 @@ EXEMPT_PRODUCTS <- c(
 
 # Check 3. A NOT_MHT decision whose exact register spelling reaches a category
 # that an approach rule READS. Key is "produkt|category". Such an entry records
-# a real disagreement between the codebook and the clinician, and it needs a
-# coauthor decision.
+# a real disagreement between the codebook and the decision table, and it needs
+# a resolution before the entry is removed.
 #
 # The register is empty today, and the staleness check below keeps it honest.
 # An empty self-invalidating register is the place a future disagreement goes.
@@ -79,7 +93,7 @@ CONFLICTING_DECISIONS <- stats::setNames(character(0), character(0))
 # Check 5. A category the ladder returns that product_categories leaves out.
 DISCARDED_CATEGORIES <- c(
   G1 = paste(
-    "G1 is Duavive alone. The coauthors decided that Duavive counts as no MHT.",
+    "G1 is Duavive alone. Duavive counts as no MHT.",
     "Classify it, then discard it: a category the person-week grid never",
     "materialises reaches no approach rule."
   )
@@ -122,16 +136,16 @@ PREFIX_COLLISIONS <- data.frame(
   stringsAsFactors = FALSE
 )
 
-# The findings the phase recorded and did not act on. Each one carries a probe,
-# so a finding that stops being true fails the script.
+# The findings this script records and does not act on. Each one carries a
+# probe, so a finding that stops being true fails the script.
 FINDINGS <- list(
   list(
     id = "Folistrel",
     text = paste(
       "The codebook spells this product Folistrel, with one l, and gives it",
       "D2. The register spells it Follistrel, with two. No register spelling",
-      "reaches the rung. The rung stays, and the 2026-08-26 answer for",
-      "Follistrel is NOT MHT, which the ladder already gives."
+      "reaches the rung. The rung stays, and the decision table gives NOT MHT",
+      "for Follistrel, which is what the ladder already gives."
     ),
     probe = function(cl) {
       return(identical(cl("Folistrel"), "D2") && is.na(cl("Follistrel")))
@@ -151,9 +165,8 @@ FINDINGS <- list(
   list(
     id = "Gepretix",
     text = paste(
-      "Gepretix reaches no category and carries no decision. The 2026-08-19",
-      "product list put it to the coauthors, with 100 prescriptions in 92",
-      "people, and the 2026-08-26 answers do not name it."
+      "Gepretix reaches no category and carries no decision. The decision",
+      "table does not name it."
     ),
     probe = function(cl) {
       return(is.na(cl("Gepretix")))
@@ -164,17 +177,18 @@ FINDINGS <- list(
 # ================================================================== readers ====
 
 read_decisions <- function() {
-  if (!file.exists(DECISIONS_CSV)) {
-    stop(sprintf("%s not found", DECISIONS_CSV), call. = FALSE)
+  path <- decisions_csv()
+  if (!file.exists(path)) {
+    stop(sprintf("%s not found", path), call. = FALSE)
   }
-  x <- utils::read.csv(DECISIONS_CSV, stringsAsFactors = FALSE)
+  x <- utils::read.csv(path, stringsAsFactors = FALSE)
   need <- c("produkt", "decision_code")
   missing <- setdiff(need, names(x))
   if (length(missing) > 0) {
     stop(
       sprintf(
         "%s has no column %s",
-        DECISIONS_CSV,
+        path,
         paste(missing, collapse = ", ")
       ),
       call. = FALSE
@@ -830,8 +844,8 @@ show_rungs <- function(rungs) {
 }
 
 # Run the package test suite with NOT_CRAN set, and fail the script when any
-# test fails. Phase 2 proved this gate necessary: a mutation of the four-week
-# bridge left every codebook check reporting OK while four tests failed.
+# test fails. The gate is necessary: a mutation of the four-week bridge leaves
+# every codebook check reporting OK while four tests fail.
 run_suite <- function() {
   cat("\nTEST SUITE, NOT_CRAN=true\n")
   before <- Sys.getenv("NOT_CRAN", unset = NA_character_)
@@ -870,7 +884,7 @@ run_suite <- function() {
 # ==================================================================== main ====
 
 main <- function() {
-  for (path in c(CODEBOOK, DECISIONS_CSV)) {
+  for (path in c(CODEBOOK, decisions_csv())) {
     if (!file.exists(path)) {
       stop(
         sprintf("%s not found. Run this from the package root.", path),
@@ -891,7 +905,7 @@ main <- function() {
   cat(sprintf("  ladder    %s\n", LADDER_FN))
   cat(sprintf("  grid      %s\n", SKELETON_FN))
   cat(sprintf("  codebook  %s\n", CODEBOOK))
-  cat(sprintf("  decisions %s\n", DECISIONS_CSV))
+  cat(sprintf("  decisions $%s/%s\n", DECISIONS_DIR_VAR, DECISIONS_FILE))
 
   cat("\nCHECKS\n")
   check_1_decisions_unique(csv)

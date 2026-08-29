@@ -105,7 +105,7 @@ test_that("the person-week grid carries every category an approach rule reads", 
 test_that("exactly two grid categories are read by no approach rule", {
   # Both are deliberate and both are visible. `dev/check-crosswalk.R` reports
   # them, and D4 sits on its UNUSED_CATEGORIES register. No product reaches D4,
-  # and H1 is the androgens, which the coauthors count as no MHT.
+  # and H1 is the androgens, which are not MHT.
   skeleton <- empty_grid()
   grid_categories <- setdiff(names(skeleton), c("id", "isoyearweek"))
   expect_identical(length(grid_categories), 33L)
@@ -241,7 +241,7 @@ test_that("tibolone is its own group in all three approaches", {
   }
 })
 
-test_that("the frozen layer counts the same woman as an unexposed control", {
+test_that("v20250909 counts the same woman as an unexposed control", {
   # The `before` side. The frozen codebook names F1 in no approach rule, so a
   # woman on tibolone alone reads as untreated in every week of follow-up. She
   # enters a systemic-MHT comparison as a control.
@@ -300,7 +300,7 @@ test_that("a clash ends with the treated episode, and she returns as a former us
   )
 })
 
-test_that("the frozen layer carries the same clash to the end of follow-up", {
+test_that("v20250909 carries the same clash to the end of follow-up", {
   # The `before` side. 378 of 400 weeks, against 172 weeks of treatment. The
   # woman never returns to the cohort, and no week of hers is ever `previous`.
   skeleton <- grid(1L, "2010-01-04", 400L)
@@ -441,9 +441,9 @@ test_that("create_rd = FALSE and create_rd = TRUE agree on the approach columns"
 # ==================================================== the `Utrogest` alias ====
 
 test_that("Utrogest takes the Utrogestan rules, in both strength bands", {
-  # The clinician stated on 2026-08-26 that the two are one product. The
-  # codebook carries `Utrogestan` alone, so without the alias `Utrogest` reaches
-  # no minimum-dose rule and keeps its raw fddd of 30 days.
+  # `Utrogest` and `Utrogestan` are one product. The codebook carries
+  # `Utrogestan` alone, so without the alias `Utrogest` reaches no minimum-dose
+  # rule and keeps its raw fddd of 30 days.
   d <- mht:::lmed_durations_v20260828(
     data.table(
       lopnr = 1:4,
@@ -532,10 +532,9 @@ test_that("an alias whose target leaves the codebook is an error", {
 
 # ====================== the duration screen runs before the strength ====
 #
-# The alias made `Utrogest` strength-keyed. A strength and an `fddd` are missing
-# together in the 2026 delivery. A strength read before the duration screen then
-# turns a silently dropped row into a hard stop. 63,276 rows of the Utrogestan
-# family carry neither, and 48,248 of the 48,846 `Utrogest` rows are among them.
+# The alias made `Utrogest` strength-keyed. A strength and an `fddd` can both be
+# absent from one prescription. A strength read before the duration screen would
+# then turn every such row into a hard stop.
 
 durations <- function(...) {
   return(suppressWarnings(mht:::lmed_durations_v20260828(

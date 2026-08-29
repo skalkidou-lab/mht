@@ -25,15 +25,9 @@ lmed_normalize_product_name_v20260828 <- function(x) {
 #'
 #' @details
 #' `produkt_clean` is `produkt` reduced to its ASCII letters, then lowercased.
-#' The order is load-bearing. `tolower()` on a latin1 byte declared `"unknown"`
-#' throws `invalid multibyte string`, and a direct `data.table::fread()` of the
-#' register declares every string `"unknown"`. Strip first and the byte is gone
-#' before `tolower()` sees it. The strip uses `stringr`, because base `gsub()`
-#' errors on the same input.
-#'
-#' Normalisation removes the registered-trademark sign, the hyphen, the space
-#' and every digit. `Primolut(R)-Nor` and `Estramon 100` become `primolutnor`
-#' and `estramon`.
+#' `lmed_normalize_product_name_v20260828()` does that, and its `@details`
+#' states why the order is load-bearing. `Presomen 28 compositum` becomes
+#' `presomencompositum`.
 #'
 #' A rung fires on `startsWith()`, so a register spelling that extends a
 #' codebook name reaches the same rung. `Estradot 25 mikrogram/dygn` reaches
@@ -169,10 +163,9 @@ lmed_categorize_product_names_v20260828 <- function(x) {
       # -- C3 progestogen, peroral ------------------------------------------
       startsWith(produkt_clean, "visanne")                       , "C3"  ,
       startsWith(produkt_clean, "dienosis")                      , "C3"  ,
-      # Endovelle has no rung. The codebook gives it C3 and the 2026-08-26
-      # clinician decision is NOT MHT. The decision governs, so the product
-      # reaches no category. dev/check-crosswalk.R holds the codebook row on
-      # EXEMPT_PRODUCTS.
+      # Endovelle has no rung. The codebook gives it C3, and Endovelle is not
+      # MHT, so the product reaches no category. dev/check-crosswalk.R holds
+      # the codebook row on EXEMPT_PRODUCTS.
       startsWith(produkt_clean, "desogestrel")                   , "C3"  ,
       startsWith(produkt_clean, "cerazette")                     , "C3"  ,
       startsWith(produkt_clean, "azalia")                        , "C3"  ,
@@ -255,9 +248,9 @@ lmed_categorize_product_names_v20260828 <- function(x) {
 #'
 #' @details
 #' `product_categories` is what the person-week grid materialises. `G1` is
-#' absent from it on purpose. `G1` is Duavive alone, the coauthors decided that
-#' Duavive counts as no MHT, and a category the grid never materialises reaches
-#' no approach rule. Classify, then discard. Do not add `G1` here.
+#' absent from it on purpose. `G1` is Duavive alone, Duavive counts as no MHT,
+#' and a category the grid never materialises reaches no approach rule.
+#' Classify, then discard. Do not add `G1` here.
 #'
 #' Prescription rows whose interval is missing or inverted are dropped with a
 #' warning.
@@ -269,8 +262,7 @@ lmed_categorize_product_names_v20260828 <- function(x) {
 #' An episode already running at a person's first retained week is CLIPPED by
 #' the interval join. Duration means weeks observed under follow-up, so the
 #' layer counts observed weeks only and never reaches behind the first retained
-#' week. The 2026 delivery is windowed to 2006 through 2024, so a treatment that
-#' started earlier reads as starting in the first observed week.
+#' week. A treatment that started before that week reads as starting in it.
 #'
 #' @param skeleton A person-week `data.table` with `id` and `isoyearweek`.
 #' @param LMED A `data.table` carrying `lopnr`, `start_isoyearweek`,
@@ -412,11 +404,11 @@ apply_lmed_categories_to_skeleton_v20260828 <- function(
 #' spelling. The value is the normalised codebook name whose rules it takes.
 #'
 #' @details
-#' `Utrogest 100 mg` and `Utrogestan 100 mg` are the same product. The clinician
-#' stated that on 2026-08-26. The 2026-08-28 codebook carries `Utrogestan` and
-#' carries no `Utrogest` row. The register spelling `Utrogest` therefore reaches
-#' no duration rule, and keeps its raw `fddd`. Measured at `fddd = 30`, that is
-#' 30 days. `Utrogestan 100 mg` gives 28.
+#' `Utrogest 100 mg` and `Utrogestan 100 mg` are the same product. The
+#' 2026-08-28 codebook carries `Utrogestan` and carries no `Utrogest` row. The
+#' register spelling `Utrogest` therefore reaches no duration rule, and keeps
+#' its raw `fddd`. Measured at `fddd = 30`, that is 30 days.
+#' `Utrogestan 100 mg` gives 28.
 #'
 #' The alias lives here and not in the codebook. `dataDictionary20260828.xlsx`
 #' is about to freeze. A second `Utrogest` row also gives one prescription two
@@ -517,7 +509,7 @@ lmed_read_product_rules_v20260828 <- function() {
 #' The check runs in both directions, so no alias outlives its reason. A
 #' codebook that gains a `Utrogest` row makes the alias a second rule of equal
 #' specificity. A codebook that loses `Utrogestan` leaves the alias with no
-#' target. The 2026-08-26 clinician decision holds only while both hold.
+#' target. The alias holds only while neither happens.
 #'
 #' @param rules The rule table from `lmed_read_product_rules_v20260828()`.
 #' @return `invisible(TRUE)`.
@@ -805,9 +797,9 @@ lmed_apply_fixed_durations_v20260828 <- function(x, rules) {
 #' `minimum_months`. A supply below that reaches zero and contributes nothing.
 #' A supply above it rounds DOWN to whole months.
 #'
-#' Exactly one rule applies to each prescription. The frozen layer looped over
-#' every matching codebook row and wrote `fddd` back each time, so a product
-#' matching two rows compounded.
+#' Exactly one rule applies to each prescription.
+#' `lmed_select_codebook_rule_v20260828()` chooses it, and this function writes
+#' `fddd` once.
 #'
 #' @param x A `data.table` carrying `produkt_clean` and `fddd`.
 #' @param rules The rule table from `lmed_read_product_rules_v20260828()`.
@@ -869,14 +861,13 @@ lmed_apply_minimum_dose_v20260828 <- function(x, rules, strength_mg) {
 #'
 #' The interval is CLOSED and INCLUSIVE. A prescription dispensed on `edatum`
 #' with a duration of `d` days covers `edatum` to `edatum + d - 1`. One day of
-#' supply covers one day, and the frozen `edatum + d` covered two.
+#' supply covers one day.
 #'
 #' A prescription contributes nothing when it reaches no category, when it
 #' carries no dispensing date, or when its rounded duration is missing, is not
-#' positive, or is not finite. The negative case is real. 25,678 prescriptions
-#' across 20,911 women carry a negative `fddd` in the 2026 delivery. The base is
-#' all G02 and G03 prescriptions. The function drops them BEFORE the ISO
-#' conversion and reports one aggregate warning.
+#' positive, or is not finite. A negative `fddd` is possible, so the negative
+#' case is a real one. The function drops every such prescription BEFORE the
+#' ISO conversion and reports one aggregate warning.
 #'
 #' THE ORDER OF THE FOUR STEPS IS LOAD-BEARING:
 #' \enumerate{
@@ -889,9 +880,9 @@ lmed_apply_minimum_dose_v20260828 <- function(x, rules, strength_mg) {
 #' }
 #'
 #' Step 4 runs last because a prescription with no usable duration has no
-#' interval, whatever its strength. In the 2026 delivery a missing strength and
-#' a missing `fddd` arrive together. A strength read first turns 63,276 silently
-#' dropped rows of the Utrogestan family into a hard stop.
+#' interval, whatever its strength. A strength and an `fddd` can both be absent
+#' from one prescription. A strength read first would turn every such row into
+#' a hard stop.
 #'
 #' A missing `fddd` is never imputed. Inventing a duration would put a woman in
 #' a treatment arm on no evidence.
@@ -949,10 +940,8 @@ lmed_durations_v20260828 <- function(lmed, verbose = TRUE) {
 
   # THE SCREEN RUNS BEFORE THE STRENGTH. A prescription with no usable duration
   # has no interval, whatever its strength, so it must never reach the strength
-  # requirement. In the 2026 delivery a missing strength and a missing `fddd`
-  # arrive together. 63,276 rows of the Utrogestan family carry neither, and
-  # 48,248 of the 48,846 `Utrogest` rows are among them. Read the strength first
-  # and every one of those stops the batch.
+  # requirement. A strength and an `fddd` can both be absent from one
+  # prescription. Read the strength first and every such row stops the batch.
   x <- x[!is.na(product_category)]
   n_before <- nrow(x)
   x[, duration_days := round(fddd)]
@@ -1009,9 +998,8 @@ lmed_durations_v20260828 <- function(lmed, verbose = TRUE) {
 #'
 #' @details
 #' A leading or a trailing `FALSE` run is not a gap. It is the weeks before the
-#' woman started, or the weeks after she stopped. The frozen helper converted
-#' both, so a woman started treatment up to four weeks early and stopped up to
-#' four weeks late.
+#' woman started, or the weeks after she stopped. The function leaves both runs
+#' `FALSE`, so no woman starts treatment early and none stops late.
 #'
 #' The function counts ROWS. `assert_person_weeks_v20260828()` is what makes a
 #' row equal to one observed ISO week.

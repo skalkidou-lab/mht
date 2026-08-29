@@ -63,7 +63,7 @@ test_that("one day of supply covers one ISO week, not two", {
   expect_identical(skeleton$isoyearweek[skeleton$A1], "2020-01")
 })
 
-test_that("the frozen layer covers two weeks for the same one day of supply", {
+test_that("v20250909 covers two weeks for the same one day of supply", {
   # The `before` side of the pin above, driven through the frozen entry point.
   skeleton <- grid(1L, "2019-12-30", "2020-03-30")
   suppressWarnings(add_lmed_v20250909(
@@ -249,10 +249,9 @@ test_that("the person-week grid asserts continuity before it joins anything", {
 # ------------------------------------------------------------- left truncation ----
 
 test_that("an episode already running at the first retained week is clipped", {
-  # DECIDED: duration means weeks observed under follow-up. The layer counts
-  # observed weeks only and never reaches behind the first retained week. The
-  # 2026 delivery is windowed to 2006 through 2024, so a treatment that started
-  # before the window reads as starting in the first observed week.
+  # Duration means weeks observed under follow-up. The layer counts observed
+  # weeks only and never reaches behind the first retained week. A treatment
+  # that started before that week reads as starting in it.
   skeleton <- grid(1L, "2020-06-29", "2020-12-28")
   expect_identical(skeleton$isoyearweek[1], "2020-27")
 

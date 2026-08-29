@@ -4,9 +4,8 @@
 # reads the `post_grouping` sheet and writes `approach1`, `approach2` and
 # `approach3`. The second turns those into the `rd_approach*` exposure columns.
 #
-# The sheet is DATA, never code. The frozen resolver built R source from the
-# same cells with `glue::glue()` and ran `eval(parse())`. This one reads the
-# cells and evaluates them directly.
+# The sheet is DATA, never code. This resolver reads the cells and evaluates
+# them directly. It builds no R source and it calls no `eval(parse())`.
 
 #' Read the approach rules of the 2026-08-28 codebook
 #'
@@ -161,11 +160,11 @@ lmed_light_approach_variables_v20260828 <- function(skeleton, app) {
 #' first untreated week is then an ordinary stop, and
 #' `create_exposure_variables_v20260828()` records her as a former user.
 #'
-#' Neither end of that rule is arbitrary. The frozen resolver carried the clash
-#' to the end of follow-up, so a woman who stopped and restarted never returned
-#' to the cohort. The opposite defect ends the clash with the overlap. She then
-#' reads as a new user in the week the overlap ends. She was treated throughout.
-#' These are new-user analyses.
+#' Neither end of that rule is arbitrary. A clash carried to the end of
+#' follow-up would keep a woman who stopped and restarted out of the cohort for
+#' good. A clash ended with the overlap would read her as a new user in the week
+#' the overlap ends. She was treated throughout, and these are new-user
+#' analyses.
 #'
 #' A treated episode is a run of weeks that carry a run length. The four-week
 #' bridge runs before this, so a bridged gap does not end an episode.

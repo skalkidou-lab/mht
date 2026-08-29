@@ -7,10 +7,10 @@
 #     Rscript --vanilla dev/diff-codebooks.R
 #
 # The new codebook MUST equal the old one on every sheet and every cell, except
-# for the delta this file enumerates. The delta is items a to j of the phase 2
-# brief, plus item h2. MANIFEST below carries one entry per changed cell, one
-# entry per cell of an added row, and one entry per cell of a removed row. No
-# entry stands for a whole row.
+# for the delta this file enumerates. Each part of the delta carries an item
+# letter, which is this file's own key. MANIFEST below carries one entry per
+# changed cell, one entry per cell of an added row, and one entry per cell of a
+# removed row. No entry stands for a whole row.
 #
 # The check works by reconstruction, not by pattern matching. The script builds
 # the sheet it expects from the old sheet and the manifest, then compares that
@@ -34,11 +34,19 @@ FROZEN_PATHS <- c(
   "inst/2023-mht/dataDictionary20241105.xlsx",
   "inst/2023-mht/dataDictionary20260803.xlsx"
 )
-DECISIONS_CSV <- file.path(
-  "/home/raw996/skalkidou/structural-mht-registry-data",
-  "coauthor-questions",
-  "decisions-2026-08-26.csv"
-)
+DECISIONS_DIR_VAR <- "MHT_DECISIONS_DIR"
+DECISIONS_FILE <- "decisions-2026-08-26.csv"
+
+# The decision table lives outside this repository, so no directory of it is
+# written here. Export MHT_DECISIONS_DIR to run the CSV cross-check. Every
+# other check runs without it.
+decisions_csv <- function() {
+  root <- Sys.getenv(DECISIONS_DIR_VAR, unset = NA_character_)
+  if (is.na(root) || !nzchar(root)) {
+    return(NA_character_)
+  }
+  return(file.path(root, DECISIONS_FILE))
+}
 
 # The columns that name a row for a human reader, per sheet. For MHT_groups the
 # two strength columns are part of the key, because they are what tells the two
@@ -65,7 +73,7 @@ APPENDED_COLUMNS <- list(
 
 # One row of MANIFEST is one cell.
 #
-#   item   the brief's item letter
+#   item   the item letter of the delta
 #   sheet  the sheet it lives on
 #   kind   "cell", "add", "remove" or "noop"
 #   row    for "cell", "remove" and "noop", the row index in the OLD sheet
@@ -182,7 +190,7 @@ row_pg <- function(approach) {
 }
 
 MANIFEST <- rbind(
-  # -- item a: eight products from the 2026-08-26 decisions -------------------
+  # -- item a: eight products from the decision table -------------------------
   # Lafamme is the ninth non-NOT_MHT decision. It already has a row, so it is
   # a "noop" entry further down, not an "add".
   mf_row(
@@ -470,7 +478,7 @@ MANIFEST <- rbind(
   ),
 
   # -- item b: the three subgroups the workbook already gets right ------------
-  # No action. The divergence is in the ladder, which phase 3 owns.
+  # No action. The divergence is in the ladder, not in the workbook.
   mf_noop("b", "MHT_groups", 76, "Duphaston|C5|12|1||", c("Subgrupp" = "C5")),
   mf_noop("b", "MHT_groups", 52, "Cyclabil|B12||||", c("Subgrupp" = "B12")),
   mf_noop("b", "MHT_groups", 61, "Prolutex|C2||||", c("Subgrupp" = "C2"))
@@ -478,9 +486,9 @@ MANIFEST <- rbind(
 
 LAFAMME_PRODUKT <- "Lafamme"
 
-# Item a, the decision table, transcribed from decisions-2026-08-26.csv. The
-# script asserts the workbook against THIS literal, and cross-checks the
-# literal against the CSV when the CSV is reachable.
+# Item a, the decision table, transcribed from the CSV that MHT_DECISIONS_DIR
+# names. The script asserts the workbook against THIS literal, and cross-checks
+# the literal against the CSV when the CSV is reachable.
 DECISIONS <- data.frame(
   produkt = c(
     "Intrarosa",
@@ -1108,11 +1116,19 @@ report_item_a <- function(new) {
 }
 
 csv_cross_check <- function() {
-  if (!file.exists(DECISIONS_CSV)) {
+  path <- decisions_csv()
+  if (is.na(path)) {
     REPORT$ok <- FALSE
-    return(sprintf("CSV CROSS-CHECK DID NOT RUN: %s is absent", DECISIONS_CSV))
+    return(sprintf(
+      "CSV CROSS-CHECK DID NOT RUN: %s is not set",
+      DECISIONS_DIR_VAR
+    ))
   }
-  csv <- utils::read.csv(DECISIONS_CSV, stringsAsFactors = FALSE)
+  if (!file.exists(path)) {
+    REPORT$ok <- FALSE
+    return(sprintf("CSV CROSS-CHECK DID NOT RUN: %s is absent", path))
+  }
+  csv <- utils::read.csv(path, stringsAsFactors = FALSE)
   keep <- csv[
     csv$decision_code != "NOT_MHT",
     c(
@@ -1183,7 +1199,7 @@ report_item_b <- function(old, new) {
     }
     detail <- c(detail, one$line)
   }
-  detail <- c(detail, "the divergence is in the ladder, which phase 3 owns")
+  detail <- c(detail, "the divergence is in the ladder, not in the workbook")
   item(
     "b",
     ok,
@@ -1236,7 +1252,7 @@ report_item_d <- function(new) {
         "ladder rungs carrying the pattern: %s",
         paste(sprintf("%s=%d", names(pats), unlist(pats)), collapse = ", ")
       ),
-      "the duplicate is ladder-only, and phase 3 owns it"
+      "the duplicate is in the ladder, not in the workbook"
     )
   )
   return(invisible(NULL))
@@ -1354,7 +1370,7 @@ report_item_g <- function(new) {
         paste(sprintf("'%s'", new$strength_mg_min[hit]), collapse = " and "),
         paste(sprintf("'%s'", new$strength_mg_max[hit]), collapse = " and ")
       ),
-      "phase 4 MUST read 28 and 12 from these cells, never as literals",
+      "the duration layer MUST read 28 and 12 from these cells, not literals",
       manifest_lines("g")
     )
   )

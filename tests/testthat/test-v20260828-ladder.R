@@ -1,8 +1,8 @@
 # Pins the 2026-08-28 product ladder: the normalisation, the prefix match, the
 # rung ordering, and the twelve products the 2026-08-28 repair moved.
 #
-# The clinician decisions live outside this repository, so nothing here reads
-# them. `dev/check-crosswalk.R` owns that side and fails when the ladder, the
+# The decision table lives outside this repository, so nothing here reads it.
+# `dev/check-crosswalk.R` owns that side and fails when the ladder, the
 # codebook and the decisions disagree.
 
 classify_v20260828 <- function(produkt) {
@@ -131,8 +131,8 @@ test_that("the twelve repaired products reach their pinned categories", {
       "C2",
       "C5",
       "B5",
-      # Endovelle: the codebook says C3, the 2026-08-26 decision says NOT MHT.
-      # The decision governs, so the ladder gives it no rung.
+      # Endovelle: the codebook says C3 and Endovelle is not MHT. The
+      # classification governs, so the ladder gives it no rung.
       NA,
       "H1",
       "B10",
@@ -234,10 +234,9 @@ test_that("startsWith unshadows the three rungs a substring match swallowed", {
 })
 
 test_that("a NOT_MHT decision reaches no category that an approach rule reads", {
-  # The clinician answered NOT MHT for all seven testosterone products and for
-  # Endovelle. Testosterone reaches H1, which no post_grouping rule names, so
-  # it cannot move an approach variable. Endovelle would reach C3, which the
-  # rules do name, so it gets no rung at all.
+  # Testosterone and Endovelle are not MHT. Testosterone reaches H1, which no
+  # post_grouping rule names, so it cannot move an approach variable. Endovelle
+  # would reach C3, which the rules do name, so it gets no rung at all.
   path <- system.file(
     "2023-mht",
     "dataDictionary20260828.xlsx",
@@ -342,8 +341,8 @@ test_that("every codebook product reaches its own subgroup, bar two declared row
   expect_identical(wb$Preparatnamn[disagree], c("Presomen", "Endovelle"))
   expect_identical(wb$Subgrupp[disagree], c("B10", "C3"))
   # The codebook names Presomen twice, and the register tells the two apart, so
-  # the bare name reaches the A6 row. Endovelle reaches nothing: the 2026-08-26
-  # decision is NOT MHT and it beats the codebook row.
+  # the bare name reaches the A6 row. Endovelle reaches nothing: it is not MHT,
+  # and that beats the codebook row.
   expect_identical(got[disagree], c("A6", NA))
   # dev/check-crosswalk.R holds both rows on EXEMPT_PRODUCTS, with a reason.
 })

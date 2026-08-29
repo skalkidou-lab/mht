@@ -131,7 +131,7 @@ test_that("Utrogestan takes one strength-keyed rule and never compounds", {
   expect_identical(d$product_category, rep("C1", 4L))
 })
 
-test_that("the frozen layer compounds the same prescription and this one does not", {
+test_that("v20250909 compounds the same prescription and v20260828 does not", {
   # `before` is the frozen entry point end to end, `after` is the repaired
   # duration layer end to end. Both sides are asserted, so the pin reads as a
   # change and not as an assertion out of nowhere.
@@ -299,9 +299,9 @@ test_that("a duration that is missing or not positive contributes nothing", {
 })
 
 test_that("a missing fddd is never imputed", {
-  # 749,044 prescriptions of the 2026 delivery carry no fddd, and 647,915 of
-  # them are intrauterine devices, whose duration the category supplies. The
-  # rest contribute nothing, and no duration is invented for them.
+  # A prescription can carry no fddd. Where it is an intrauterine device the
+  # category supplies the duration. Every other such prescription contributes
+  # nothing, and no duration is invented for it.
   x <- data.table(
     lopnr = 1:2,
     produkt = c("Divigel", "Mirena"),
