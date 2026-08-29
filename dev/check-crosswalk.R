@@ -169,10 +169,26 @@ FINDINGS <- list(
       "C1 and take the same strength-keyed duration rules."
     ),
     probe = function(cl) {
-      return(identical(
+      same_category <- identical(
         cl(c("Gepretix", "Utrogest", "Utrogestan")),
         c("C1", "C1", "C1")
-      ))
+      )
+      # The category alone does not show that the three share a duration rule.
+      # Drive the duration layer: at 100 mg the shared rule gives 28 days.
+      one <- function(nm) {
+        d <- data.table::data.table(
+          lopnr = 1L, produkt = nm, edatum = as.Date("2020-01-06"),
+          fddd = 30, lnmn = paste0(nm, ", kapsel, mjuk 100 mg")
+        )
+        r <- mht:::lmed_durations_v20260828(d, verbose = FALSE)
+        return(as.integer(r$stop_date - r$start_date) + 1L)
+      }
+      same_days <- identical(
+        vapply(c("Gepretix", "Utrogest", "Utrogestan"), one, integer(1),
+               USE.NAMES = FALSE),
+        c(28L, 28L, 28L)
+      )
+      return(same_category && same_days)
     }
   )
 )
