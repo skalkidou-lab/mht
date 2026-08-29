@@ -150,6 +150,7 @@ lmed_categorize_product_names_v20260828 <- function(x) {
       startsWith(produkt_clean, "lutinus")                       , "C1"  ,
       startsWith(produkt_clean, "utrogestan")                    , "C1"  ,
       startsWith(produkt_clean, "utrogest")                      , "C1"  ,
+      startsWith(produkt_clean, "gepretix")                      , "C1"  ,
       startsWith(produkt_clean, "extemporeprogesteron")          , "C1"  ,
       # the register writes the extemporaneous product with its ATC code in
       # the name, and normalisation drops the digits of that code
@@ -421,7 +422,7 @@ apply_lmed_categories_to_skeleton_v20260828 <- function(
 #' @return A named character vector.
 #' @noRd
 lmed_rule_aliases_v20260828 <- function() {
-  return(c(utrogest = "utrogestan"))
+  return(c(utrogest = "utrogestan", gepretix = "utrogestan"))
 }
 
 #' Rewrite a normalised product name onto the name whose rules it takes

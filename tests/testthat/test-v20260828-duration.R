@@ -318,7 +318,7 @@ test_that("a missing fddd is never imputed", {
 test_that("a product that reaches no category contributes nothing", {
   d <- durations(
     lopnr = 1:2,
-    produkt = c("Gepretix", "Divigel"),
+    produkt = c("Ceranor", "Divigel"),
     edatum = as.Date("2020-01-06"),
     fddd = 10
   )

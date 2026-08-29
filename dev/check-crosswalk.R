@@ -165,11 +165,14 @@ FINDINGS <- list(
   list(
     id = "Gepretix",
     text = paste(
-      "Gepretix reaches no category and carries no decision. The decision",
-      "table does not name it."
+      "Gepretix, Utrogest and Utrogestan are one product, so all three reach",
+      "C1 and take the same strength-keyed duration rules."
     ),
     probe = function(cl) {
-      return(is.na(cl("Gepretix")))
+      return(identical(
+        cl(c("Gepretix", "Utrogest", "Utrogestan")),
+        c("C1", "C1", "C1")
+      ))
     }
   )
 )
