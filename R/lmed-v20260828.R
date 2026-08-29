@@ -406,6 +406,60 @@ apply_lmed_categories_to_skeleton_v20260828 <- function(
 # result to a pair of ISO weeks. A prescription with no positive duration
 # contributes nothing.
 
+#' The register spellings that take another product's codebook rules
+#'
+#' Returns a named character vector. The name is a normalised register
+#' spelling. The value is the normalised codebook name whose rules it takes.
+#'
+#' @details
+#' `Utrogest 100 mg` and `Utrogestan 100 mg` are the same product. The clinician
+#' stated that on 2026-08-26. The 2026-08-28 codebook carries `Utrogestan` and
+#' carries no `Utrogest` row. The register spelling `Utrogest` therefore reaches
+#' no duration rule, and keeps its raw `fddd`. Measured at `fddd = 30`, that is
+#' 30 days. `Utrogestan 100 mg` gives 28.
+#'
+#' The alias lives here and not in the codebook. `dataDictionary20260828.xlsx`
+#' is about to freeze. A second `Utrogest` row also gives one prescription two
+#' rules of equal specificity, which is an error.
+#'
+#' `lmed_read_product_rules_v20260828()` checks both directions of every entry.
+#' An alias that names a codebook product is an error. So is an alias whose
+#' target names no codebook rule.
+#'
+#' @return A named character vector.
+#' @noRd
+lmed_rule_aliases_v20260828 <- function() {
+  return(c(utrogest = "utrogestan"))
+}
+
+#' Rewrite a normalised product name onto the name whose rules it takes
+#'
+#' Applies every alias of `lmed_rule_aliases_v20260828()`, once each. A name
+#' that matches no alias comes back unchanged.
+#'
+#' @details
+#' An alias fires on a prefix, like a rule itself. It does not fire where the
+#' target name already prefixes the input, so `utrogestanmgcapsules` stays as it
+#' is.
+#'
+#' This is the rule-matching name alone. `produkt_clean` and the product ladder
+#' never see it, so no alias can change a category.
+#'
+#' @param produkt_clean A character vector of normalised product names.
+#' @return A character vector of the same length.
+#' @noRd
+lmed_rule_name_v20260828 <- function(produkt_clean) {
+  out <- produkt_clean
+  aliases <- lmed_rule_aliases_v20260828()
+  for (from in names(aliases)) {
+    to <- aliases[[from]]
+    hit <- startsWith(out, from) & !startsWith(out, to)
+    hit[is.na(hit)] <- FALSE
+    out[hit] <- paste0(to, substring(out[hit], nchar(from) + 1L))
+  }
+  return(out)
+}
+
 #' Read the product rules of the 2026-08-28 codebook
 #'
 #' Returns one row per `MHT_groups` product, with its normalised name and the
@@ -448,7 +502,47 @@ lmed_read_product_rules_v20260828 <- function() {
   )
   # An empty normalised name prefixes every product, so it would answer for
   # all of them. startsWith(x, "") is TRUE.
-  return(rules[nzchar(rules$name_clean)])
+  rules <- rules[nzchar(rules$name_clean)]
+
+  lmed_assert_aliases_live_v20260828(rules)
+  return(rules)
+}
+
+#' Assert that every rule alias still names a live disagreement
+#'
+#' Errors unless each alias of `lmed_rule_aliases_v20260828()` names a product
+#' the codebook leaves out, and takes the rules of a product it carries.
+#'
+#' @details
+#' The check runs in both directions, so no alias outlives its reason. A
+#' codebook that gains a `Utrogest` row makes the alias a second rule of equal
+#' specificity. A codebook that loses `Utrogestan` leaves the alias with no
+#' target. The 2026-08-26 clinician decision holds only while both hold.
+#'
+#' @param rules The rule table from `lmed_read_product_rules_v20260828()`.
+#' @return `invisible(TRUE)`.
+#' @noRd
+lmed_assert_aliases_live_v20260828 <- function(rules) {
+  aliases <- lmed_rule_aliases_v20260828()
+  taken <- intersect(names(aliases), rules$name_clean)
+  if (length(taken) > 0L) {
+    stop(
+      "the codebook now carries a rule named ",
+      paste(taken, collapse = ", "),
+      ", which lmed_rule_aliases_v20260828() also names. Drop the alias.",
+      call. = FALSE
+    )
+  }
+  absent <- setdiff(unname(aliases), rules$name_clean)
+  if (length(absent) > 0L) {
+    stop(
+      "an alias of lmed_rule_aliases_v20260828() takes the rules of ",
+      paste(absent, collapse = ", "),
+      ", which the codebook does not carry",
+      call. = FALSE
+    )
+  }
+  return(invisible(TRUE))
 }
 
 #' The first few values of a vector, for a diagnostic message
@@ -540,7 +634,7 @@ lmed_product_strength_mg_v20260828 <- function(lnmn) {
 lmed_strength_for_rules_v20260828 <- function(x, rules) {
   keyed <- !is.na(rules$strength_min) | !is.na(rules$strength_max)
   needs <- lmed_name_matches_any_v20260828(
-    x$produkt_clean,
+    lmed_rule_name_v20260828(x$produkt_clean),
     rules$name_clean[keyed]
   )
   if (!any(needs)) {
@@ -588,6 +682,10 @@ lmed_strength_for_rules_v20260828 <- function(x, rules) {
 #' The longest name wins. `Levosertone 20 mikrogram` starts with both `levosert`
 #' and `levosertone`, and the longer name is the more specific product.
 #'
+#' The match runs on the aliased name, which `lmed_rule_name_v20260828()`
+#' returns. A register spelling the codebook does not carry can therefore take
+#' another product's rules.
+#'
 #' Two rules of equal name length that both apply are an error. That is a
 #' codebook the code cannot resolve, and it is the exact shape that made `fddd`
 #' compound: `Utrogestan 100mg Capsules` once matched a `Utrogest` rule and an
@@ -604,6 +702,8 @@ lmed_select_codebook_rule_v20260828 <- function(
   rules
 ) {
   n <- length(produkt_clean)
+  # Match on the aliased name. Every message below names what the caller passed.
+  rule_name <- lmed_rule_name_v20260828(produkt_clean)
   chosen <- rep(NA_integer_, n)
   chosen_nchar <- rep(-1L, n)
   tied <- rep(FALSE, n)
@@ -614,7 +714,7 @@ lmed_select_codebook_rule_v20260828 <- function(
   keyed <- !is.na(rules$strength_min) | !is.na(rules$strength_max)
 
   for (i in seq_len(nrow(rules))) {
-    hit <- startsWith(produkt_clean, rules$name_clean[i])
+    hit <- startsWith(rule_name, rules$name_clean[i])
     hit[is.na(hit)] <- FALSE
     if (keyed[i]) {
       in_band <- !is.na(strength_mg) &
@@ -657,21 +757,36 @@ lmed_select_codebook_rule_v20260828 <- function(
 #' then reads each product's own cell. Jaydess is 1008 days there, and it is the
 #' one product whose cell differs from its category.
 #'
+#' The call reads no strength, and it errors where the codebook asks it to. A
+#' product with a fixed duration carries no dispensed quantity, so this call
+#' SUPPLIES the duration that `lmed_durations_v20260828()` screens on. The
+#' screen runs before the strength is read, so a fixed duration that depended
+#' on a strength could not be resolved in time.
+#'
 #' @param x A `data.table` carrying `produkt_clean` and `fddd`.
 #' @param rules The rule table from `lmed_read_product_rules_v20260828()`.
-#' @param strength_mg A numeric vector of strengths in milligrams.
 #' @return `x`, modified by reference.
 #' @noRd
-lmed_apply_fixed_durations_v20260828 <- function(x, rules, strength_mg) {
+lmed_apply_fixed_durations_v20260828 <- function(x, rules) {
   fddd <- NULL
 
   fixed <- rules[!is.na(rules$fddd_fixed)]
   if (nrow(fixed) == 0L) {
     return(invisible(x))
   }
+  keyed <- !is.na(fixed$strength_min) | !is.na(fixed$strength_max)
+  if (any(keyed)) {
+    stop(
+      "a codebook rule carries a fixed duration and a strength band at once: ",
+      paste(unique(fixed$preparatnamn[keyed]), collapse = ", "),
+      ". A fixed duration is read before the strength is, so it must not ",
+      "depend on one.",
+      call. = FALSE
+    )
+  }
   idx <- lmed_select_codebook_rule_v20260828(
     x$produkt_clean,
-    strength_mg,
+    rep(NA_real_, nrow(x)),
     fixed
   )
   x[, fddd := data.table::fifelse(is.na(idx), fddd, fixed$fddd_fixed[idx])]
@@ -749,7 +864,7 @@ lmed_apply_minimum_dose_v20260828 <- function(x, rules, strength_mg) {
 #'   \item `edatum`, the `Date` of dispensing
 #'   \item `fddd`, the dispensed duration in days
 #'   \item `lnmn`, the register product name, REQUIRED where a strength-keyed
-#'     codebook rule names the product
+#'     codebook rule names a product that KEEPS a usable duration
 #' }
 #'
 #' The interval is CLOSED and INCLUSIVE. A prescription dispensed on `edatum`
@@ -757,11 +872,26 @@ lmed_apply_minimum_dose_v20260828 <- function(x, rules, strength_mg) {
 #' supply covers one day, and the frozen `edatum + d` covered two.
 #'
 #' A prescription contributes nothing when it reaches no category, when it
-#' carries no dispensing date, or when its rounded duration is missing or is not
-#' positive. The negative case is real: 25,678 prescriptions across 20,911 women
-#' carry a negative `fddd` in the 2026 delivery, on a base of all G02 and G03
-#' prescriptions. The function drops them BEFORE the ISO conversion and reports
-#' one aggregate warning.
+#' carries no dispensing date, or when its rounded duration is missing, is not
+#' positive, or is not finite. The negative case is real. 25,678 prescriptions
+#' across 20,911 women carry a negative `fddd` in the 2026 delivery. The base is
+#' all G02 and G03 prescriptions. The function drops them BEFORE the ISO
+#' conversion and reports one aggregate warning.
+#'
+#' THE ORDER OF THE FOUR STEPS IS LOAD-BEARING:
+#' \enumerate{
+#'   \item Classify the product.
+#'   \item Apply the fixed durations, which SUPPLY a duration where the
+#'     register carries none.
+#'   \item Drop every prescription with no usable duration and every one with
+#'     no dispensing date.
+#'   \item Read the strength, and apply the minimum-dose rules.
+#' }
+#'
+#' Step 4 runs last because a prescription with no usable duration has no
+#' interval, whatever its strength. In the 2026 delivery a missing strength and
+#' a missing `fddd` arrive together. A strength read first turns 63,276 silently
+#' dropped rows of the Utrogestan family into a hard stop.
 #'
 #' A missing `fddd` is never imputed. Inventing a duration would put a woman in
 #' a treatment arm on no evidence.
@@ -806,26 +936,43 @@ lmed_durations_v20260828 <- function(lmed, verbose = TRUE) {
   lmed_categorize_product_names_v20260828(x)
 
   rules <- lmed_read_product_rules_v20260828()
-  strength_mg <- lmed_strength_for_rules_v20260828(x, rules)
 
   if (verbose) {
     message(Sys.time(), " LMED fixing durations ")
   }
   # The intrauterine devices carry no dispensed quantity, so the category
-  # answers first and the product's own cell answers second.
+  # answers first and the product's own cell answers second. Both SUPPLY a
+  # duration, so both run before the screen below.
   x[product_category == "D3", fddd := 1680]
   x[product_category == "E1", fddd := 1680]
-  lmed_apply_fixed_durations_v20260828(x, rules, strength_mg)
-  lmed_apply_minimum_dose_v20260828(x, rules, strength_mg)
+  lmed_apply_fixed_durations_v20260828(x, rules)
 
+  # THE SCREEN RUNS BEFORE THE STRENGTH. A prescription with no usable duration
+  # has no interval, whatever its strength, so it must never reach the strength
+  # requirement. In the 2026 delivery a missing strength and a missing `fddd`
+  # arrive together. 63,276 rows of the Utrogestan family carry neither, and
+  # 48,248 of the 48,846 `Utrogest` rows are among them. Read the strength first
+  # and every one of those stops the batch.
   x <- x[!is.na(product_category)]
-  x[, duration_days := round(fddd)]
-
   n_before <- nrow(x)
+  x[, duration_days := round(fddd)]
   no_date <- is.na(x$edatum)
   no_duration <- is.na(x$duration_days)
-  not_positive <- !no_duration & x$duration_days <= 0
-  x <- x[!no_date & !no_duration & !not_positive]
+  no_days <- !no_duration &
+    !(is.finite(x$duration_days) & x$duration_days > 0)
+  x <- x[!no_date & !no_duration & !no_days]
+
+  # The strength decides which codebook rule a SURVIVING row takes. A row with
+  # a duration and a strength-keyed rule and no readable strength is still an
+  # error: it would otherwise take a knowingly wrong duration.
+  strength_mg <- lmed_strength_for_rules_v20260828(x, rules)
+  lmed_apply_minimum_dose_v20260828(x, rules, strength_mg)
+  x[, duration_days := round(fddd)]
+
+  # The minimum-dose rule reduces a supply below one whole month to zero.
+  below_minimum <- x$duration_days <= 0
+  x <- x[!below_minimum]
+
   n_dropped <- n_before - nrow(x)
   if (n_dropped > 0L) {
     warning(
@@ -835,8 +982,8 @@ lmed_durations_v20260828 <- function(lmed, verbose = TRUE) {
       " classified prescriptions dropped: ",
       sum(no_duration),
       " with no duration, ",
-      sum(not_positive),
-      " with a duration that is not positive, ",
+      sum(no_days) + sum(below_minimum),
+      " with a duration that is no positive number of days, ",
       sum(no_date),
       " with no dispensing date",
       call. = FALSE
@@ -878,6 +1025,29 @@ replace_false_runs_v20260828 <- function(x) {
   gap <- which(!runs$values & runs$lengths <= 4L)
   runs$values[gap[gap > 1L & gap < n]] <- TRUE
   return(inverse.rle(runs))
+}
+
+#' Count the weeks elapsed inside the current `TRUE` run
+#'
+#' Returns a cumulative sum that restarts at every `FALSE`. A `FALSE` week
+#' counts zero.
+#'
+#' @details
+#' The run length is what separates two treatments that a woman holds at once.
+#' The treatment she started most recently carries the shorter run, and the
+#' approach resolver reports that one. Two equal runs are a clash.
+#'
+#' The function counts ROWS. `assert_person_weeks_v20260828()` is what makes a
+#' row equal to one observed ISO week.
+#'
+#' The 2026-08-28 layer carries its own copy of this helper. A frozen helper and
+#' a live one can then never reach each other's pipeline.
+#'
+#' @param x A logical vector, in person-week order.
+#' @return An integer vector of the same length.
+#' @noRd
+cumulative_reset_v20260828 <- function(x) {
+  return(stats::ave(x, data.table::rleid(!x), FUN = cumsum))
 }
 
 #' Assert that every person's weeks are unique and consecutive
