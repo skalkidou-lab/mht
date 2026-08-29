@@ -94,6 +94,7 @@ skeleton[, .N, keyby = .(rd_approach1_single)]
   used below.
 
 Other MHT exposure entry points:
-\code{\link[=add_lmed_v20230509]{add_lmed_v20230509()}}
+\code{\link[=add_lmed_v20230509]{add_lmed_v20230509()}},
+\code{\link[=add_lmed_v20260828]{add_lmed_v20260828()}}
 }
 \concept{MHT exposure entry points}

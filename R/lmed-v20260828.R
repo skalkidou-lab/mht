@@ -1141,3 +1141,217 @@ assert_person_weeks_v20260828 <- function(skeleton) {
   }
   return(invisible(TRUE))
 }
+
+# ============================================================== entry point ====
+
+#' Reject a call the layer cannot answer
+#'
+#' Errors unless `skeleton` is a `data.table`, `id_name` is one column name,
+#' and `lmed` carries every column the duration layer reads.
+#'
+#' @details
+#' The check runs before the layer writes anything, so a rejected call leaves
+#' the caller's `skeleton` as it was.
+#'
+#' @param skeleton The person-week skeleton the caller passed.
+#' @param lmed The dispensed prescriptions the caller passed.
+#' @param id_name The name of the person identifier column of `lmed`.
+#' @return `invisible(TRUE)`.
+#' @noRd
+lmed_assert_entry_arguments_v20260828 <- function(skeleton, lmed, id_name) {
+  if (!data.table::is.data.table(skeleton)) {
+    stop("skeleton must be a data.table", call. = FALSE)
+  }
+  if (
+    !is.character(id_name) ||
+      length(id_name) != 1L ||
+      is.na(id_name) ||
+      !nzchar(id_name)
+  ) {
+    stop("id_name must be one column name", call. = FALSE)
+  }
+  absent <- setdiff(c(id_name, "produkt", "edatum", "fddd"), names(lmed))
+  if (length(absent) > 0L) {
+    stop("lmed has no column ", paste(absent, collapse = ", "), call. = FALSE)
+  }
+  return(invisible(TRUE))
+}
+
+#' The prescription columns the layer reads, restricted to one cohort
+#'
+#' Returns a new `data.table` named the way `lmed_durations_v20260828()` reads
+#' it, holding the rows of `lmed` whose person is in `ids`.
+#'
+#' @details
+#' The function copies at most five columns and reads no other. A wide
+#' delivery therefore costs the memory of a narrow one. The caller's `lmed` is
+#' never modified.
+#'
+#' @param lmed A table of dispensed prescriptions.
+#' @param id_name The name of the person identifier column of `lmed`.
+#' @param ids The person identifiers to keep.
+#' @return A `data.table` carrying `lopnr`, `produkt`, `edatum`, `fddd`, and
+#'   `lnmn` where `lmed` carries it.
+#' @noRd
+lmed_read_set_v20260828 <- function(lmed, id_name, ids) {
+  # Declare variables for data.table non-standard evaluation
+  lnmn <- NULL
+
+  keep <- lmed[[id_name]] %in% ids
+  x <- data.table::data.table(
+    lopnr = lmed[[id_name]][keep],
+    produkt = lmed[["produkt"]][keep],
+    edatum = lmed[["edatum"]][keep],
+    fddd = lmed[["fddd"]][keep]
+  )
+  if ("lnmn" %in% names(lmed)) {
+    x[, lnmn := lmed[["lnmn"]][keep]]
+  }
+  return(x)
+}
+
+#' Add 2026-08-28 MHT exposure variables to a person-week skeleton
+#'
+#' Derives menopausal hormone therapy (MHT) exposure from Swedish prescription
+#' registry (LMED) data, with the 2026-08-28 definitions. The function writes
+#' its output columns into `skeleton` by reference, and returns `skeleton`
+#' invisibly.
+#'
+#' @details
+#' The function owns these columns of `skeleton`, and changes no other:
+#' \itemize{
+#'   \item one logical column per MHT product category
+#'   \item `approach1`, `approach2` and `approach3`
+#'   \item every column whose name starts with `rd_approach`
+#' }
+#'
+#' The third group holds eight columns. They are `rd_approach1_single` and
+#' `rd_approach1_multiple`, and the same pair for `approach2`, `approach3` and
+#' `approach3b`.
+#'
+#' `skeleton` keeps the row order the caller passed in. The layer sorts a
+#' private table by `id` and `isoyearweek`, and it sorts nothing the caller
+#' holds.
+#'
+#' Two conditions on `skeleton` are errors, and the function reports either one
+#' before it writes any column:
+#' \itemize{
+#'   \item a person who holds one ISO week twice, or who has a gap between the
+#'     first week and the last
+#'   \item an `isoyearweek` value that is no ISO week of the form `"YYYY-WW"`,
+#'     which is the form `cstime::date_to_isoyearweek_c()` writes
+#' }
+#'
+#' A second call recomputes every output column from the product categories up.
+#' It gives the table the first call gives.
+#'
+#' @param skeleton A `data.table` person-week skeleton with an `id` column and
+#'   a character `isoyearweek` column. Modified by reference.
+#' @param lmed A `data.table` of dispensed prescriptions. The function reads
+#'   `produkt`, `edatum`, `fddd`, the identifier column `id_name` names, and
+#'   `lnmn` where a strength-keyed codebook rule needs it. `lmed` is not
+#'   modified.
+#' @param id_name The name of the person identifier column of `lmed`. The
+#'   function matches its values against `skeleton$id`.
+#' @param create_rd Logical. If `FALSE`, the function writes no `rd_approach*`
+#'   column, and removes every one that `skeleton` already carries. The eight
+#'   columns cost about 570 MB per batch of 10,000 people.
+#' @param verbose Logical. If `TRUE` (the default), report progress with
+#'   `message()`.
+#'
+#' @return `skeleton`, invisibly. That is the caller's own object.
+#'
+#' @family MHT exposure entry points
+#' @seealso [fake_lmed_2026] and [fake_skeleton_mht] for the synthetic fixtures
+#'   used below.
+#'
+#' @examples
+#' library(data.table)
+#'
+#' skeleton <- copy(fake_skeleton_mht)
+#' lmed <- copy(fake_lmed_2026)
+#'
+#' # Utrogestan takes a codebook rule keyed on strength, so it needs `lnmn`.
+#' lmed[, lnmn := NA_character_]
+#' lmed[produkt == "Utrogestan", lnmn := "Utrogestan, kapsel, mjuk 100 mg"]
+#'
+#' # the fixture holds one negative-duration row, which warns
+#' skeleton <- suppressWarnings(
+#'   add_lmed_v20260828(skeleton, lmed, verbose = FALSE)
+#' )
+#' skeleton[, .N, keyby = .(rd_approach1_single)]
+#' @export
+add_lmed_v20260828 <- function(
+  skeleton,
+  lmed,
+  id_name = "lopnr",
+  create_rd = TRUE,
+  verbose = TRUE
+) {
+  # THE WHOLE PIPELINE RUNS ON A PRIVATE TABLE. Every working name the layer
+  # uses lives on that table, so a caller column of the same name cannot be
+  # overwritten and cannot be deleted. The private row index is what puts the
+  # rows back in the caller's order.
+  row_col <- ".caller_row"
+
+  lmed_assert_entry_arguments_v20260828(skeleton, lmed, id_name)
+
+  # Report a malformed skeleton before the duration layer runs, which on a real
+  # batch takes minutes.
+  assert_person_weeks_v20260828(skeleton)
+
+  if (verbose) {
+    message(Sys.time(), " LMED restricting")
+  }
+  reads <- lmed_read_set_v20260828(lmed, id_name, unique(skeleton[["id"]]))
+  intervals <- lmed_durations_v20260828(reads, verbose = verbose)
+
+  work <- data.table::data.table(
+    id = skeleton[["id"]],
+    isoyearweek = skeleton[["isoyearweek"]]
+  )
+  data.table::set(work, j = row_col, value = seq_len(nrow(work)))
+
+  if (verbose) {
+    message(Sys.time(), " LMED apply categories to skeleton ")
+  }
+  apply_lmed_categories_to_skeleton_v20260828(
+    work,
+    intervals,
+    verbose = verbose
+  )
+  if (verbose) {
+    message(Sys.time(), " LMED apply approaches ")
+  }
+  apply_lmed_approaches_to_skeleton_v20260828(work)
+  if (verbose) {
+    message(Sys.time(), " LMED create exposure variables ")
+  }
+  create_exposure_variables_v20260828(work, create_rd = create_rd)
+
+  # The caller's row order is restored from the row index, so the index must
+  # survive the pipeline intact.
+  if (!identical(sort(work[[row_col]]), seq_len(nrow(work)))) {
+    stop(
+      "a working column overwrote ",
+      row_col,
+      ", so the caller's row order cannot be restored",
+      call. = FALSE
+    )
+  }
+  data.table::setorderv(work, row_col)
+
+  out_cols <- setdiff(names(work), c("id", "isoyearweek", row_col))
+  skeleton[, (out_cols) := work[, out_cols, with = FALSE]]
+
+  # `skeleton` holds this run's own rd_approach columns and no other.
+  stale <- setdiff(rd_approach_columns_v20260828(skeleton), out_cols)
+  if (length(stale) > 0L) {
+    skeleton[, (stale) := NULL]
+  }
+
+  if (verbose) {
+    message(Sys.time(), " LMED finished ")
+  }
+  return(invisible(skeleton))
+}

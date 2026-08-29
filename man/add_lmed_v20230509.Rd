@@ -79,6 +79,7 @@ skeleton[, .N, keyby = .(approach1)]
   and [fake_skeleton_mht] for the synthetic fixtures used below.
 
 Other MHT exposure entry points:
-\code{\link[=add_lmed_v20250909]{add_lmed_v20250909()}}
+\code{\link[=add_lmed_v20250909]{add_lmed_v20250909()}},
+\code{\link[=add_lmed_v20260828]{add_lmed_v20260828()}}
 }
 \concept{MHT exposure entry points}
