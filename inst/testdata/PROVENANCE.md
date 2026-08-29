@@ -111,7 +111,6 @@ those, so replaying them reaches that package as well as this one.
 | Item | Value |
 |---|---|
 | Function | `mht::add_lmed_v20260828()` |
-| Package | this package, `DESCRIPTION` Version `26.8.26` |
 | Codebook read | `inst/2023-mht/dataDictionary20260828.xlsx` |
 | Codebook sha256 | `39786f418067f2991720b5c0b0bbe5ac155953dae0bbc553e1d73ec8557e8197` |
 | Capture script | `dev/capture-golden-20260828.R` |

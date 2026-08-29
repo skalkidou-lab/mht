@@ -19,12 +19,10 @@ jobs:
       # Delete an entry only when its file is deleted.
       lint-allowlist: |
         R/lmed-v20230509.R:cyclocomp_linter
-        R/lmed-v20230509.R:nonportable_path_linter
         R/lmed-v20230509.R:return_linter
         R/lmed-v20230509.R:seq_linter
         R/lmed-v20250909.R:condition_call_linter
         R/lmed-v20250909.R:cyclocomp_linter
-        R/lmed-v20250909.R:nonportable_path_linter
         R/lmed-v20250909.R:return_linter
         R/lmed-v20250909.R:seq_linter
         R/exposure-v20250909.R:return_linter

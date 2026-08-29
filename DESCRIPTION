@@ -1,6 +1,6 @@
 Package: mht
 Title: Menopausal Hormone Therapy Exposure Definitions for Swedish Registry Data
-Version: 26.8.26
+Version: 26.8.29
 Authors@R:
     c(
       person(
