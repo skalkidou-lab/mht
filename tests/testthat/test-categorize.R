@@ -16,6 +16,11 @@ both_ladders <- list(
   v20250909 = mht:::lmed_categorize_product_names_v20250909
 )
 
+# `both_ladders` holds the two ladders every block above asserts. The
+# 2026-08-28 ladder takes its own binding, and the blocks at the end of this
+# file assert both values side by side.
+ladder_20260828 <- mht:::lmed_categorize_product_names_v20260828
+
 test_that("products that classify correctly keep their category", {
   correct <- c(
     Divigel = "A1",
@@ -169,5 +174,55 @@ test_that("the 2023 and 2026 ladders return the same category for every probe", 
   expect_identical(
     categorize(both_ladders$v20230509, probe),
     categorize(both_ladders$v20250909, probe)
+  )
+})
+
+# ----------------------------------------------- the 2026-08-28 ladder ----
+
+test_that("v20260828: every spelling this file probes reaches a category", {
+  # One table, both values. `v20250909` is what the ladders of `both_ladders`
+  # return; `v20260828` is what the 2026-08-28 ladder returns.
+  #
+  # One normaliser accounts for four of the six. It keeps the ASCII letters of
+  # the name and lowercases them. The hyphen, the space, the registered sign and
+  # the letter case then stop deciding the answer. `Depo-Provera` and
+  # `Duphaston` also need the ladder to match with `startsWith()`, so that
+  # `Provera` cannot answer for `Depo-Provera`.
+  probe <- data.frame(
+    produkt = c(
+      "Depo-Provera\u00ae",
+      "DepoProvera",
+      "Mini-Pe\u00ae",
+      "Primolut\u00ae-Nor",
+      "Oestriol Aspen",
+      "Duphaston"
+    ),
+    v20250909 = c("C4", "C4", NA, NA, NA, "C4"),
+    v20260828 = c("D1", "D1", "I1", "C4", "A5", "C5"),
+    stringsAsFactors = FALSE
+  )
+  for (nm in names(both_ladders)) {
+    expect_identical(
+      categorize(both_ladders[[nm]], probe$produkt),
+      probe$v20250909,
+      info = nm
+    )
+  }
+  expect_identical(categorize(ladder_20260828, probe$produkt), probe$v20260828)
+})
+
+test_that("v20260828: the hyphen is stripped, so both spellings reach B4", {
+  # `produkt_clean` is the same string for both spellings, and both reach one
+  # category.
+  x <- data.table::data.table(produkt = c("Femoston conti", "Femoston-conti"))
+  ladder_20260828(x)
+  expect_identical(x$produkt_clean, c("femostonconti", "femostonconti"))
+  expect_identical(x$product_category, c("B4", "B4"))
+})
+
+test_that("v20260828: a product name absent from the ladder is NA", {
+  expect_identical(
+    categorize(ladder_20260828, c("Paracetamol", "Ibuprofen")),
+    c(NA_character_, NA_character_)
   )
 })

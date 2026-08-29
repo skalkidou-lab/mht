@@ -419,10 +419,400 @@ FROZEN_PRODUCT_CATEGORY <- c(
   "Exlutena" = "I2"
 )
 
+# --------------------------------- frozen expectations, the 2026-08-28 ladder ----
+
+# THE PIN FOR THE 2026-08-28 LADDER. Three more tables, generated the same way
+# as the three above. The generator RAN
+# `lmed_categorize_product_names_v20260828()` and `ladder_rungs()` over the
+# strings that name them, and pasted the result in. Neither is derived from the
+# codebook or hand-edited from the tables above.
+#
+# WHAT THEY ARE SCOPED TO. This ladder carries 115 rungs and it reads
+# `dataDictionary20260828.xlsx`, whose `MHT_groups` sheet names 114 products.
+# The three tables below hold those two universes, and the blocks below assert
+# each table by running the classifier.
+#
+# These tables are NOT a clinically approved product-to-category map either.
+# They record what the 2026-08-28 classifier returns TODAY.
+
+# The category each rung DECLARES, in ladder order. Names are the patterns,
+# values the declared categories. 115 rungs, and no pattern repeats.
+#
+# The sequence identity pins LENGTH, ORDER and PER-PATTERN MULTIPLICITY, so a
+# second rung for an existing pattern cannot be added unnoticed.
+FROZEN_RUNG_DECLARED_20260828 <- c(
+  "evorelmicronor" = "B1",
+  "presomencompositum" = "B10",
+  "femostonconti" = "B4",
+  "divigel" = "A1",
+  "estradot" = "A1",
+  "estrogel" = "A1",
+  "lenzetto" = "A1",
+  "dermestril" = "A1",
+  "evorel" = "A1",
+  "oesclim" = "A1",
+  "climara" = "A1",
+  "evopad" = "A1",
+  "femseven" = "A1",
+  "estramon" = "A1",
+  "progynon" = "A2",
+  "femanest" = "A2",
+  "oestring" = "A3",
+  "vagidonna" = "A3",
+  "vagifem" = "A3",
+  "vagirux" = "A3",
+  "estradiolsun" = "A3",
+  "menovag" = "A3",
+  "blissel" = "A4",
+  "estrokad" = "A4",
+  "ovesterin" = "A4",
+  "gelistrol" = "A4",
+  "intrarosa" = "A4",
+  "gynoflor" = "A4",
+  "oestriolaspen" = "A5",
+  "premarina" = "A6",
+  "presomen" = "A6",
+  "climopaxmono" = "A6",
+  "delestrogen" = "A7",
+  "neofollin" = "A7",
+  "estalissekvens" = "B1",
+  "estalis" = "B1",
+  "combipatch" = "B1",
+  "activelle" = "B2",
+  "cliovelle" = "B2",
+  "eviana" = "B2",
+  "femanor" = "B2",
+  "noresmea" = "B2",
+  "kliogest" = "B2",
+  "indivina" = "B3",
+  "duova" = "B3",
+  "premellesekvens" = "B3",
+  "premelle" = "B3",
+  "lafamme" = "B5",
+  "climodien" = "B5",
+  "angemin" = "B6",
+  "sequidot" = "B7",
+  "femasekvens" = "B8",
+  "trisekvens" = "B8",
+  "novofem" = "B8",
+  "divinaplus" = "B9",
+  "trivina" = "B9",
+  "femoston" = "B11",
+  "cyclabil" = "B12",
+  "crinone" = "C1",
+  "cyclogest" = "C1",
+  "lugesteron" = "C1",
+  "lutinus" = "C1",
+  "utrogestan" = "C1",
+  "utrogest" = "C1",
+  "extemporeprogesteron" = "C1",
+  "extemporeatckodgdaprogesteron" = "C1",
+  "progesteronmicapl" = "C1",
+  "progesteron" = "C1",
+  "prolutex" = "C2",
+  "visanne" = "C3",
+  "dienosis" = "C3",
+  "desogestrel" = "C3",
+  "cerazette" = "C3",
+  "azalia" = "C3",
+  "gestrina" = "C3",
+  "velavel" = "C3",
+  "vinelle" = "C3",
+  "zarelle" = "C3",
+  "slinda" = "C3",
+  "primolutnor" = "C4",
+  "provera" = "C4",
+  "orgametril" = "C4",
+  "gestapuran" = "C4",
+  "duphaston" = "C5",
+  "depoprovera" = "D1",
+  "nexplanon" = "D2",
+  "implanon" = "D2",
+  "folistrel" = "D2",
+  "jadelle" = "D3",
+  "jaydess" = "E1",
+  "kyleena" = "E1",
+  "levosertone" = "E1",
+  "levosert" = "E1",
+  "mirena" = "E1",
+  "livial" = "F1",
+  "tibelia" = "F1",
+  "tibocina" = "F1",
+  "tibolonaristo" = "F1",
+  "tibolonmylan" = "F1",
+  "tibolonorifarm" = "F1",
+  "boltin" = "F1",
+  "duavive" = "G1",
+  "nebido" = "H1",
+  "testogel" = "H1",
+  "undestortestocaps" = "H1",
+  "undestor" = "H1",
+  "testosterondepot" = "H1",
+  "intrinsa" = "H1",
+  "testavan" = "H1",
+  "testim" = "H1",
+  "testovirondepot" = "H1",
+  "tostran" = "H1",
+  "tostrex" = "H1",
+  "minipe" = "I1",
+  "exlutena" = "I2"
+)
+
+# Every pattern literal in the 2026-08-28 ladder, and the category the
+# classifier actually returns for it.
+#
+# This table holds the same values as the declared table above, and that is a
+# MEASURED result. The block
+# "v20260828: every rung returns its own declared category" runs the classifier
+# over every pattern and asserts the two tables against each other.
+FROZEN_PATTERN_CATEGORY_20260828 <- c(
+  "evorelmicronor" = "B1",
+  "presomencompositum" = "B10",
+  "femostonconti" = "B4",
+  "divigel" = "A1",
+  "estradot" = "A1",
+  "estrogel" = "A1",
+  "lenzetto" = "A1",
+  "dermestril" = "A1",
+  "evorel" = "A1",
+  "oesclim" = "A1",
+  "climara" = "A1",
+  "evopad" = "A1",
+  "femseven" = "A1",
+  "estramon" = "A1",
+  "progynon" = "A2",
+  "femanest" = "A2",
+  "oestring" = "A3",
+  "vagidonna" = "A3",
+  "vagifem" = "A3",
+  "vagirux" = "A3",
+  "estradiolsun" = "A3",
+  "menovag" = "A3",
+  "blissel" = "A4",
+  "estrokad" = "A4",
+  "ovesterin" = "A4",
+  "gelistrol" = "A4",
+  "intrarosa" = "A4",
+  "gynoflor" = "A4",
+  "oestriolaspen" = "A5",
+  "premarina" = "A6",
+  "presomen" = "A6",
+  "climopaxmono" = "A6",
+  "delestrogen" = "A7",
+  "neofollin" = "A7",
+  "estalissekvens" = "B1",
+  "estalis" = "B1",
+  "combipatch" = "B1",
+  "activelle" = "B2",
+  "cliovelle" = "B2",
+  "eviana" = "B2",
+  "femanor" = "B2",
+  "noresmea" = "B2",
+  "kliogest" = "B2",
+  "indivina" = "B3",
+  "duova" = "B3",
+  "premellesekvens" = "B3",
+  "premelle" = "B3",
+  "lafamme" = "B5",
+  "climodien" = "B5",
+  "angemin" = "B6",
+  "sequidot" = "B7",
+  "femasekvens" = "B8",
+  "trisekvens" = "B8",
+  "novofem" = "B8",
+  "divinaplus" = "B9",
+  "trivina" = "B9",
+  "femoston" = "B11",
+  "cyclabil" = "B12",
+  "crinone" = "C1",
+  "cyclogest" = "C1",
+  "lugesteron" = "C1",
+  "lutinus" = "C1",
+  "utrogestan" = "C1",
+  "utrogest" = "C1",
+  "extemporeprogesteron" = "C1",
+  "extemporeatckodgdaprogesteron" = "C1",
+  "progesteronmicapl" = "C1",
+  "progesteron" = "C1",
+  "prolutex" = "C2",
+  "visanne" = "C3",
+  "dienosis" = "C3",
+  "desogestrel" = "C3",
+  "cerazette" = "C3",
+  "azalia" = "C3",
+  "gestrina" = "C3",
+  "velavel" = "C3",
+  "vinelle" = "C3",
+  "zarelle" = "C3",
+  "slinda" = "C3",
+  "primolutnor" = "C4",
+  "provera" = "C4",
+  "orgametril" = "C4",
+  "gestapuran" = "C4",
+  "duphaston" = "C5",
+  "depoprovera" = "D1",
+  "nexplanon" = "D2",
+  "implanon" = "D2",
+  "folistrel" = "D2",
+  "jadelle" = "D3",
+  "jaydess" = "E1",
+  "kyleena" = "E1",
+  "levosertone" = "E1",
+  "levosert" = "E1",
+  "mirena" = "E1",
+  "livial" = "F1",
+  "tibelia" = "F1",
+  "tibocina" = "F1",
+  "tibolonaristo" = "F1",
+  "tibolonmylan" = "F1",
+  "tibolonorifarm" = "F1",
+  "boltin" = "F1",
+  "duavive" = "G1",
+  "nebido" = "H1",
+  "testogel" = "H1",
+  "undestortestocaps" = "H1",
+  "undestor" = "H1",
+  "testosterondepot" = "H1",
+  "intrinsa" = "H1",
+  "testavan" = "H1",
+  "testim" = "H1",
+  "testovirondepot" = "H1",
+  "tostran" = "H1",
+  "tostrex" = "H1",
+  "minipe" = "I1",
+  "exlutena" = "I2"
+)
+
+# Every product name in the `MHT_groups` sheet of
+# `dataDictionary20260828.xlsx`, and the category the 2026-08-28 classifier
+# actually returns for it. 114 products. Only Endovelle returns NA.
+FROZEN_PRODUCT_CATEGORY_20260828 <- c(
+  "Divigel" = "A1",
+  "Estradot" = "A1",
+  "Estrogel" = "A1",
+  "Lenzetto" = "A1",
+  "Dermestril" = "A1",
+  "Evorel" = "A1",
+  "Oesclim" = "A1",
+  "Climara" = "A1",
+  "Evopad" = "A1",
+  "Femseven" = "A1",
+  "Estramon 100" = "A1",
+  "Estramon 75" = "A1",
+  "Estramon 25" = "A1",
+  "Progynon" = "A2",
+  "Femanest" = "A2",
+  "Oestring" = "A3",
+  "Vagidonna" = "A3",
+  "Vagifem" = "A3",
+  "Vagirux" = "A3",
+  "Estradiol SUN" = "A3",
+  "Menovag" = "A3",
+  "Blissel" = "A4",
+  "Estrokad" = "A4",
+  "Ovesterin" = "A4",
+  "Gelistrol" = "A4",
+  "Intrarosa" = "A4",
+  "Gynoflor" = "A4",
+  "Oestriol aspen" = "A5",
+  "Premarina" = "A6",
+  "Presomen" = "A6",
+  "Climopax Mono" = "A6",
+  "Delestrogen" = "A7",
+  "Neofollin" = "A7",
+  "Estalis" = "B1",
+  "Estalis Sekvens" = "B1",
+  "CombiPatch" = "B1",
+  "Evorel Micronor" = "B1",
+  "Activelle" = "B2",
+  "Cliovelle" = "B2",
+  "Eviana" = "B2",
+  "Femanor" = "B2",
+  "Noresmea" = "B2",
+  "Kliogest" = "B2",
+  "Indivina" = "B3",
+  "Duova" = "B3",
+  "Premelle" = "B3",
+  "Premelle sekvens" = "B3",
+  "Femostonconti" = "B4",
+  "Lafamme" = "B5",
+  "Climodien" = "B5",
+  "Angemin" = "B6",
+  "Sequidot" = "B7",
+  "Femasekvens" = "B8",
+  "Trisekvens" = "B8",
+  "Novofem" = "B8",
+  "Divina Plus" = "B9",
+  "Trivina" = "B9",
+  "Femoston" = "B11",
+  "Cyclabil" = "B12",
+  "Crinone" = "C1",
+  "Cyclogest" = "C1",
+  "Lugesteron" = "C1",
+  "Lutinus" = "C1",
+  "Utrogestan" = "C1",
+  "Extempore progesteron" = "C1",
+  "Progesteron MIC APL" = "C1",
+  "Prolutex" = "C2",
+  "Visanne" = "C3",
+  "Dienosis" = "C3",
+  "Endovelle" = NA_character_,
+  "Desogestrel" = "C3",
+  "Cerazette" = "C3",
+  "Azalia" = "C3",
+  "Gestrina" = "C3",
+  "Velavel" = "C3",
+  "Vinelle" = "C3",
+  "Zarelle" = "C3",
+  "Slinda" = "C3",
+  "Primolut-Nor" = "C4",
+  "Provera" = "C4",
+  "Orgametril" = "C4",
+  "Gestapuran" = "C4",
+  "Duphaston" = "C5",
+  "Depo-Provera" = "D1",
+  "Nexplanon" = "D2",
+  "Implanon" = "D2",
+  "Folistrel" = "D2",
+  "Jadelle" = "D3",
+  "Jaydess" = "E1",
+  "Kyleena" = "E1",
+  "Levosert" = "E1",
+  "Levosertone" = "E1",
+  "Mirena" = "E1",
+  "Livial" = "F1",
+  "Tibelia" = "F1",
+  "Tibocina" = "F1",
+  "Tibolon Aristo" = "F1",
+  "Tibolon Mylan" = "F1",
+  "Tibolon Orifarm" = "F1",
+  "Boltin" = "F1",
+  "Duavive" = "G1",
+  "Nebido" = "H1",
+  "Testogel" = "H1",
+  "Undestor" = "H1",
+  "Undestortestocaps" = "H1",
+  "Testosteron depot" = "H1",
+  "Intrinsa" = "H1",
+  "Testavan" = "H1",
+  "Testim" = "H1",
+  "Testoviron depot" = "H1",
+  "Tostran" = "H1",
+  "Tostrex" = "H1",
+  "Mini-Pe" = "I1",
+  "Exlutena" = "I2"
+)
+
 ladders <- list(
   v20230509 = mht:::lmed_categorize_product_names_v20230509,
   v20250909 = mht:::lmed_categorize_product_names_v20250909
 )
+
+# `ladders` holds the two ladders the three tables above describe. Every block
+# that loops over that list asserts a value from those tables. The 2026-08-28
+# ladder has its own three tables, so it takes its own binding, and its blocks
+# name that binding directly.
+ladder_20260828 <- mht:::lmed_categorize_product_names_v20260828
 
 classify <- function(fn, produkt) {
   x <- data.table::data.table(produkt = produkt)
@@ -437,14 +827,43 @@ normalise <- function(fn, produkt) {
 }
 
 # The authoritative product universe: sheet `MHT_groups`, column `Preparatnamn`
-# of the codebook both entry points read.
-workbook_products <- function() {
+# of one codebook.
+#
+# THE CODEBOOK IS AN ARGUMENT, because a ladder must be checked against the
+# codebook it reads. The default names the codebook `add_lmed_v20230509()` and
+# `add_lmed_v20250909()` read, so every call that names no codebook keeps that
+# universe. `add_lmed_v20260828()` reads `dataDictionary20260828.xlsx`, and
+# every block that drives it names that file.
+workbook_products <- function(codebook = "dataDictionary20241105.xlsx") {
   wb <- suppressMessages(suppressWarnings(readxl::read_excel(
-    system.file("2023-mht", "dataDictionary20241105.xlsx", package = "mht"),
+    system.file("2023-mht", codebook, package = "mht"),
     sheet = "MHT_groups"
   )))
   data.table::setDT(wb)
   unique(stats::na.omit(wb$Preparatnamn))
+}
+
+# The codebook `add_lmed_v20260828()` reads.
+CODEBOOK_20260828 <- "dataDictionary20260828.xlsx"
+
+# The product categories the 2026-08-28 approach rules read, DERIVED FROM THE
+# CODEBOOK AT RUN TIME.
+#
+# A hardcoded list would go stale the moment a rule changed, and the test would
+# still pass. This reads the `post_grouping` sheet, takes every `includes*` and
+# `doesnotinclude*` cell, and splits each on any non-alphanumeric run.
+# `dev/check-crosswalk.R` derives the same set the same way, in
+# `read_categories()`, so the two cannot disagree.
+approach_read_categories_20260828 <- function() {
+  pg <- suppressMessages(suppressWarnings(readxl::read_excel(
+    system.file("2023-mht", CODEBOOK_20260828, package = "mht"),
+    sheet = "post_grouping"
+  )))
+  cols <- grep("^(includes|doesnotinclude)", names(pg), value = TRUE)
+  v <- unique(unlist(pg[, cols], use.names = FALSE))
+  v <- v[!is.na(v)]
+  v <- unlist(strsplit(v[nzchar(v)], "[^A-Za-z0-9]+"))
+  sort(unique(v[nzchar(v)]))
 }
 
 weeks_between <- function(from, to) {
@@ -464,6 +883,19 @@ run_2026 <- function(lmed, ids, weeks) {
 run_2023 <- function(lmed, ids, weeks) {
   skeleton <- data.table::CJ(id = ids, isoyearweek = weeks, sorted = TRUE)
   suppressMessages(suppressWarnings(add_lmed_v20230509(skeleton, lmed)))
+  skeleton
+}
+
+
+# Drive the real 2026-08-28 entry point and hand back the mutated skeleton.
+#
+# `lnmn` carries the register strength. Utrogestan is the one codebook product
+# whose rule is keyed on strength, and the layer reads that strength out of
+# `lnmn`. A missing `lnmn` is an error there, not a fallback. So every block
+# below that dispenses Utrogestan passes the column.
+run_20260828 <- function(lmed, ids, weeks) {
+  skeleton <- data.table::CJ(id = ids, isoyearweek = weeks, sorted = TRUE)
+  suppressWarnings(add_lmed_v20260828(skeleton, lmed, verbose = FALSE))
   skeleton
 }
 
@@ -501,6 +933,35 @@ span_2026 <- function(produkt, fddd, category, weeks, anchor = "2016-01-03") {
       produkt = produkt,
       edatum = as.Date(anchor),
       fddd = fddd
+    ),
+    ids = 1L,
+    weeks = weeks
+  )
+  w <- skeleton[get(category) == TRUE]$isoyearweek
+  list(first = w[1], last = w[length(w)], n = length(w))
+}
+
+# The same observable, through the 2026-08-28 entry point.
+#
+# READ THIS BEFORE YOU COMPARE A SPAN TO A `span_2026()` SPAN. One day of
+# supply covers one ISO week here and two ISO weeks in `span_2026()`, so the
+# same duration gives a different span. Every comparison below is between two
+# `span_20260828()` results.
+span_20260828 <- function(
+  produkt,
+  fddd,
+  category,
+  weeks,
+  anchor = "2016-01-03",
+  lnmn = NA_character_
+) {
+  skeleton <- run_20260828(
+    data.table::data.table(
+      lopnr = 1L,
+      produkt = produkt,
+      edatum = as.Date(anchor),
+      fddd = fddd,
+      lnmn = lnmn
     ),
     ids = 1L,
     weeks = weeks
@@ -596,6 +1057,16 @@ test_that("every ladder pattern classifies to its frozen category, both ladders"
   }
 })
 
+test_that("v20260828: every ladder pattern classifies to its frozen category", {
+  # THE PIN for this ladder, in the same direction as the block above. The
+  # expected side is a literal obtained by execution, so relabelling any rung
+  # turns this red and the expectation does not move with it.
+  expect_identical(
+    classify(ladder_20260828, names(FROZEN_PATTERN_CATEGORY_20260828)),
+    unname(FROZEN_PATTERN_CATEGORY_20260828)
+  )
+})
+
 test_that("every codebook product classifies to its frozen category, both ladders", {
   # THE PIN, over the register-facing spellings rather than the rung literals.
   # Order-insensitive: the codebook's row order is not contractual, so the
@@ -609,6 +1080,18 @@ test_that("every codebook product classifies to its frozen category, both ladder
       info = nm
     )
   }
+})
+
+test_that("v20260828: every codebook product classifies to its frozen category", {
+  # THE PIN over the register-facing spellings of the codebook
+  # `add_lmed_v20260828()` reads. Order-insensitive: the codebook's row order
+  # is not contractual, so the lookup is by name.
+  prods <- workbook_products(CODEBOOK_20260828)
+  shared <- intersect(prods, names(FROZEN_PRODUCT_CATEGORY_20260828))
+  expect_identical(
+    classify(ladder_20260828, shared),
+    unname(FROZEN_PRODUCT_CATEGORY_20260828[shared])
+  )
 })
 
 test_that("the rung sequence matches the frozen declared table, both ladders", {
@@ -633,6 +1116,29 @@ test_that("the rung sequence matches the frozen declared table, both ladders", {
     c("Duphaston", "Presomen", "Testovirondepot")
   )
   expect_length(FROZEN_RUNG_DECLARED, 107L)
+})
+
+test_that("v20260828: the rung sequence matches its frozen declared table", {
+  # Pins the DECLARED label of every rung, plus the order and the multiplicity
+  # of the whole ladder. `ladder_rungs()` supplies the observed-from-source
+  # side only; the expected side is the frozen literal.
+  r <- ladder_rungs(ladder_20260828)
+  expect_identical(r$pattern, names(FROZEN_RUNG_DECLARED_20260828))
+  expect_identical(r$declared, unname(FROZEN_RUNG_DECLARED_20260828))
+  # No pattern repeats, so a second rung for one pattern cannot hide here.
+  expect_identical(anyDuplicated(names(FROZEN_RUNG_DECLARED_20260828)), 0L)
+  expect_length(FROZEN_RUNG_DECLARED_20260828, 115L)
+})
+
+test_that("v20260828: every rung returns its own declared category", {
+  # The executable form of "no rung is shadowed". Each rung's own pattern goes
+  # to the classifier and must come back as the category that rung DECLARES.
+  # A rung sitting behind a pattern that contains it would return something
+  # else, and this block is what reports that.
+  expect_identical(
+    classify(ladder_20260828, names(FROZEN_RUNG_DECLARED_20260828)),
+    unname(FROZEN_RUNG_DECLARED_20260828)
+  )
 })
 
 test_that("the frozen tables cover every rung and every codebook product", {
@@ -660,6 +1166,22 @@ test_that("the frozen tables cover every rung and every codebook product", {
   expect_setequal(workbook_products(), names(FROZEN_PRODUCT_CATEGORY))
 })
 
+test_that("v20260828: the frozen tables cover every rung and every product", {
+  # COVERAGE BOOKKEEPING, and contractual: a new rung, or a new product in
+  # `dataDictionary20260828.xlsx`, that nobody pinned fails here.
+  # Adding one generated line to a frozen table turns it green again.
+  patterns <- ladder_rungs(ladder_20260828)$pattern
+  expect_setequal(unique(patterns), names(FROZEN_PATTERN_CATEGORY_20260828))
+  expect_setequal(
+    unique(patterns),
+    unique(names(FROZEN_RUNG_DECLARED_20260828))
+  )
+  expect_setequal(
+    workbook_products(CODEBOOK_20260828),
+    names(FROZEN_PRODUCT_CATEGORY_20260828)
+  )
+})
+
 test_that("PINNED DEFECT: the B10, C5 and D1 rungs can never fire", {
   # Asserted directly against the classifier, independent of both the parsing
   # helper and the frozen tables.
@@ -684,6 +1206,39 @@ test_that("PINNED DEFECT: the B10, C5 and D1 rungs can never fire", {
     )
   }
   expect_false(any(FROZEN_PATTERN_CATEGORY %in% c("B10", "C5", "D1")))
+})
+
+test_that("v20260828: B10, C5 and D1 are reachable", {
+  # The 2026-08-28 ladder matches with `startsWith()` on a normalised name, and
+  # the sequential Presomen product is keyed on its own register spelling. So
+  # each of these three strings reaches the rung that declares its category.
+  #
+  # The same three strings run through the ladders of `ladders` as well, so
+  # both values sit side by side in one block.
+  probe <- c("Presomen 28 compositum", "Duphaston", "Depo-Provera")
+  for (nm in names(ladders)) {
+    expect_identical(
+      classify(ladders[[nm]], probe),
+      c("A6", "C4", "C4"),
+      info = nm
+    )
+  }
+  expect_identical(classify(ladder_20260828, probe), c("B10", "C5", "D1"))
+
+  # A longer register-style spelling reaches the same three rungs.
+  expect_identical(
+    classify(
+      ladder_20260828,
+      c(
+        "Presomen 28 compositum 0,3 mg",
+        "Duphaston 10 mg",
+        "Depo-Provera 150 mg"
+      )
+    ),
+    c("B10", "C5", "D1")
+  )
+  # The three categories therefore appear in the frozen pattern table.
+  expect_true(all(c("B10", "C5", "D1") %in% FROZEN_PATTERN_CATEGORY_20260828))
 })
 
 test_that("the codebook product universe reaches 27 categories and misses 6", {
@@ -792,6 +1347,80 @@ test_that("PINNED DEFECT: seven category columns stay FALSE over the codebook", 
   }
 })
 
+test_that("v20260828: two category columns stay FALSE over the codebook", {
+  # SCOPE: false over the 2026-08-28 CODEBOOK PRODUCT UNIVERSE, which is what
+  # this block drives. It is not a claim that no input at all can reach them.
+  # Each of the two has its own cause:
+  #   B10 -- the codebook name `Presomen` reaches A6. B10 is keyed on the
+  #          register spelling `Presomen 28 compositum`, and the block
+  #          "v20260828: B10, C5 and D1 are reachable" drives it.
+  #   D4  -- the codebook defines no product with subgroup D4, and no rung
+  #          carries it. The column exists and is FALSE in every person-week.
+  #
+  # One product per person, so nothing but the pipeline decides which columns
+  # light up.
+  prods <- workbook_products(CODEBOOK_20260828)
+  weeks <- weeks_between("2015-01-05", "2016-03-28")
+  lmed <- data.table::data.table(
+    lopnr = seq_along(prods),
+    produkt = prods,
+    edatum = as.Date("2015-02-02"),
+    fddd = 365,
+    lnmn = NA_character_
+  )
+  lmed[produkt == "Utrogestan", lnmn := "Utrogestan, kapsel, mjuk 100 mg"]
+  skeleton <- run_20260828(lmed, ids = seq_along(prods), weeks = weeks)
+  cats <- setdiff(names(skeleton), c(
+    "id", "isoyearweek", "approach1", "approach2", "approach3",
+    grep("^rd_approach", names(skeleton), value = TRUE)
+  ))
+  lit <- vapply(cats, function(k) any(skeleton[[k]]), logical(1))
+  expect_setequal(names(lit)[!lit], c("B10", "D4"))
+  expect_setequal(
+    names(lit)[lit],
+    c(
+      "A1",
+      "A2",
+      "A3",
+      "A4",
+      "A5",
+      "A6",
+      "A7",
+      "B1",
+      "B2",
+      "B3",
+      "B4",
+      "B5",
+      "B6",
+      "B7",
+      "B8",
+      "B9",
+      "B11",
+      "B12",
+      "C1",
+      "C2",
+      "C3",
+      "C4",
+      "C5",
+      "D1",
+      "D2",
+      "D3",
+      "E1",
+      "F1",
+      "H1",
+      "I1",
+      "I2"
+    )
+  )
+
+  # I1 lights up from the codebook's own spelling, `Mini-Pe`, and from two
+  # register spellings of the same product.
+  expect_identical(
+    classify(ladder_20260828, c("MiniPe", "Mini Pe", "Mini-Pe")),
+    c("I1", "I1", "I1")
+  )
+})
+
 test_that("PINNED DEFECT: a G1 product is classified and then reaches no column", {
   weeks <- weeks_between("2015-01-05", "2016-03-28")
   for (nm in names(ladders)) {
@@ -839,6 +1468,32 @@ test_that("PINNED DEFECT: two matching workbook rows compound the minimum-dose r
   expect_identical(observed, list(first = "2015-53", last = "2016-28", n = 29L))
   expect_false(identical(observed, span_2026("Divigel", 84, "A1", weeks)))
   expect_false(identical(observed, span_2026("Divigel", 56, "A1", weeks)))
+})
+
+test_that("v20260828: one codebook rule applies, and it does not compound", {
+  # The layer selects exactly one codebook rule per prescription and applies it
+  # once. The longest matching codebook name wins. `Utrogest` is a prefix of
+  # `Utrogestan`, so this prescription is the case where two codebook rows carry
+  # a matching name.
+  #
+  # The `Utrogestan` rule below 150 mg gives 28 days a month, with a one-month
+  # minimum. So floor(30 / 28) = 1 month, and 1 * 28 = 28 days.
+  #
+  # Every comparison here is between two `span_20260828()` results.
+  weeks <- weeks_between("2015-12-27", "2020-12-27")
+  observed <- span_20260828(
+    "Utrogestan 100mg Capsules",
+    30,
+    "C1",
+    weeks,
+    lnmn = "Utrogestan, kapsel, mjuk 100 mg"
+  )
+  expect_identical(observed, span_20260828("Divigel", 28, "A1", weeks))
+  expect_identical(observed, list(first = "2015-53", last = "2016-04", n = 5L))
+  # 196 days is the span of two applications of the rule, and it is excluded.
+  expect_false(identical(observed, span_20260828("Divigel", 196, "A1", weeks)))
+  # The rule did fire, so the dispensed 30 days did not survive.
+  expect_false(identical(observed, span_20260828("Divigel", 30, "A1", weeks)))
 })
 
 test_that("PINNED DEFECT: the minimum-dose loop matches the RAW product name", {
@@ -1087,6 +1742,103 @@ test_that("PINNED DEFECT: F1, G1 and H1 are read by no approach rule", {
     )
     expect_identical(with_k[, ..approaches], alone[, ..approaches], info = k)
   }
+})
+
+test_that("v20260828: F1 is read by an approach rule, D4, G1 and H1 are not", {
+  # TWO INDEPENDENT OBSERVATIONS OF THE SAME PROPERTY.
+  #
+  # First, the rule set. `approach_read_categories_20260828()` derives the read
+  # set from the `post_grouping` sheet at run time. Add D4 to any `includes*`
+  # or `doesnotinclude*` cell of that sheet and this block turns red.
+  #
+  # Second, the behaviour. A category that no rule reads cannot move an
+  # approach column, so adding such a product to a person changes nothing.
+  read <- approach_read_categories_20260828()
+
+  # The passing direction first: the derivation really does find categories.
+  # Without this an empty set would satisfy every `expect_false()` below.
+  expect_length(read, 31L)
+  expect_true("F1" %in% read)
+  expect_true("C1" %in% read)
+  for (k in c("D4", "G1", "H1")) {
+    expect_false(k %in% read, info = k)
+  }
+
+  weeks <- weeks_between("2015-01-05", "2016-12-26")
+  rep_product <- c(A1 = "Divigel", F1 = "Livial", G1 = "Duavive", H1 = "Nebido")
+  expect_identical(
+    classify(ladder_20260828, unname(rep_product)),
+    unname(names(rep_product))
+  )
+
+  alone <- run_20260828(
+    data.table::data.table(
+      lopnr = 1L, produkt = "Divigel", edatum = as.Date("2015-02-02"), fddd = 365
+    ),
+    ids = 1L,
+    weeks = weeks
+  )
+  approaches <- c("approach1", "approach2", "approach3")
+  with_k <- function(k) {
+    run_20260828(
+      data.table::data.table(
+        lopnr = 1L,
+        produkt = c("Divigel", unname(rep_product[k])),
+        edatum = as.Date("2015-02-02"),
+        fddd = 365
+      ),
+      ids = 1L,
+      weeks = weeks
+    )
+  }
+
+  # The grid carries exactly the read set, plus D4 and H1.
+  grid_categories <- setdiff(
+    names(alone),
+    c(
+      "id",
+      "isoyearweek",
+      approaches,
+      grep("^rd_approach", names(alone), value = TRUE)
+    )
+  )
+  expect_setequal(setdiff(grid_categories, read), c("D4", "H1"))
+  expect_setequal(setdiff(read, grid_categories), character(0))
+
+  # The one-product baseline, so each change below reads as a change.
+  expect_setequal(
+    unique(alone$approach1),
+    c("local_or_none_mht", "systemic_mht")
+  )
+  expect_setequal(
+    unique(alone$approach2),
+    c("local_or_none_mht", "transdermal_estrogen")
+  )
+  expect_setequal(
+    unique(alone$approach3),
+    c("local_or_none_mht", "estrogen_only")
+  )
+
+  # F1 is read, and every one of the three approach columns changes.
+  f1 <- with_k("F1")
+  expect_false(identical(f1[, ..approaches], alone[, ..approaches]))
+  for (a in approaches) {
+    expect_setequal(
+      unique(f1[[a]]),
+      c("local_or_none_mht", "clashingprescriptions")
+    )
+    expect_false(setequal(unique(f1[[a]]), unique(alone[[a]])), info = a)
+  }
+
+  # G1 and H1 are read by no rule, so neither changes any approach column.
+  for (k in c("G1", "H1")) {
+    expect_identical(with_k(k)[, ..approaches], alone[, ..approaches], info = k)
+  }
+
+  # G1 reaches no column at all. D4 has a column, and it stays FALSE.
+  expect_false("G1" %in% names(alone))
+  expect_true("D4" %in% names(alone))
+  expect_false(any(alone$D4))
 })
 
 test_that("the progestogen categories DO change approach3 when combined with A1", {
