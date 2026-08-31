@@ -1,5 +1,58 @@
 # Changelog
 
+## mht 26.8.29
+
+- **`inst/2023-mht/dataDictionary20260828.xlsx` ships, and the
+  2026-08-28 functions read it.** Every older codebook stays in place,
+  read by the entry point that already names it.
+- **[`add_lmed_v20260828()`](https://skalkidou-lab.github.io/mht/reference/add_lmed_v20260828.md)
+  is the 2026-08-28 entry point.** It returns `invisible(skeleton)` and
+  keeps the caller’s row order.
+- **[`add_lmed_v20260828()`](https://skalkidou-lab.github.io/mht/reference/add_lmed_v20260828.md)
+  owns the product category columns, `approach1` to `approach3`, and
+  every column whose name starts with `rd_approach`.** It changes no
+  other column of `skeleton`, so a caller column that shares a name with
+  a working column survives.
+- **[`add_lmed_v20260828()`](https://skalkidou-lab.github.io/mht/reference/add_lmed_v20260828.md)
+  requires each person to hold each ISO week once, with no gap, and
+  `isoyearweek` to read `"YYYY-WW"`.** Gap bridging and the three-year
+  rule both count rows, so one row MUST be one observed week.
+- **A second call to
+  [`add_lmed_v20260828()`](https://skalkidou-lab.github.io/mht/reference/add_lmed_v20260828.md)
+  gives the table the first call gives.** It recomputes every output
+  column from the product categories up.
+- **`id_name` names the person identifier column of `lmed`, and defaults
+  to `"lopnr"`.**
+- **`create_rd = FALSE` writes no `rd_approach*` column, and removes
+  every one that `skeleton` already carries.**
+- **A product name matches a codebook name as a prefix, after both are
+  reduced to their lowercase ASCII letters.** `Estramon 100` reaches the
+  `estramon` rung. Where one codebook name is a prefix of another the
+  longer one sits first, and `dev/check-crosswalk.R` asserts that
+  ordering.
+- **One codebook rule applies to each prescription, and the longest
+  matching product name wins.** Two rules of equal name length that both
+  apply are an error.
+- **The duration layer reads every rule from the codebook’s own cells.**
+  Of the 116 product rows of the `MHT_groups` sheet, 24 carry a rule: 6
+  a fixed duration in days, and 18 a whole-months pair. A codebook edit
+  changes the answer with no code change.
+- **Two of those 18 rules are keyed on a strength band, and the strength
+  comes from `lnmn`, the register product name.** `lnmn` is REQUIRED as
+  soon as a strength-keyed rule names a product in `lmed`.
+- **An exposure interval is closed and inclusive.** A prescription
+  dispensed on `edatum` for `d` days covers `edatum` to
+  `edatum + d - 1`.
+- **A prescription with no category, no dispensing date or no positive
+  duration contributes nothing.** The run reports one aggregate warning.
+- **Tibolone is its own treatment group, in all three approaches.**
+- **Two treatments that start in the same week mark that week
+  `clashingprescriptions`, through to the last treated week of that
+  episode.** The first untreated week after it is an ordinary stop, so
+  the woman is recorded as a former user.
+- **The four-week bridge needs a treated week on each side.** A leading
+  or a trailing run of untreated weeks is not a gap.
+
 ## mht 26.8.26
 
 - **The lint gate is wired up.** The shared workflow’s `static-checks`

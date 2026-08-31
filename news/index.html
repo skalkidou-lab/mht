@@ -7,7 +7,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">mht</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">26.8.26</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">26.8.29</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -31,6 +31,38 @@
       <small>Source: <a href="https://github.com/skalkidou-lab/mht/blob/main/NEWS.md" class="external-link"><code>NEWS.md</code></a></small>
     </div>
 
+    <div class="section level2">
+<h2 class="pkg-version" data-toc-text="26.8.29" id="mht-26829">mht 26.8.29<a class="anchor" aria-label="anchor" href="#mht-26829"></a></h2>
+<ul><li>
+<strong><code>inst/2023-mht/dataDictionary20260828.xlsx</code> ships, and the 2026-08-28 functions read it.</strong> Every older codebook stays in place, read by the entry point that already names it.</li>
+<li>
+<strong><code><a href="../reference/add_lmed_v20260828.html">add_lmed_v20260828()</a></code> is the 2026-08-28 entry point.</strong> It returns <code>invisible(skeleton)</code> and keeps the caller’s row order.</li>
+<li>
+<strong><code><a href="../reference/add_lmed_v20260828.html">add_lmed_v20260828()</a></code> owns the product category columns, <code>approach1</code> to <code>approach3</code>, and every column whose name starts with <code>rd_approach</code>.</strong> It changes no other column of <code>skeleton</code>, so a caller column that shares a name with a working column survives.</li>
+<li>
+<strong><code><a href="../reference/add_lmed_v20260828.html">add_lmed_v20260828()</a></code> requires each person to hold each ISO week once, with no gap, and <code>isoyearweek</code> to read <code>"YYYY-WW"</code>.</strong> Gap bridging and the three-year rule both count rows, so one row MUST be one observed week.</li>
+<li>
+<strong>A second call to <code><a href="../reference/add_lmed_v20260828.html">add_lmed_v20260828()</a></code> gives the table the first call gives.</strong> It recomputes every output column from the product categories up.</li>
+<li><strong><code>id_name</code> names the person identifier column of <code>lmed</code>, and defaults to <code>"lopnr"</code>.</strong></li>
+<li><strong><code>create_rd = FALSE</code> writes no <code>rd_approach*</code> column, and removes every one that <code>skeleton</code> already carries.</strong></li>
+<li>
+<strong>A product name matches a codebook name as a prefix, after both are reduced to their lowercase ASCII letters.</strong> <code>Estramon 100</code> reaches the <code>estramon</code> rung. Where one codebook name is a prefix of another the longer one sits first, and <code>dev/check-crosswalk.R</code> asserts that ordering.</li>
+<li>
+<strong>One codebook rule applies to each prescription, and the longest matching product name wins.</strong> Two rules of equal name length that both apply are an error.</li>
+<li>
+<strong>The duration layer reads every rule from the codebook’s own cells.</strong> Of the 116 product rows of the <code>MHT_groups</code> sheet, 24 carry a rule: 6 a fixed duration in days, and 18 a whole-months pair. A codebook edit changes the answer with no code change.</li>
+<li>
+<strong>Two of those 18 rules are keyed on a strength band, and the strength comes from <code>lnmn</code>, the register product name.</strong> <code>lnmn</code> is REQUIRED as soon as a strength-keyed rule names a product in <code>lmed</code>.</li>
+<li>
+<strong>An exposure interval is closed and inclusive.</strong> A prescription dispensed on <code>edatum</code> for <code>d</code> days covers <code>edatum</code> to <code>edatum + d - 1</code>.</li>
+<li>
+<strong>A prescription with no category, no dispensing date or no positive duration contributes nothing.</strong> The run reports one aggregate warning.</li>
+<li><strong>Tibolone is its own treatment group, in all three approaches.</strong></li>
+<li>
+<strong>Two treatments that start in the same week mark that week <code>clashingprescriptions</code>, through to the last treated week of that episode.</strong> The first untreated week after it is an ordinary stop, so the woman is recorded as a former user.</li>
+<li>
+<strong>The four-week bridge needs a treated week on each side.</strong> A leading or a trailing run of untreated weeks is not a gap.</li>
+</ul></div>
     <div class="section level2">
 <h2 class="pkg-version" data-toc-text="26.8.26" id="mht-26826">mht 26.8.26<a class="anchor" aria-label="anchor" href="#mht-26826"></a></h2>
 <ul><li><p><strong>The lint gate is wired up.</strong> The shared workflow’s <code>static-checks</code> job was red on 22 lints, and <code>R-CMD-check</code> and <code>pkgdown</code> were skipped behind it. Eleven <code>&lt;path&gt;:&lt;linter&gt;</code> pairs are now allowlisted in <code>.github/workflows/r-package.yml</code>. Every one is in a dated, frozen artefact: <code>lmed-v20230509.R</code>, <code>lmed-v20250909.R</code> and <code>exposure-v20250909.R</code>. Those files cannot be fixed, because <code>mht</code> changes behaviour by creating a new dated function rather than by editing an existing one.</p></li>
