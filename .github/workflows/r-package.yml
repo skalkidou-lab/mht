@@ -27,3 +27,4 @@ jobs:
         R/lmed-v20250909.R:seq_linter
         R/exposure-v20250909.R:return_linter
         R/exposure-v20250909.R:seq_linter
+        R/lmed-v20260902.R:return_linter
