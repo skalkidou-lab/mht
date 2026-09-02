@@ -57,3 +57,9 @@ reference:
   - fake_lmed_2026
   - fake_lmed_2023
   - fake_skeleton_mht
+
+articles:
+- title: Methodology
+  navbar: ~
+  contents:
+  - lmed-v20260902

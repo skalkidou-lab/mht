@@ -55,6 +55,11 @@
   points. The normaliser is reused because the table's keys were built with it,
   so a divergent second copy would miss the lookups it affected without
   erroring.
+* **`vignette("lmed-v20260902")` states what `add_lmed_v20260902()` does.**
+  It lists every product of the table with its category and its exclusion
+  flag, every duration rule and every approach rule. The tables read
+  `product_table_20260902.xlsx` and `dataDictionary20260828.xlsx` when the
+  vignette builds, so they cannot disagree with either file.
 
 # mht 26.8.29
 

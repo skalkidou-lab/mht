@@ -27,6 +27,7 @@ LazyData: true
 Config/Needs/website: papadopoulos-lab/pptemplate
 Config/roxygen2/version: 8.0.0
 Config/testthat/edition: 3
+VignetteBuilder: knitr
 Imports:
     cstime,
     data.table,
