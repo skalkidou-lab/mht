@@ -7,7 +7,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">mht</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">26.8.29</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">26.9.2</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -16,6 +16,10 @@
 
     <div id="navbar" class="collapse navbar-collapse ms-3">
       <ul class="navbar-nav me-auto"><li class="nav-item"><a class="nav-link" href="../reference/index.html">Reference</a></li>
+<li class="nav-item dropdown">
+  <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
+  <ul class="dropdown-menu" aria-labelledby="dropdown-articles"><li><a class="dropdown-item" href="../articles/lmed-v20260902.html">What add_lmed_v20260902() does</a></li>
+  </ul></li>
 <li class="active nav-item"><a class="nav-link" href="../news/index.html">Changelog</a></li>
       </ul><ul class="navbar-nav"><li class="nav-item"><form class="form-inline" role="search">
  <input class="form-control" type="search" name="search-input" id="search-input" autocomplete="off" aria-label="Search site" placeholder="Search for" data-search-index="../search.json"></form></li>
@@ -31,6 +35,36 @@
       <small>Source: <a href="https://github.com/skalkidou-lab/mht/blob/main/NEWS.md" class="external-link"><code>NEWS.md</code></a></small>
     </div>
 
+    <div class="section level2">
+<h2 class="pkg-version" data-toc-text="26.9.2" id="mht-2692">mht 26.9.2<a class="anchor" aria-label="anchor" href="#mht-2692"></a></h2>
+<ul><li>
+<strong><code><a href="../reference/add_lmed_v20260902.html">add_lmed_v20260902()</a></code> is the 2026-09-02 entry point.</strong> A product gets its category from a shipped table, looked up on an exact key, rather than from a 116-rung prefix ladder. It also writes two person-level exclusion columns that no earlier entry point wrote. Everything else is the 2026-08-28 behaviour.</li>
+<li>
+<strong><code>inst/2023-mht/product_table_20260902.xlsx</code> ships, and the 2026-09-02 function reads it.</strong> One row per raw register product name across both LMED deliveries, with the ATC, the dosage form, the route, the classification, its meaning in English, and where the classification came from.</li>
+<li>
+<strong>A delivered product with no row is an ERROR.</strong> The run stops and names the products, and it checks the delivery BEFORE restricting to the people in the skeleton, so a product held only by people outside the cohort still has to be one somebody has ruled on. An unclassified product reads as no MHT, so the woman enters as an unexposed control; that is how tibolone put roughly 91,000 women in the comparator.</li>
+<li>
+<strong>The match is exact on the NORMALISED name, which is not the same as exact on the raw name.</strong> Normalisation keeps the lowercase ASCII letters and drops everything else, so a raw spelling differing only in digits or punctuation collapses onto an existing key and is accepted rather than reported. That is deliberate, because it is what makes three strengths one product; it also means the check cannot prove every raw spelling has its own reviewed row.</li>
+<li>
+<strong>Several raw names may share one lookup key, and rows sharing a key MUST agree</strong> on the classification, on the exclusion flag and on its reason. <code>Estramon 25</code>, <code>Estramon 75</code> and <code>Estramon 100</code> are one product at three strengths. The lookup matches the key and cannot see which raw name produced it.</li>
+<li>
+<strong>Every cell of the table is validated.</strong> A classification must be a category the grid materialises, one the frozen ladder returns, or <code>notmht</code>; the exclusion cell must read <code>TRUE</code> or <code>FALSE</code>; and <code>produkt_clean</code> is recomputed from <code>produkt_raw</code> rather than trusted. A classification typed <code>Al</code> for <code>A1</code> would otherwise materialise no column and leave the person in the reference arm.</li>
+<li>
+<strong><code>ri_mht_excluded_product</code> and <code>ri_mht_excluded_reason</code> are new.</strong> They mark a person the study removes, and why. The flag is person level and time invariant, which is what <code>ri_</code> means in the pipelines that read it. It is set from holding the product, so it does not depend on that prescription having a usable duration.</li>
+<li>
+<strong>The function removes nobody.</strong> It reports. Removing a person changes the cohort, and this layer owns columns of <code>skeleton</code>, never its rows. The caller decides, so the two pipelines can act differently. <strong>A flagged person is not excluded until a spec acts on the flag.</strong>
+</li>
+<li>
+<strong><code>notmht</code> in the table is a recorded decision that a product is not MHT.</strong> That is a different thing from a product nobody has ruled on, which is an error rather than a silent pass.</li>
+<li>
+<strong>The category lookup is exact; the DURATION rules are still prefix matched.</strong> The layer calls the frozen 2026-08-28 fixed-duration, strength and minimum-dose helpers, and those select a rule by longest prefix. An exactly-classified product can still take another product’s duration rule.</li>
+<li>
+<strong>The layer calls the frozen 2026-08-28 helpers rather than copying them.</strong> The freeze rule forbids editing a dated artefact, not calling one, and every helper it reaches carries its own date. That is a convention, not isolation: a prohibited edit to a shared 2026-08-28 helper would change both entry points. The normaliser is reused because the table’s keys were built with it, so a divergent second copy would miss the lookups it affected without erroring.</li>
+<li>
+<strong>The 2026-09-02 functions declare their data.table names</strong>, so <code>R CMD check</code> reports no NOTE and the CI check job passes. No behaviour changed.</li>
+<li>
+<strong><code><a href="../articles/lmed-v20260902.html">vignette("lmed-v20260902")</a></code> states what <code><a href="../reference/add_lmed_v20260902.html">add_lmed_v20260902()</a></code> does.</strong> It lists every product of the table with its category and its exclusion flag, every duration rule and every approach rule. The tables read <code>product_table_20260902.xlsx</code> and <code>dataDictionary20260828.xlsx</code> when the vignette builds, so they cannot disagree with either file.</li>
+</ul></div>
     <div class="section level2">
 <h2 class="pkg-version" data-toc-text="26.8.29" id="mht-26829">mht 26.8.29<a class="anchor" aria-label="anchor" href="#mht-26829"></a></h2>
 <ul><li>
