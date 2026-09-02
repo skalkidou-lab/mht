@@ -15,6 +15,121 @@
 # ever diverged from it would not error: every lookup would simply miss, and
 # every product would report as unknown.
 
+#' The categories the person-week grid materialises
+#'
+#' @details
+#' Read from `apply_lmed_categories_to_skeleton_v20260828()`'s own vector, so a
+#' second hand-written list cannot drift from the one that builds the columns.
+#'
+#' @return A character vector.
+#' @noRd
+lmed_legal_classifications_v20260902 <- function(produkt_raw) {
+  # The grid's own vector, plus every category the FROZEN LADDER actually
+  # returns for these products. The ladder is RUN, not read: every wrong
+  # conclusion in this package's history came from reimplementing a classifier
+  # by parsing its source instead of executing it.
+  #
+  # The union is needed rather than the grid alone because of `G1`. Duavive is
+  # classified and then deliberately discarded, so it materialises no column on
+  # purpose and would otherwise be rejected here.
+  probe <- data.table::data.table(produkt = unique(produkt_raw))
+  lmed_categorize_product_names_v20260828(probe)
+  return(unique(c(
+    lmed_materialised_categories_v20260902(),
+    stats::na.omit(probe$product_category)
+  )))
+}
+
+#' The categories the person-week grid materialises
+#'
+#' @return A character vector.
+#' @noRd
+lmed_materialised_categories_v20260902 <- function() {
+  src <- deparse(body(apply_lmed_categories_to_skeleton_v20260828))
+  block <- paste(src, collapse = " ")
+  block <- sub('.*product_categories <- c\\((.*?)\\).*', "\\1", block)
+  out <- regmatches(block, gregexpr('"[A-Z][0-9]+"', block))[[1]]
+  out <- gsub('"', "", out)
+  if (length(out) < 20L) {
+    stop(
+      "could not read product_categories from the 2026-08-28 layer; ",
+      "found ", length(out),
+      call. = FALSE
+    )
+  }
+  return(out)
+}
+
+#' Validate the product table, cell by cell
+#'
+#' @details
+#' The table is an INPUT, so every cell is checked. A cell the reader tolerates
+#' is a cell nobody checks: a classification typed `Al` for `A1` materialises no
+#' category column and leaves the person in the reference arm, and an exclusion
+#' cell reading anything but TRUE keeps her in the cohort. Neither would raise
+#' anything at all.
+#'
+#' Separate from the reader so the failure branches can be exercised with a
+#' synthetic table, rather than only by shipping a broken file.
+#'
+#' @param tab The table as read, every column character.
+#' @return `tab`, with `exclude_entire_person` as a logical.
+#' @noRd
+lmed_validate_product_table_v20260902 <- function(tab) {
+  classification <- exclude_entire_person <- NULL
+
+  # THE TABLE IS AN INPUT, SO EVERY CELL IS VALIDATED. A cell the reader
+  # tolerates is a cell nobody checks: a classification typed `Al` for `A1`
+  # materialises no category column and leaves the person in the reference
+  # arm, and an exclusion cell reading anything but TRUE keeps her in the
+  # cohort. Neither would raise anything at all.
+  raw <- if ("produkt_raw" %in% names(tab)) tab$produkt_raw else character(0)
+  legal <- c(lmed_legal_classifications_v20260902(raw), "notmht")
+  wrong <- tab[!classification %chin% legal]
+  if (nrow(wrong) > 0L) {
+    stop(
+      nrow(wrong),
+      " table rows carry a classification that is neither a materialised ",
+      "category nor notmht: ",
+      paste(first_few_v20260828(unique(wrong$classification)), collapse = ", "),
+      ". A category the person-week grid never materialises reaches no ",
+      "approach rule, so the person would read as untreated.",
+      call. = FALSE
+    )
+  }
+
+  excl_raw <- toupper(trimws(as.character(tab$exclude_entire_person)))
+  odd <- unique(excl_raw[!excl_raw %chin% c("TRUE", "FALSE")])
+  if (length(odd) > 0L) {
+    stop(
+      "the exclude_entire_person column carries ",
+      paste(first_few_v20260828(odd), collapse = ", "),
+      ". Only TRUE and FALSE are read. Any other value would silently keep ",
+      "the person in the cohort.",
+      call. = FALSE
+    )
+  }
+  tab[, exclude_entire_person := excl_raw == "TRUE"]
+
+  # The key is RECOMPUTED, never trusted. It is supplied in the file, and a
+  # key that disagreed with its own raw name would misroute every lookup for
+  # that row without erroring.
+  if ("produkt_raw" %in% names(tab)) {
+    recomputed <- lmed_normalize_product_name_v20260828(tab$produkt_raw)
+    drift <- which(recomputed != tab$produkt_clean)
+    if (length(drift) > 0L) {
+      stop(
+        length(drift),
+        " table rows carry a produkt_clean that is not produkt_raw normalised: ",
+        paste(first_few_v20260828(tab$produkt_raw[drift]), collapse = ", "),
+        call. = FALSE
+      )
+    }
+  }
+
+  return(tab[])
+}
+
 #' Read the 2026-09-02 product table
 #'
 #' Returns one row per lookup key, with the classification, the person-level
@@ -70,28 +185,31 @@ lmed_read_product_table_v20260902 <- function() {
     )
   }
 
-  tab[, exclude_entire_person := toupper(exclude_entire_person) %chin% "TRUE"]
+  tab <- lmed_validate_product_table_v20260902(tab)
+
   out <- tab[,
     .(
       n_class = data.table::uniqueN(classification),
       n_excl = data.table::uniqueN(exclude_entire_person),
+      n_reason = data.table::uniqueN(exclusion_reason),
       classification = classification[1],
       exclude_entire_person = exclude_entire_person[1],
       exclusion_reason = exclusion_reason[1]
     ),
     keyby = produkt_clean
   ]
-  bad <- out[n_class > 1L | n_excl > 1L]
+  bad <- out[n_class > 1L | n_excl > 1L | n_reason > 1L]
   if (nrow(bad) > 0L) {
     stop(
       nrow(bad),
-      " lookup keys carry rows that disagree: ",
+      " lookup keys carry rows that disagree, on classification, on the ",
+      "exclusion flag or on its reason: ",
       paste(first_few_v20260828(bad$produkt_clean), collapse = ", "),
       ". The lookup matches the key, so it cannot choose between them.",
       call. = FALSE
     )
   }
-  out[, c("n_class", "n_excl") := NULL]
+  out[, c("n_class", "n_excl", "n_reason") := NULL]
   return(out[])
 }
 
@@ -350,6 +468,36 @@ lmed_person_exclusions_v20260902 <- function(reads) {
   return(out[])
 }
 
+#' Assert that every delivered product has a row, before anything is dropped
+#'
+#' @details
+#' The guarantee is about the DELIVERY, so it is checked against the delivery.
+#' `lmed_read_set_v20260828()` restricts `lmed` to the people in the skeleton,
+#' and a check that ran after it would never see a product held only by people
+#' outside the cohort. Those rows are exactly the ones nobody has looked at.
+#'
+#' @param lmed The caller's `lmed`, before any restriction.
+#' @return `invisible(TRUE)`.
+#' @noRd
+lmed_assert_products_known_v20260902 <- function(lmed) {
+  tab <- lmed_read_product_table_v20260902()
+  raw <- unique(as.character(lmed[["produkt"]]))
+  clean <- lmed_normalize_product_name_v20260828(raw)
+  unknown <- raw[!clean %chin% tab$produkt_clean]
+  if (length(unknown) > 0L) {
+    stop(
+      length(unknown),
+      " delivered products have no row in the product table: ",
+      paste(first_few_v20260828(unknown), collapse = " | "),
+      ". A product with no row would read as no MHT, so the woman would enter ",
+      "as an unexposed control. Add each one to the table, as a category or ",
+      "as notmht, before the run.",
+      call. = FALSE
+    )
+  }
+  return(invisible(TRUE))
+}
+
 #' Add 2026-09-02 MHT exposure to a person-week skeleton
 #'
 #' Writes the product category columns, `approach1` to `approach3`, the
@@ -418,6 +566,10 @@ add_lmed_v20260902 <- function(
   if (verbose) {
     message(Sys.time(), " LMED restricting")
   }
+  # BEFORE the cohort restriction, so a product held only by people outside
+  # the skeleton still has to be a product somebody has ruled on.
+  lmed_assert_products_known_v20260902(lmed)
+
   reads <- lmed_read_set_v20260828(lmed, id_name, unique(skeleton[["id"]]))
   intervals <- lmed_durations_v20260902(reads, verbose = verbose)
   excluded <- lmed_person_exclusions_v20260902(reads)

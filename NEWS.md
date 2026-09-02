@@ -1,41 +1,60 @@
 # mht 26.9.2
 
-* **`add_lmed_v20260902()` is the 2026-09-02 entry point.** It differs from
-  `add_lmed_v20260828()` in one respect: a product gets its category from a
-  shipped table, looked up on an exact key, rather than from a 116-rung prefix
-  ladder.
+* **`add_lmed_v20260902()` is the 2026-09-02 entry point.** A product gets its
+  category from a shipped table, looked up on an exact key, rather than from a
+  116-rung prefix ladder. It also writes two person-level exclusion columns
+  that no earlier entry point wrote. Everything else is the 2026-08-28
+  behaviour.
 * **`inst/2023-mht/product_table_20260902.xlsx` ships, and the 2026-09-02
-  function reads it.** It carries one row per raw register product name across
-  both LMED deliveries, with the ATC, the dosage form, the route, the
-  classification, its meaning in English, and where the classification came
-  from.
+  function reads it.** One row per raw register product name across both LMED
+  deliveries, with the ATC, the dosage form, the route, the classification, its
+  meaning in English, and where the classification came from.
 * **A delivered product with no row is an ERROR.** The run stops and names the
-  products. An unclassified product reads as no MHT, so the woman enters as an
-  unexposed control; that is how tibolone put roughly 91,000 women in the
-  comparator. A delivery is a frozen file, so within one delivery this can fire
-  only once.
-* **The match is exact on the normalised name, not a prefix.** A prefix guesses.
-  It is how `Depo-Provera` reached the `Provera` duration rule, and how
-  `Evorel Micronor` reached oestrogen-only.
+  products, and it checks the delivery BEFORE restricting to the people in the
+  skeleton, so a product held only by people outside the cohort still has to be
+  one somebody has ruled on. An unclassified product reads as no MHT, so the
+  woman enters as an unexposed control; that is how tibolone put roughly 91,000
+  women in the comparator.
+* **The match is exact on the NORMALISED name, which is not the same as exact
+  on the raw name.** Normalisation keeps the lowercase ASCII letters and drops
+  everything else, so a raw spelling differing only in digits or punctuation
+  collapses onto an existing key and is accepted rather than reported. That is
+  deliberate, because it is what makes three strengths one product; it also
+  means the check cannot prove every raw spelling has its own reviewed row.
 * **Several raw names may share one lookup key, and rows sharing a key MUST
-  agree.** `Estramon 25`, `Estramon 75` and `Estramon 100` are one product at
-  three strengths. The lookup matches the key and cannot see which raw name
-  produced it.
+  agree** on the classification, on the exclusion flag and on its reason.
+  `Estramon 25`, `Estramon 75` and `Estramon 100` are one product at three
+  strengths. The lookup matches the key and cannot see which raw name produced
+  it.
+* **Every cell of the table is validated.** A classification must be a category
+  the grid materialises, one the frozen ladder returns, or `notmht`; the
+  exclusion cell must read `TRUE` or `FALSE`; and `produkt_clean` is recomputed
+  from `produkt_raw` rather than trusted. A classification typed `Al` for `A1`
+  would otherwise materialise no column and leave the person in the reference
+  arm.
 * **`ri_mht_excluded_product` and `ri_mht_excluded_reason` are new.** They mark
   a person the study removes, and why. The flag is person level and time
-  invariant, which is what `ri_` means in the pipelines that read it.
+  invariant, which is what `ri_` means in the pipelines that read it. It is set
+  from holding the product, so it does not depend on that prescription having a
+  usable duration.
 * **The function removes nobody.** It reports. Removing a person changes the
   cohort, and this layer owns columns of `skeleton`, never its rows. The caller
-  decides, so the two pipelines can act differently.
+  decides, so the two pipelines can act differently. **A flagged person is not
+  excluded until a spec acts on the flag.**
 * **`notmht` in the table is a recorded decision that a product is not MHT.**
-  That is a different thing from a product nobody has ruled on, which is now an
+  That is a different thing from a product nobody has ruled on, which is an
   error rather than a silent pass.
-* **The layer calls the frozen 2026-08-28 duration, approach and exposure
-  helpers rather than copying them.** The freeze rule forbids editing a dated
-  artefact, not calling one, and every helper it reaches carries its own date.
-  The normaliser is reused for a stronger reason: the table's keys were built
-  with it, and a second copy that diverged would not error, it would simply
-  miss every lookup.
+* **The category lookup is exact; the DURATION rules are still prefix matched.**
+  The layer calls the frozen 2026-08-28 fixed-duration, strength and
+  minimum-dose helpers, and those select a rule by longest prefix. An
+  exactly-classified product can still take another product's duration rule.
+* **The layer calls the frozen 2026-08-28 helpers rather than copying them.**
+  The freeze rule forbids editing a dated artefact, not calling one, and every
+  helper it reaches carries its own date. That is a convention, not isolation:
+  a prohibited edit to a shared 2026-08-28 helper would change both entry
+  points. The normaliser is reused because the table's keys were built with it,
+  so a divergent second copy would miss the lookups it affected without
+  erroring.
 
 # mht 26.8.29
 

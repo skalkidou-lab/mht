@@ -87,3 +87,84 @@ test_that("a notmht product contributes no exposure", {
   # contribute nothing. A literal "notmht" category would materialise a column.
   expect_true(is.na(x$product_category))
 })
+
+# ---------------------------------------------------------------------------
+# The positive path. Without these, replacing every category assignment with
+# NA leaves the tests above green: none of them asserts that a known product
+# reaches its expected category.
+# ---------------------------------------------------------------------------
+
+test_that("a known product reaches the category the table gives it", {
+  tab <- mht:::lmed_read_product_table_v20260902()
+  known <- tab[!classification %chin% c("notmht")][1:5]
+  x <- data.table::data.table(produkt = known$produkt_clean)
+  mht:::lmed_categorize_product_names_v20260902(x)
+  expect_identical(x$product_category, known$classification)
+  expect_false(any(is.na(x$product_category)))
+})
+
+test_that("classification reaches the skeleton as a lit category column", {
+  f <- fixture()
+  suppressWarnings(add_lmed_v20260902(f$skeleton, f$lmed, verbose = FALSE))
+  # At least one materialised category column must be TRUE somewhere. A
+  # no-op categoriser would leave every one of them FALSE.
+  cats <- intersect(mht:::lmed_materialised_categories_v20260902(),
+                    names(f$skeleton))
+  expect_gt(length(cats), 0L)
+  any_lit <- vapply(cats, function(k) any(f$skeleton[[k]]), logical(1))
+  expect_true(any(any_lit))
+})
+
+test_that("someone is actually flagged, and it reaches the skeleton", {
+  f <- fixture()
+  suppressWarnings(add_lmed_v20260902(f$skeleton, f$lmed, verbose = FALSE))
+  # A no-op exclusion leaves every flag FALSE, which every other assertion
+  # in this file tolerates.
+  expect_true(any(f$skeleton$ri_mht_excluded_product))
+  expect_true(any(!is.na(f$skeleton$ri_mht_excluded_reason)))
+})
+
+test_that("the table rejects a classification that is neither legal nor notmht", {
+  # `Al` for `A1` materialises no column, so the person reads as untreated.
+  tab <- data.table::data.table(
+    produkt_raw = "Fake", produkt_clean = "fake", classification = "Al",
+    exclude_entire_person = "FALSE", exclusion_reason = NA_character_
+  )
+  expect_error(
+    mht:::lmed_validate_product_table_v20260902(tab),
+    "neither a materialised category nor notmht"
+  )
+})
+
+test_that("the table rejects an exclusion cell that is not TRUE or FALSE", {
+  tab <- data.table::data.table(
+    produkt_raw = "Fake", produkt_clean = "fake", classification = "notmht",
+    exclude_entire_person = "Yes", exclusion_reason = NA_character_
+  )
+  expect_error(
+    mht:::lmed_validate_product_table_v20260902(tab),
+    "Only TRUE and FALSE are read"
+  )
+})
+
+test_that("the table rejects a key that is not its own raw name normalised", {
+  tab <- data.table::data.table(
+    produkt_raw = "Divigel", produkt_clean = "wrongkey", classification = "A1",
+    exclude_entire_person = "FALSE", exclusion_reason = NA_character_
+  )
+  expect_error(
+    mht:::lmed_validate_product_table_v20260902(tab),
+    "not produkt_raw normalised"
+  )
+})
+
+test_that("an unknown product errors even when only an outsider holds it", {
+  f <- fixture()
+  outsider <- data.table::copy(f$lmed[1])
+  outsider[, `:=`(lopnr = "not_in_any_skeleton", produkt = "Outsider Only")]
+  expect_error(
+    suppressWarnings(add_lmed_v20260902(f$skeleton, rbind(f$lmed, outsider),
+                                        verbose = FALSE)),
+    "Outsider Only"
+  )
+})
