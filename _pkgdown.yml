@@ -44,6 +44,7 @@ reference:
     they read, in how the product categories are flagged, and in whether the
     `rd_approach*` exposure variables are produced.
   contents:
+  - add_lmed_v20260902
   - add_lmed_v20260828
   - add_lmed_v20250909
   - add_lmed_v20230509
