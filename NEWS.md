@@ -1,3 +1,42 @@
+# mht 26.9.2
+
+* **`add_lmed_v20260902()` is the 2026-09-02 entry point.** It differs from
+  `add_lmed_v20260828()` in one respect: a product gets its category from a
+  shipped table, looked up on an exact key, rather than from a 116-rung prefix
+  ladder.
+* **`inst/2023-mht/product_table_20260902.xlsx` ships, and the 2026-09-02
+  function reads it.** It carries one row per raw register product name across
+  both LMED deliveries, with the ATC, the dosage form, the route, the
+  classification, its meaning in English, and where the classification came
+  from.
+* **A delivered product with no row is an ERROR.** The run stops and names the
+  products. An unclassified product reads as no MHT, so the woman enters as an
+  unexposed control; that is how tibolone put roughly 91,000 women in the
+  comparator. A delivery is a frozen file, so within one delivery this can fire
+  only once.
+* **The match is exact on the normalised name, not a prefix.** A prefix guesses.
+  It is how `Depo-Provera` reached the `Provera` duration rule, and how
+  `Evorel Micronor` reached oestrogen-only.
+* **Several raw names may share one lookup key, and rows sharing a key MUST
+  agree.** `Estramon 25`, `Estramon 75` and `Estramon 100` are one product at
+  three strengths. The lookup matches the key and cannot see which raw name
+  produced it.
+* **`ri_mht_excluded_product` and `ri_mht_excluded_reason` are new.** They mark
+  a person the study removes, and why. The flag is person level and time
+  invariant, which is what `ri_` means in the pipelines that read it.
+* **The function removes nobody.** It reports. Removing a person changes the
+  cohort, and this layer owns columns of `skeleton`, never its rows. The caller
+  decides, so the two pipelines can act differently.
+* **`notmht` in the table is a recorded decision that a product is not MHT.**
+  That is a different thing from a product nobody has ruled on, which is now an
+  error rather than a silent pass.
+* **The layer calls the frozen 2026-08-28 duration, approach and exposure
+  helpers rather than copying them.** The freeze rule forbids editing a dated
+  artefact, not calling one, and every helper it reaches carries its own date.
+  The normaliser is reused for a stronger reason: the table's keys were built
+  with it, and a second copy that diverged would not error, it would simply
+  miss every lookup.
+
 # mht 26.8.29
 
 * **`inst/2023-mht/dataDictionary20260828.xlsx` ships, and the 2026-08-28
