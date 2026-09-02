@@ -147,8 +147,9 @@ lmed_validate_product_table_v20260902 <- function(tab) {
 #' @return A `data.table` keyed on `produkt_clean`.
 #' @noRd
 lmed_read_product_table_v20260902 <- function() {
+  . <- NULL
   produkt_clean <- classification <- exclude_entire_person <- NULL
-  exclusion_reason <- n_class <- n_excl <- NULL
+  exclusion_reason <- n_class <- n_excl <- n_reason <- NULL
 
   path <- system.file(
     "2023-mht",
@@ -236,6 +237,7 @@ lmed_read_product_table_v20260902 <- function() {
 #' @noRd
 lmed_categorize_product_names_v20260902 <- function(x) {
   produkt_clean <- product_category <- produkt <- classification <- NULL
+  i.classification <- NULL
 
   tab <- lmed_read_product_table_v20260902()
   x[, produkt_clean := lmed_normalize_product_name_v20260828(produkt)]
@@ -429,8 +431,9 @@ lmed_durations_v20260902 <- function(lmed, verbose = TRUE) {
 #'   `ri_mht_excluded_reason`.
 #' @noRd
 lmed_person_exclusions_v20260902 <- function(reads) {
+  . <- NULL
   produkt_clean <- exclude_entire_person <- exclusion_reason <- NULL
-  lopnr <- reason <- NULL
+  lopnr <- reason <- id <- i.exclusion_reason <- NULL
 
   tab <- lmed_read_product_table_v20260902()
   flagged <- tab[exclude_entire_person == TRUE]
@@ -558,6 +561,10 @@ add_lmed_v20260902 <- function(
   create_rd = TRUE,
   verbose = TRUE
 ) {
+  # Declare variables for data.table non-standard evaluation
+  ri_mht_excluded_product <- ri_mht_excluded_reason <- NULL
+  i.ri_mht_excluded_product <- i.ri_mht_excluded_reason <- NULL
+
   row_col <- ".caller_row"
 
   lmed_assert_entry_arguments_v20260828(skeleton, lmed, id_name)

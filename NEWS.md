@@ -55,6 +55,9 @@
   points. The normaliser is reused because the table's keys were built with it,
   so a divergent second copy would miss the lookups it affected without
   erroring.
+* **The 2026-09-02 functions declare their data.table names**, so
+  `R CMD check` reports no NOTE and the CI check job passes. No behaviour
+  changed.
 * **`vignette("lmed-v20260902")` states what `add_lmed_v20260902()` does.**
   It lists every product of the table with its category and its exclusion
   flag, every duration rule and every approach rule. The tables read
