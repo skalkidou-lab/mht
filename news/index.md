@@ -1,5 +1,24 @@
 # Changelog
 
+## mht 26.9.3
+
+- **The skeleton MUST hold weekly rows only, and both 2026 entry points
+  now say so.** A skeleton from `swereg::create_skeleton()` also carries
+  one annual row per person per year, marked `is_isoyear == TRUE`, with
+  an `isoyearweek` such as `"1946-**"`. That value is no ISO week, so
+  the run stops. Pass `skeleton[is_isoyear == FALSE]`, and fill the
+  annual rows in the caller.
+- **A new test pins that contract.** An annual row stops the run, and
+  the weekly subset runs. A later dated entry point that accepts an
+  annual row has to change the test to do so.
+- **[`add_lmed_v20250909()`](https://skalkidou-lab.github.io/mht/reference/add_lmed_v20250909.md)
+  has no such check, and reads an annual row as a week.** Its gap
+  bridging flips any `FALSE` run of four rows or fewer to `TRUE`. A
+  person with only a handful of rows could then read as on systemic MHT,
+  with no prescription at all. The 2026-08-28 bridge needs a treated
+  week on each side, which already prevents it.
+- Documentation and one test. No behaviour changed.
+
 ## mht 26.9.2
 
 - **[`add_lmed_v20260902()`](https://skalkidou-lab.github.io/mht/reference/add_lmed_v20260902.md)

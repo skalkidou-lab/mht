@@ -7,7 +7,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">mht</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">26.9.2</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">26.9.3</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -35,6 +35,16 @@
       <small>Source: <a href="https://github.com/skalkidou-lab/mht/blob/main/NEWS.md" class="external-link"><code>NEWS.md</code></a></small>
     </div>
 
+    <div class="section level2">
+<h2 class="pkg-version" data-toc-text="26.9.3" id="mht-2693">mht 26.9.3<a class="anchor" aria-label="anchor" href="#mht-2693"></a></h2>
+<ul><li>
+<strong>The skeleton MUST hold weekly rows only, and both 2026 entry points now say so.</strong> A skeleton from <code>swereg::create_skeleton()</code> also carries one annual row per person per year, marked <code>is_isoyear == TRUE</code>, with an <code>isoyearweek</code> such as <code>"1946-**"</code>. That value is no ISO week, so the run stops. Pass <code>skeleton[is_isoyear == FALSE]</code>, and fill the annual rows in the caller.</li>
+<li>
+<strong>A new test pins that contract.</strong> An annual row stops the run, and the weekly subset runs. A later dated entry point that accepts an annual row has to change the test to do so.</li>
+<li>
+<strong><code><a href="../reference/add_lmed_v20250909.html">add_lmed_v20250909()</a></code> has no such check, and reads an annual row as a week.</strong> Its gap bridging flips any <code>FALSE</code> run of four rows or fewer to <code>TRUE</code>. A person with only a handful of rows could then read as on systemic MHT, with no prescription at all. The 2026-08-28 bridge needs a treated week on each side, which already prevents it.</li>
+<li>Documentation and one test. No behaviour changed.</li>
+</ul></div>
     <div class="section level2">
 <h2 class="pkg-version" data-toc-text="26.9.2" id="mht-2692">mht 26.9.2<a class="anchor" aria-label="anchor" href="#mht-2692"></a></h2>
 <ul><li>

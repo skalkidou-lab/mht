@@ -28,7 +28,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">mht</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">26.9.2</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">26.9.3</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -950,6 +950,42 @@ columns of section 6 and nothing else.</p>
 <span><span class="co">#&gt; [1] TRUE</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/sets.html" class="external-link">setdiff</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/names.html" class="external-link">names</a></span><span class="op">(</span><span class="va">skeleton</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/base/names.html" class="external-link">names</a></span><span class="op">(</span><span class="va">older</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="co">#&gt; [1] "ri_mht_excluded_product" "ri_mht_excluded_reason"</span></span></code></pre></div>
+<div class="section level3">
+<h3 id="the-skeleton-must-be-weekly">The skeleton must be weekly<a class="anchor" aria-label="anchor" href="#the-skeleton-must-be-weekly"></a>
+</h3>
+<p><code>swereg::create_skeleton()</code> writes one annual row per
+person per year before the weekly rows. An annual row holds
+<code>is_isoyear = TRUE</code> and an <code>isoyearweek</code> that is
+no ISO week:</p>
+<table class="table">
+<thead><tr class="header">
+<th>id</th>
+<th>isoyearweek</th>
+<th>is_isoyear</th>
+</tr></thead>
+<tbody>
+<tr class="odd">
+<td>1</td>
+<td><code>1946-**</code></td>
+<td><code>TRUE</code></td>
+</tr>
+<tr class="even">
+<td>1</td>
+<td><code>2015-02</code></td>
+<td><code>FALSE</code></td>
+</tr>
+</tbody>
+</table>
+<p>The function stops on the annual row, before it writes anything:</p>
+<pre><code>skeleton$isoyearweek holds a value that is no ISO week: 1946-**</code></pre>
+<p>Pass the weekly rows only, and fill the annual rows in the
+caller:</p>
+<div class="sourceCode" id="cb15"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">weekly</span> <span class="op">&lt;-</span> <span class="va">skeleton</span><span class="op">[</span><span class="va">is_isoyear</span> <span class="op">==</span> <span class="cn">FALSE</span><span class="op">]</span></span>
+<span><span class="fu"><a href="../reference/add_lmed_v20260902.html">add_lmed_v20260902</a></span><span class="op">(</span><span class="va">weekly</span>, <span class="va">lmed</span><span class="op">)</span></span></code></pre></div>
+<p>The subset is a new <code>data.table</code>, so the function writes
+its columns there.</p>
+</div>
 </div>
 <div class="section level2">
 <h2 id="from-categories-to-a-treatment-level">4. From categories to a treatment level<a class="anchor" aria-label="anchor" href="#from-categories-to-a-treatment-level"></a>
@@ -969,7 +1005,7 @@ cross, with no pair missing and none repeated. <code>excludes</code>
 lists the categories a week must not carry. Every rule of one variable
 carries the same <code>excludes</code>, and the chunk asserts that
 too.</p>
-<div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb16"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">pg</span><span class="op">[</span>, <span class="va">excludes</span> <span class="op">:=</span> <span class="fu"><a href="https://rdrr.io/r/base/apply.html" class="external-link">apply</a></span><span class="op">(</span><span class="va">.SD</span>, <span class="fl">1</span>, <span class="kw">function</span><span class="op">(</span><span class="va">r</span><span class="op">)</span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste</a></span><span class="op">(</span><span class="fu">cat_order</span><span class="op">(</span><span class="va">r</span><span class="op">[</span><span class="op">!</span><span class="fu"><a href="https://rdrr.io/r/base/NA.html" class="external-link">is.na</a></span><span class="op">(</span><span class="va">r</span><span class="op">)</span><span class="op">]</span><span class="op">)</span>, collapse <span class="op">=</span> <span class="st">" "</span><span class="op">)</span><span class="op">)</span>,</span>
 <span>  .SDcols <span class="op">=</span> <span class="va">ex_cols</span><span class="op">]</span></span>
 <span><span class="va">rule_table</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">a</span><span class="op">)</span> <span class="op">{</span></span>
@@ -995,7 +1031,7 @@ too.</p>
 <div class="section level3">
 <h3 id="approach-1-any-systemic-mht">Approach 1: any systemic MHT<a class="anchor" aria-label="anchor" href="#approach-1-any-systemic-mht"></a>
 </h3>
-<div class="sourceCode" id="cb15"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb17"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu">knitr</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/knitr/man/kable.html" class="external-link">kable</a></span><span class="op">(</span><span class="fu">rule_table</span><span class="op">(</span><span class="st">"1"</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
 <table style="width:100%;" class="table">
 <colgroup>
@@ -1046,7 +1082,7 @@ exposed.</p>
 <div class="section level3">
 <h3 id="approach-2-route-of-the-oestrogen">Approach 2: route of the oestrogen<a class="anchor" aria-label="anchor" href="#approach-2-route-of-the-oestrogen"></a>
 </h3>
-<div class="sourceCode" id="cb16"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb18"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu">knitr</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/knitr/man/kable.html" class="external-link">kable</a></span><span class="op">(</span><span class="fu">rule_table</span><span class="op">(</span><span class="st">"2"</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
 <table class="table">
 <colgroup>
@@ -1104,7 +1140,7 @@ Tibolone is again its own level.</p>
 <div class="section level3">
 <h3 id="approach-3-the-progestogen">Approach 3: the progestogen<a class="anchor" aria-label="anchor" href="#approach-3-the-progestogen"></a>
 </h3>
-<div class="sourceCode" id="cb17"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb19"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu">knitr</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/knitr/man/kable.html" class="external-link">kable</a></span><span class="op">(</span><span class="fu">rule_table</span><span class="op">(</span><span class="st">"3"</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
 <table class="table">
 <colgroup>
@@ -1187,7 +1223,7 @@ weeks in which it is unlit, between two weeks in which it is lit,
 becomes lit. A leading or a trailing run is not a gap, so no woman
 starts early and none stops late. The category columns are not bridged:
 bridging happens inside the approach step.</p>
-<div class="sourceCode" id="cb18"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb20"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">skel</span> <span class="op">&lt;-</span> <span class="fu">toy_skeleton</span><span class="op">(</span><span class="op">)</span></span>
 <span><span class="fu"><a href="../reference/add_lmed_v20260902.html">add_lmed_v20260902</a></span><span class="op">(</span><span class="va">skel</span>, <span class="fu"><a href="https://rdrr.io/r/base/cbind.html" class="external-link">rbind</a></span><span class="op">(</span><span class="fu">rx</span><span class="op">(</span><span class="st">"Divigel"</span>, <span class="fl">1</span>, <span class="fl">10</span><span class="op">)</span>, <span class="fu">rx</span><span class="op">(</span><span class="st">"Divigel"</span>, <span class="fl">14</span>, <span class="fl">7</span><span class="op">)</span><span class="op">)</span>, verbose <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span>
 <span><span class="fu">episodes</span><span class="op">(</span><span class="va">skel</span>, <span class="st">"approach1"</span><span class="op">)</span></span>
@@ -1218,7 +1254,7 @@ variable with the shortest run. The treatment the woman started most
 recently is the one reported.</p>
 <p>The woman below takes Progynon (<code>A2</code>) for 30 weeks and
 adds Divigel (<code>A1</code>) from week 11 for 20 weeks.</p>
-<div class="sourceCode" id="cb19"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb21"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">skel</span> <span class="op">&lt;-</span> <span class="fu">toy_skeleton</span><span class="op">(</span><span class="op">)</span></span>
 <span><span class="fu"><a href="../reference/add_lmed_v20260902.html">add_lmed_v20260902</a></span><span class="op">(</span><span class="va">skel</span>, <span class="fu"><a href="https://rdrr.io/r/base/cbind.html" class="external-link">rbind</a></span><span class="op">(</span><span class="fu">rx</span><span class="op">(</span><span class="st">"Progynon"</span>, <span class="fl">1</span>, <span class="fl">30</span><span class="op">)</span>, <span class="fu">rx</span><span class="op">(</span><span class="st">"Divigel"</span>, <span class="fl">11</span>, <span class="fl">20</span><span class="op">)</span><span class="op">)</span>, verbose <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span>
 <span><span class="fu">episodes</span><span class="op">(</span><span class="va">skel</span>, <span class="st">"approach1"</span><span class="op">)</span></span>
@@ -1244,7 +1280,7 @@ adds Divigel (<code>A1</code>) from week 11 for 20 weeks.</p>
 Approach 3 sees <code>estrogen_only</code> throughout.</p>
 <p>An exclusion works the same way. The woman below takes Divigel for 20
 weeks and Utrogestan 100 mg from week 9 for 8 weeks.</p>
-<div class="sourceCode" id="cb20"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb22"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">skel</span> <span class="op">&lt;-</span> <span class="fu">toy_skeleton</span><span class="op">(</span><span class="op">)</span></span>
 <span><span class="fu"><a href="../reference/add_lmed_v20260902.html">add_lmed_v20260902</a></span><span class="op">(</span></span>
 <span>  <span class="va">skel</span>,</span>
@@ -1273,7 +1309,7 @@ lengths, and neither wins. The week is marked
 <code>clashingprescriptions</code>. The mark carries forward to the last
 treated week of that episode, and no further. The first untreated week
 after it is an ordinary stop.</p>
-<div class="sourceCode" id="cb21"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb23"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">skel</span> <span class="op">&lt;-</span> <span class="fu">toy_skeleton</span><span class="op">(</span><span class="op">)</span></span>
 <span><span class="fu"><a href="../reference/add_lmed_v20260902.html">add_lmed_v20260902</a></span><span class="op">(</span><span class="va">skel</span>, <span class="fu"><a href="https://rdrr.io/r/base/cbind.html" class="external-link">rbind</a></span><span class="op">(</span><span class="fu">rx</span><span class="op">(</span><span class="st">"Progynon"</span>, <span class="fl">1</span>, <span class="fl">30</span><span class="op">)</span>, <span class="fu">rx</span><span class="op">(</span><span class="st">"Divigel"</span>, <span class="fl">1</span>, <span class="fl">20</span><span class="op">)</span><span class="op">)</span>, verbose <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span>
 <span><span class="fu">episodes</span><span class="op">(</span><span class="va">skel</span>, <span class="st">"approach2"</span><span class="op">)</span></span>
@@ -1324,7 +1360,7 @@ through step 4.</p>
 </h3>
 <p>Two women in the fixture stop and never restart. Person 1 was treated
 for 193 weeks, person 2 for 73.</p>
-<div class="sourceCode" id="cb22"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb24"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu">episodes</span><span class="op">(</span><span class="va">skeleton</span><span class="op">[</span><span class="va">id</span> <span class="op"><a href="https://rdrr.io/r/base/match.html" class="external-link">%in%</a></span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span>, <span class="fl">2</span><span class="op">)</span><span class="op">]</span>, <span class="st">"rd_approach3_single"</span><span class="op">)</span></span>
 <span><span class="co">#&gt;       id    from      to weeks         level</span></span>
 <span><span class="co">#&gt;    &lt;int&gt;  &lt;char&gt;  &lt;char&gt; &lt;int&gt;        &lt;char&gt;</span></span>
@@ -1342,7 +1378,7 @@ before a woman’s first treatment stays
 </h3>
 <p>Person 6 was treated for 193 weeks, stopped for 21, and restarted for
 50.</p>
-<div class="sourceCode" id="cb23"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb25"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu">episodes</span><span class="op">(</span><span class="va">skeleton</span><span class="op">[</span><span class="va">id</span> <span class="op">==</span> <span class="fl">6</span><span class="op">]</span>, <span class="st">"rd_approach3_single"</span><span class="op">)</span></span>
 <span><span class="co">#&gt;       id    from      to weeks         level</span></span>
 <span><span class="co">#&gt;    &lt;int&gt;  &lt;char&gt;  &lt;char&gt; &lt;int&gt;        &lt;char&gt;</span></span>
@@ -1371,7 +1407,7 @@ because that second episode ran under 156 weeks.</p>
 two <code>estrogen_progesterone</code> levels collapsed into one. A
 switch between active levels never creates <code>previous</code>, so the
 relabel gives what a full second pass would give.</p>
-<div class="sourceCode" id="cb24"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb26"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu">episodes</span><span class="op">(</span><span class="va">skeleton</span><span class="op">[</span><span class="va">id</span> <span class="op">==</span> <span class="fl">16</span><span class="op">]</span>, <span class="st">"rd_approach3_single"</span><span class="op">)</span></span>
 <span><span class="co">#&gt;       id    from      to weeks                           level</span></span>
 <span><span class="co">#&gt;    &lt;int&gt;  &lt;char&gt;  &lt;char&gt; &lt;int&gt;                          &lt;char&gt;</span></span>
@@ -1402,7 +1438,7 @@ caller passes therefore define the window of ascertainment. The
 <p>The function removes nobody. It reports. A flagged person keeps every
 exposure column, computed as for anyone else, and the caller decides
 what to do with her rows.</p>
-<div class="sourceCode" id="cb25"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb27"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">skeleton</span><span class="op">[</span>, <span class="va">.N</span>, keyby <span class="op">=</span> <span class="fu">.</span><span class="op">(</span><span class="va">ri_mht_excluded_product</span>, <span class="va">ri_mht_excluded_reason</span><span class="op">)</span><span class="op">]</span></span>
 <span><span class="co">#&gt; Key: &lt;ri_mht_excluded_product, ri_mht_excluded_reason&gt;</span></span>
 <span><span class="co">#&gt;    ri_mht_excluded_product            ri_mht_excluded_reason     N</span></span>

@@ -13,7 +13,7 @@ invisibly."><meta property="og:image" content="https://skalkidou-lab.github.io/m
 
     <a class="navbar-brand me-2" href="../index.html">mht</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">26.9.2</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">26.9.3</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -66,7 +66,9 @@ invisibly.</p>
 
 <dl><dt id="arg-skeleton">skeleton<a class="anchor" aria-label="anchor" href="#arg-skeleton"></a></dt>
 <dd><p>A `data.table` person-week skeleton with an `id` column and
-a character `isoyearweek` column. Modified by reference.</p></dd>
+a character `isoyearweek` column. Modified by reference. Weekly rows only.
+Where the skeleton comes from `swereg::create_skeleton()`, pass
+`skeleton[is_isoyear == FALSE]`. See Details.</p></dd>
 
 
 <dt id="arg-lmed">lmed<a class="anchor" aria-label="anchor" href="#arg-lmed"></a></dt>
@@ -112,7 +114,16 @@ before it writes any column:</p><ul><li><p>a person who holds one ISO week twice
     first week and the last</p></li>
 <li><p>an `isoyearweek` value that is no ISO week of the form `"YYYY-WW"`,
     which is the form `cstime::date_to_isoyearweek_c()` writes</p></li>
-</ul><p>A second call recomputes every output column from the product categories up.
+</ul><p>**`skeleton` MUST hold weekly rows only.** Each person MUST hold each of its
+ISO weeks once, consecutively, with no gap. A skeleton from
+`swereg::create_skeleton()` also carries one annual row per person per year,
+with `isoyearweek` such as `"1946-**"` and `is_isoyear` set to `TRUE`. An
+annual row is no ISO week. The function then stops with the error
+`skeleton$isoyearweek holds a value that is no ISO week: 1946-**`. Pass
+`skeleton[is_isoyear == FALSE]`, and fill the annual rows in the caller. That
+subset is a new `data.table`. The function writes its columns there, and the
+table the caller holds gets none of them.</p>
+<p>A second call recomputes every output column from the product categories up.
 It gives the table the first call gives.</p>
     </div>
     <div class="section level2">

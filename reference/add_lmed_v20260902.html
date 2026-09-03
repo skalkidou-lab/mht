@@ -9,7 +9,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">mht</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">26.9.2</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">26.9.3</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -59,7 +59,10 @@
 
 
 <dl><dt id="arg-skeleton">skeleton<a class="anchor" aria-label="anchor" href="#arg-skeleton"></a></dt>
-<dd><p>A person-week `data.table` with `id` and `isoyearweek`.</p></dd>
+<dd><p>A person-week `data.table` with `id` and `isoyearweek`.
+Weekly rows only. Where the skeleton comes from
+`swereg::create_skeleton()`, pass `skeleton[is_isoyear == FALSE]`. See
+Details.</p></dd>
 
 
 <dt id="arg-lmed">lmed<a class="anchor" aria-label="anchor" href="#arg-lmed"></a></dt>
@@ -95,6 +98,15 @@ product with no row is an error.</p>
 cohort, and this layer owns columns of `skeleton`, never its rows.</p>
 <p>Everything else is the 2026-08-28 behaviour, reached by calling that layer's
 own dated helpers rather than by copying them.</p>
+<p>**`skeleton` MUST hold weekly rows only.** Each person MUST hold each of its
+ISO weeks once, consecutively, with no gap. A skeleton from
+`swereg::create_skeleton()` also carries one annual row per person per year,
+with `isoyearweek` such as `"1946-**"` and `is_isoyear` set to `TRUE`. An
+annual row is no ISO week. The function then stops with the error
+`skeleton$isoyearweek holds a value that is no ISO week: 1946-**`. Pass
+`skeleton[is_isoyear == FALSE]`, and fill the annual rows in the caller. That
+subset is a new `data.table`. The function writes its columns there, and the
+table the caller holds gets none of them.</p>
     </div>
 
     <div class="section level2">
