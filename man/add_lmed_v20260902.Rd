@@ -13,7 +13,10 @@ add_lmed_v20260902(
 )
 }
 \arguments{
-\item{skeleton}{A person-week `data.table` with `id` and `isoyearweek`.}
+\item{skeleton}{A person-week `data.table` with `id` and `isoyearweek`.
+Weekly rows only. Where the skeleton comes from
+`swereg::create_skeleton()`, pass `skeleton[is_isoyear == FALSE]`. See
+Details.}
 
 \item{lmed}{A `data.table` of dispensed prescriptions.}
 
@@ -48,6 +51,16 @@ cohort, and this layer owns columns of `skeleton`, never its rows.
 
 Everything else is the 2026-08-28 behaviour, reached by calling that layer's
 own dated helpers rather than by copying them.
+
+**`skeleton` MUST hold weekly rows only.** Each person MUST hold each of its
+ISO weeks once, consecutively, with no gap. A skeleton from
+`swereg::create_skeleton()` also carries one annual row per person per year,
+with `isoyearweek` such as `"1946-**"` and `is_isoyear` set to `TRUE`. An
+annual row is no ISO week. The function then stops with the error
+`skeleton$isoyearweek holds a value that is no ISO week: 1946-**`. Pass
+`skeleton[is_isoyear == FALSE]`, and fill the annual rows in the caller. That
+subset is a new `data.table`. The function writes its columns there, and the
+table the caller holds gets none of them.
 }
 \examples{
 library(data.table)

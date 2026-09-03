@@ -1231,11 +1231,23 @@ lmed_read_set_v20260828 <- function(lmed, id_name, ids) {
 #'     which is the form `cstime::date_to_isoyearweek_c()` writes
 #' }
 #'
+#' **`skeleton` MUST hold weekly rows only.** Each person MUST hold each of its
+#' ISO weeks once, consecutively, with no gap. A skeleton from
+#' `swereg::create_skeleton()` also carries one annual row per person per year,
+#' with `isoyearweek` such as `"1946-**"` and `is_isoyear` set to `TRUE`. An
+#' annual row is no ISO week. The function then stops with the error
+#' `skeleton$isoyearweek holds a value that is no ISO week: 1946-**`. Pass
+#' `skeleton[is_isoyear == FALSE]`, and fill the annual rows in the caller. That
+#' subset is a new `data.table`. The function writes its columns there, and the
+#' table the caller holds gets none of them.
+#'
 #' A second call recomputes every output column from the product categories up.
 #' It gives the table the first call gives.
 #'
 #' @param skeleton A `data.table` person-week skeleton with an `id` column and
-#'   a character `isoyearweek` column. Modified by reference.
+#'   a character `isoyearweek` column. Modified by reference. Weekly rows only.
+#'   Where the skeleton comes from `swereg::create_skeleton()`, pass
+#'   `skeleton[is_isoyear == FALSE]`. See Details.
 #' @param lmed A `data.table` of dispensed prescriptions. The function reads
 #'   `produkt`, `edatum`, `fddd`, the identifier column `id_name` names, and
 #'   `lnmn` where a strength-keyed codebook rule needs it. `lmed` is not
