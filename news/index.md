@@ -194,7 +194,9 @@
   two groups tied on run length, the resolver skips `local_or_none_mht`,
   and approach 1 has one group left to time. Approaches 2 and 3 have two
   and three. This bounds the defect: it cannot reach an analysis that
-  enrols on `rd_approach1_single`.
+  enrols on `rd_approach1_single`. (Corrected 2026-09-10: since 26.8.29
+  tibolone is a second approach-1 group, so approach 1 can clash;
+  `test-v20260828-approaches.R` pins it.)
 
 - **The flag outliving the overlap is pinned as a defect.** Two
   prescriptions covering 365 days each overlap for about 52 weeks, and
