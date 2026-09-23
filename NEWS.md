@@ -1,3 +1,25 @@
+# mht 26.9.23
+
+* **`add_lmed_v20260922()` is the 2026-09-22 entry point.** It reads
+  `product_table_20260922.xlsx` and `dataDictionary20260922.xlsx`, and no other
+  workbook. Its output equals that of `add_lmed_v20260902()`, except for the
+  two changes below.
+* **`Estradiol Valerate` is category `A7`, an injected oestrogen.** The
+  2026-09-02 table reads it as `notmht`. A woman with any dispensing of it gets
+  `ri_mht_excluded_product = TRUE`, with the reason
+  `possible gender-affirming therapy`.
+* **No `post_grouping` rule reads `A7`.** The codebook drops the 14 rules that
+  `A7` lit, and removes `A7` from the exclusions of 3 inert rules. 88 rules
+  remain. A week of `A7` alone is `local_or_none_mht` in every approach, and
+  the `A7` column still marks it.
+* **A flagged woman keeps her exposure columns.** The function removes nobody.
+  A study removes her only through an exclusion that it names, which reads
+  `ri_mht_excluded_product`.
+* **`vignette("lmed-v20260922")` states what `add_lmed_v20260922()` does.** Its
+  `stopifnot()` chunks check both changes on the shipped workbooks and the
+  fixture, so the vignette fails to build if a claim is false.
+* `add_lmed_v20260902()`, its two workbooks and its vignette are unchanged.
+
 # mht 26.9.3
 
 * **The skeleton MUST hold weekly rows only, and both 2026 entry points now say
