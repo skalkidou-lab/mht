@@ -3,7 +3,8 @@ pkgdown: 2.2.1
 pkgdown_sha: ~
 articles:
   lmed-v20260902: lmed-v20260902.html
-last_built: 2026-09-11T04:31Z
+  lmed-v20260922: lmed-v20260922.html
+last_built: 2026-09-23T04:14Z
 urls:
   reference: https://skalkidou-lab.github.io/mht/reference
   article: https://skalkidou-lab.github.io/mht/articles
