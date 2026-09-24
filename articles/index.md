@@ -2,6 +2,8 @@
 
 ### Methodology
 
+- [Approach 4: oestrogen route by progestogen
+  type](https://skalkidou-lab.github.io/mht/articles/lmed-v20260924.md):
 - [What add_lmed_v20260922()
   does](https://skalkidou-lab.github.io/mht/articles/lmed-v20260922.md):
 - [What add_lmed_v20260902()
