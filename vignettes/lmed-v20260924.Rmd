@@ -71,9 +71,17 @@ level_in <- function(skel, weeks, col = "approach4") {
 key_of <- function(produkt) {
   return(mht:::lmed_normalize_product_name_v20260828(produkt))
 }
+
+# The message of the error that `expr` raises, or NA when it raises none.
+error_of <- function(expr) {
+  return(tryCatch({
+    expr
+    NA_character_
+  }, error = conditionMessage))
+}
 ```
 
-`add_lmed_v20260924()` takes a table of dispensed prescriptions and a person-week skeleton. It writes menopausal hormone therapy (MHT) exposure columns and two person-level exclusion columns onto the skeleton. Exposure here means dispensed supply, assumed used. The function reads the dispensed quantity and, for two strength-keyed rules, the strength. It reads no adherence and no indication. This vignette states what it does, in the order it does it:
+`add_lmed_v20260924()` takes a table of dispensed prescriptions and a person-week skeleton. It writes menopausal hormone therapy (MHT) exposure columns and two person-level exclusion columns onto the skeleton. Exposure here means dispensed supply, assumed used. The function reads the dispensed quantity and, for two strength-keyed rules, the strength. It reads no adherence and no indication. It runs six steps, in this order:
 
 1. It looks each product name up in a shipped product table. The table gives the product's MHT category, and whether the study removes its holders.
 2. It turns each prescription into a closed interval of ISO weeks.
@@ -82,11 +90,11 @@ key_of <- function(produkt) {
 5. It derives the `rd_approach*` exposure variables from those levels.
 6. It flags every week of a person whose supplied prescriptions include a product the table marks for removal.
 
-The product table is `product_table_20260924.xlsx`. The duration rules and the approach rules come from the codebook `dataDictionary20260924.xlsx`. Both workbooks are dated 2026-09-24 and ship with the package. The function reads no other workbook. The tables below read the two files when the vignette builds, so they cannot disagree with either file.
+The product table is `product_table_20260924.xlsx`. The duration rules and the approach rules come from the codebook `dataDictionary20260924.xlsx`. Both workbooks are dated 2026-09-24 and ship with the package. The function reads no other workbook. The tables below are read from the two files when the vignette builds.
 
 Approach 4 is new in this function. It splits systemic oestrogen by its route and by the type of progestogen dispensed with it. Every helper that reads a workbook, directly or through another helper, has a 2026-09-24 copy. The exposure layer also has a copy, because it writes the two `rd_approach4` columns. Every other helper is an older dated one, called unchanged. Section 1 states the changes against `add_lmed_v20260922()`. Section 3 verifies on the fixture that the two functions agree in every column that both write. The vignette `lmed-v20260922` stays as the record of that frozen version.
 
-The function's arguments, the columns it owns and the conditions it rejects are in `?add_lmed_v20260924` and `?add_lmed_v20260922`. This vignette does not repeat them.
+The function's arguments, the columns it owns and the conditions it rejects are in `?add_lmed_v20260924` and `?add_lmed_v20260922`.
 
 ```{r files}
 product_table <- system.file("2023-mht", "product_table_20260924.xlsx", package = "mht")
@@ -123,11 +131,65 @@ groups <- groups[!is.na(Preparatnamn)]
 
 The function reduces the register's product name to its ASCII letters, then lowercases it. `Estradot 25`, `Estradot®` and `Estradot` all become `estradot`. It then looks that key up in the product table, on an exact match. Extra digits, spaces and symbols disappear in the reduction, so they still match. Extra letters do not: `estradotmatrix` would match no key. The table holds one row per raw register name, so several rows can share one key. Rows that share a key MUST agree on the category, on the exclusion flag and on its reason. The function errors where they do not.
 
+```{r lookup}
+key_of(c("Estradot 25", "Estradot®", "Estradot", "Estradot Matrix"))
+stopifnot(
+  all(key_of(c("Estradot 25", "Estradot®", "Estradot")) == "estradot"),
+  "estradot" %chin% ptab$produkt_clean,
+  !key_of("Estradot Matrix") %chin% ptab$produkt_clean
+)
+spellings <- lapply(c("Estradot 25", "Estradot®", "Estradot"), function(p) run_toy(rx(p, 1, 10)))
+stopifnot(
+  all(spellings[[1]]$A1[1:10]),
+  identical(spellings[[1]], spellings[[2]]),
+  identical(spellings[[1]], spellings[[3]])
+)
+msg <- error_of(run_toy(rx("Estradot Matrix", 1, 10)))
+msg
+stopifnot(startsWith(msg, "1 delivered products have no row"))
+```
+
+The chunk also runs the function on each spelling. The three runs give the same columns, and `Estradot Matrix` stops the run.
+
 A product name with no row is an error. The function checks the whole prescription table before it restricts to the people in the skeleton. A product held only by people outside the cohort therefore still needs a row. A product nobody has ruled on would otherwise read as no MHT, and its holder would enter as an unexposed control. The run stops with an error that names up to five such products. This table is frozen. A missing row goes into a new dated table, which a new dated function reads.
 
-`notmht` in the table is a recorded decision that the product is not MHT. A prescription of such a product contributes nothing, and the function reports nothing about it.
+The chunk below passes six unknown product names, all held by person 99, who is not in the skeleton. The function stops, names five of the six, and writes no column.
 
-The reader validates four things. A category MUST be one the person-week grid materialises, one the 2026-08-28 classifier returns, or `notmht`. The exclusion cell MUST read `TRUE` or `FALSE`. The key MUST equal the raw name reduced, so a key is never trusted. Rows sharing a key MUST agree, as above. No other cell is checked.
+```{r unknown}
+outside <- data.table(
+  lopnr = 99L, produkt = paste("Unknown product", 1:6), edatum = monday, fddd = 28, lnmn = NA_character_
+)
+skel <- toy_skeleton()
+msg <- error_of(add_lmed_v20260924(skel, rbind(rx("Divigel", 1, 10), outside), verbose = FALSE))
+msg
+stopifnot(
+  startsWith(msg, "6 delivered products have no row"),
+  lengths(regmatches(msg, gregexpr("Unknown product", msg))) == 5L,
+  identical(names(skel), c("id", "isoyearweek", "week"))
+)
+```
+
+`notmht` in the table is a recorded decision that the product is not MHT. A prescription of such a product contributes nothing, and no warning names it.
+
+The reader validates four things. A category MUST be one the person-week grid materialises, one the 2026-08-28 classifier returns, or `notmht`. The exclusion cell MUST read `TRUE` or `FALSE`. The key MUST equal the raw name reduced, because the function recomputes it. Rows sharing a key MUST agree, as above. No other cell is checked. The chunk below breaks one row of the table in each of the first three ways, and passes each broken table to the function's validator. The intact table passes.
+
+```{r validation}
+validate <- mht:::lmed_validate_product_table_v20260902
+i <- which(ptab$classification == "A1")[1]
+broken <- list(
+  category = copy(ptab)[i, classification := "Al"],
+  flag = copy(ptab)[i, exclude_entire_person := "yes"],
+  key = copy(ptab)[i, produkt_clean := "estradot"]
+)
+invalid <- vapply(broken, function(x) error_of(validate(x)), "")
+invalid
+stopifnot(
+  grepl("neither a materialised category nor notmht", invalid[["category"]]),
+  grepl("exclude_entire_person column carries YES", invalid[["flag"]]),
+  grepl("not produkt_raw normalised", invalid[["key"]]),
+  is.na(error_of(validate(copy(ptab))))
+)
+```
 
 ### The categories
 
@@ -162,6 +224,7 @@ The `other` sheet holds every row whose ATC code lies outside G02 and G03. Every
 other <- ptab[!atc %like% "^G0[23]"]
 nrow(other)
 other[, .N, keyby = .(classification, exclude_entire_person)]
+stopifnot(all(other$classification == "notmht"), all(other$exclude_entire_person == "FALSE"))
 ```
 
 ### What changed against the 2026-09-22 function
@@ -186,7 +249,7 @@ stopifnot(
 )
 ```
 
-The codebook is `dataDictionary20260922.xlsx` with 47 approach 4 rules added to the `post_grouping` sheet, after the 88 rules of approaches 1 to 3. Every other sheet is unchanged, and so is every rule of approaches 1 to 3. The chunk checks each statement. It reads the rules with the function's own reader.
+The codebook is `dataDictionary20260922.xlsx` with 47 approach 4 rules added to the `post_grouping` sheet, after the 88 rules of approaches 1 to 3. Every other sheet is unchanged, and so is every rule of approaches 1 to 3. The chunk reads the rules with the function's own reader.
 
 ```{r changed-codebook}
 codebook_before <- system.file("2023-mht", "dataDictionary20260922.xlsx", package = "mht")
@@ -262,17 +325,34 @@ Four steps run, in this order:
 3. Drop every prescription with no category, no dispensing date, or no positive duration.
 4. Read the strength from `lnmn`, and apply the whole-months rules.
 
-Step 2 runs before step 3 because an implant carries no useful dispensed quantity, and the fixed duration supplies one. Step 4 runs after step 3 because a prescription with no duration has no interval, whatever its strength. Reading the strength first would turn a missing `lnmn` on such a row into an error for nothing.
+Step 2 runs before step 3 because an implant carries no useful dispensed quantity, and the fixed duration supplies one. Step 4 runs after step 3 because a prescription with no duration has no interval at any strength. If step 4 ran first, a missing `lnmn` on such a row would be an error, although step 3 drops the row.
 
 The duration rules come from the codebook's `MHT_groups` sheet, and they are matched by prefix, not by exact key. A rule applies where its codebook name is a prefix of the reduced product name, and the longest such name wins. `Utrogestan 100mg Capsules` takes the `Utrogestan` rule. An alias in the duration layer gives `Utrogest` and `Gepretix` the `Utrogestan` rules. Their categories come from the table, where all three are `C1`. The category lookup and the duration rule are chosen independently, and nothing checks that the rule's codebook subgroup agrees with the table's category.
 
 The interval is closed. A prescription dispensed on `edatum` for `d` days covers `edatum` to `edatum + d - 1`. Both ends convert to an ISO week with `cstime::date_to_isoyearweek_c()`. Each prescription gets its own interval. Overlapping intervals of one category are unioned, and supply left over at a refill is not carried forward.
 
+The chunk below shows the week boundaries. One day of Divigel on a Sunday marks one week, and two days from that Sunday mark two. A 10-week supply refilled in week 9 for 4 weeks covers weeks 1 to 12, the union of the two intervals. A 10-week supply dispensed 4 weeks before the skeleton starts covers weeks 1 to 6 of it, and the episode starts in week 1.
+
+```{r interval-weeks}
+on_sunday <- function(fddd) data.table(lopnr = 1L, produkt = "Divigel", edatum = monday + 6L, fddd = fddd, lnmn = NA_character_)
+one_day <- run_toy(on_sunday(1))
+two_days <- run_toy(on_sunday(2))
+refill <- run_toy(rbind(rx("Divigel", 1, 10), rx("Divigel", 9, 4)))
+early <- run_toy(rx("Divigel", -3, 10))
+stopifnot(
+  identical(which(one_day$A1), 1L),
+  identical(which(two_days$A1), 1:2),
+  identical(which(refill$A1), 1:12),
+  identical(which(early$A1), 1:6),
+  identical(early$approach1[1:7], rep(c("systemic_mht", "local_or_none_mht"), c(6L, 1L)))
+)
+```
+
 ### Fixed durations
 
 ```{r fixed}
 knitr::kable(groups[!is.na(FDDD), .(Preparatnamn, Subgrupp, FDDD)])
-stopifnot(nrow(groups[!is.na(FDDD)]) == 6L)
+stopifnot(nrow(groups[!is.na(FDDD)]) == 6L, groups[Preparatnamn == "Jadelle", FDDD] == "1680")
 ```
 
 1680 days is five years of twelve 28-day months, which is 240 weeks. 1008 days is three years of the same months, which is 144 weeks. Jaydess is the one product whose fixed duration differs from the rest of its category. The function reads no removal or replacement date, so a device's interval runs its full length or ends with follow-up. The chunk dispenses each hormonal IUD (`E1`) once, with `fddd = 1`, and counts the weeks its `E1` column marks.
@@ -307,29 +387,53 @@ The rule rewrites `fddd` in three steps:
 2. If `months < minimum_months`, the duration is zero and the prescription is dropped.
 3. Otherwise `fddd = months * 28`.
 
-The function uses a 28-day month, which is four whole weeks. The result rounds down, never up.
+The function uses a 28-day month, which is four whole weeks. The result rounds down.
 
 Two Utrogestan rules are keyed on strength. `strength_mg_min` is inclusive and `strength_mg_max` is exclusive, so the pair `NA, 150` and `150, NA` covers every strength once. The strength comes from `lnmn`, the register's full product name, which carries the dosage form and the strength. The strength is the last number in `lnmn` followed by `mg`, with a comma read as a decimal point. A number followed by `mg/` is a concentration and does not count. As soon as a strength-keyed product survives step 3, `lnmn` is required. A surviving row of it with no readable strength is an error.
 
 The chunk below drives the duration layer with one row per case. The layer is an internal function, so the chunk calls it directly, with the product table that the function reads.
 
 ```{r durations}
+u <- groups[Preparatnamn == "Utrogestan"]
+u[, .(Preparatnamn, minimum_monthly_dose, strength_mg_min, strength_mg_max)]
+stopifnot(
+  nrow(u) == 2L,
+  nrow(u[is.na(strength_mg_min) & strength_mg_max == "150"]) == 1L,
+  nrow(u[strength_mg_min == "150" & is.na(strength_mg_max)]) == 1L
+)
 cases <- data.table(
-  lopnr = 1L,
-  produkt = c("Divigel", "Cerazette", "Provera", "Provera", "Utrogestan", "Utrogestan", "Utrogest", "Mirena", "Jaydess"),
-  lnmn = c(NA, NA, NA, NA, "Utrogestan, kapsel, mjuk 100 mg", "Utrogestan, kapsel, mjuk 200 mg", "Utrogest, kapsel, mjuk 100 mg", NA, NA),
+  produkt = c("Divigel", "Cerazette", "Provera", "Provera", "Utrogestan", "Utrogestan", "Utrogestan",
+              "Utrogestan 100mg Capsules", "Utrogest", "Gepretix", "Mirena", "Jaydess",
+              "Divigel", "Divigel", "Mirena"),
+  lnmn = c(NA, NA, NA, NA, "Utrogestan, kapsel, mjuk 100 mg", "Utrogestan, kapsel, mjuk 150 mg",
+           "Utrogestan, kapsel, mjuk 200 mg", "Utrogestan, kapsel, mjuk 100 mg",
+           "Utrogest, kapsel, mjuk 100 mg", "Gepretix, kapsel, mjuk 100 mg", NA, NA, NA, NA, NA),
   edatum = as.Date("2020-01-06"),
-  fddd = c(90, 28, 28, 8, 30, 30, 30, 1, 1)
+  fddd = c(90, 28, 28, 8, 30, 30, 30, 30, 30, 30, 1, 1, NA, 90, NA)
 )
-intervals <- mht:::lmed_durations_v20260924(
-  cases,
-  mht:::lmed_read_product_table_v20260924(),
-  verbose = FALSE
+cases[, lopnr := seq_len(.N)]
+cases[14, edatum := NA]
+warned <- character(0)
+intervals <- withCallingHandlers(
+  mht:::lmed_durations_v20260924(cases, mht:::lmed_read_product_table_v20260924(), verbose = FALSE),
+  warning = function(w) {
+    warned <<- c(warned, conditionMessage(w))
+    invokeRestart("muffleWarning")
+  }
 )
-intervals[, .(produkt, lnmn, fddd, duration_days, start_isoyearweek, stop_isoyearweek)]
+intervals[, .(case = lopnr, produkt, lnmn, duration_days, start_isoyearweek, stop_isoyearweek)]
+warned
+days <- intervals[match(seq_len(nrow(cases)), lopnr), duration_days]
+stopifnot(
+  identical(as.numeric(days), c(90, 196, 196, NA, 28, 56, 56, 28, 28, 28, 1680, 1008, NA, NA, 1680)),
+  identical(warned, paste(
+    "3 of 15 classified prescriptions dropped: 1 with no duration,",
+    "1 with a duration that is no positive number of days, 1 with no dispensing date"
+  ))
+)
 ```
 
-Divigel has no rule and keeps 90 days. Cerazette and Provera at 28 days of supply reach seven months, which is 196 days. Provera at 8 days of supply reaches two months. The rule needs three, so the prescription is dropped and the warning reports it. Utrogestan 100 mg needs 28 days of supply per month and gets one month. Utrogestan 200 mg needs 12 and gets two. Utrogest 100 mg takes the Utrogestan rule. Mirena and Jaydess take their fixed durations, whatever `fddd` says.
+Divigel has no rule and keeps 90 days. Cerazette and Provera at 28 days of supply reach seven months, which is 196 days. Provera at 8 days of supply reaches two months. The rule needs three, so the prescription is dropped and the warning reports it. Utrogestan 100 mg needs 28 days of supply per month and gets one month. Utrogestan 150 mg and 200 mg take the other rule, which needs 12, and get two. The names `Utrogestan 100mg Capsules`, `Utrogest` and `Gepretix` take the Utrogestan rules. Mirena and Jaydess take their fixed durations regardless of `fddd`, and so does a Mirena with no `fddd`. A Divigel with no `fddd` and a Divigel with no dispensing date are dropped, and the warning counts them.
 
 ### Dropped prescriptions
 
@@ -343,9 +447,19 @@ Outside the six fixed-duration products, a missing `fddd` is never imputed.
 
 ## 3. Person-weeks
 
-The skeleton MUST hold each person's ISO weeks once each, with no gap between the first and the last. Gap bridging and the three-year rule both count rows, and a row is one elapsed week only under that condition. The function errors otherwise, before it writes anything.
+The skeleton MUST hold each person's ISO weeks once each, with no gap between the first and the last. Gap bridging and the three-year rule both count rows, and a row is one elapsed week only under that condition. The function errors otherwise, before it writes anything. The chunk below drops week 5 from a toy skeleton.
 
-Each of the 33 grid categories gets one logical column. `G1` is discarded before this step, and `D4` is a column that no product reaches. A week is `TRUE` for a category where any interval of that category includes at least one day of the week. One day of supply on a Sunday marks that week. The same day plus the Monday marks two weeks. An episode already running at a person's first week is clipped: it reads as starting in that week. The function counts observed weeks and never reaches behind the first one.
+```{r gapped}
+gapped <- toy_skeleton()[-5]
+error_of(add_lmed_v20260924(gapped, rx("Divigel", 1, 10), verbose = FALSE))
+stopifnot(
+  grepl("id 1 has 39 rows, 39 distinct weeks, spanning 40 weeks",
+        error_of(add_lmed_v20260924(gapped, rx("Divigel", 1, 10), verbose = FALSE)), fixed = TRUE),
+  identical(names(gapped), c("id", "isoyearweek", "week"))
+)
+```
+
+Each of the 33 grid categories gets one logical column. `G1` is discarded before this step, and `D4` is a column that no product reaches. A week is `TRUE` for a category where any interval of that category includes at least one day of the week. One day of supply on a Sunday marks that week. The same day plus the Monday marks two weeks. An episode already running at a person's first week is clipped: it reads as starting in that week. The function counts observed weeks and reads no week before the first one.
 
 The synthetic fixtures show the result. `fake_lmed_2026` holds one Utrogestan user, so `lnmn` is set for those rows first. It also carries one product name, `Paracetamol`, that has no row in the product table, so the chunk drops that row. The function would stop on it otherwise. Person 18 held only that row, so the chunk gives her one Estradiol Valerate dispensing instead.
 
@@ -402,8 +516,11 @@ stopifnot(
 
 The function stops on the annual row, before it writes anything:
 
-```
-skeleton$isoyearweek holds a value that is no ISO week: 1946-**
+```{r annual}
+annual <- rbind(data.table(id = 1L, isoyearweek = "1946-**", week = 0L), toy_skeleton())
+msg <- error_of(add_lmed_v20260924(annual, rx("Divigel", 1, 10), verbose = FALSE))
+msg
+stopifnot(grepl("no ISO week: 1946-**", msg, fixed = TRUE), identical(names(annual), c("id", "isoyearweek", "week")))
 ```
 
 Pass the weekly rows only, and fill the annual rows in the caller:
@@ -444,12 +561,32 @@ rule_table <- function(a) {
   }, keyby = variable]
   return(out[order(variable == "local_or_none_mht", variable)])
 }
+# The categories that light variable `v` of approach `a` alone, and the two
+# sides of its pair rules.
+alone_in <- function(a, v) cat_order(pg[approach == a & variable == v & !is.na(includes1) & is.na(includes2), includes1])
+pair_in <- function(a, v, col) cat_order(na.omit(pg[approach == a & variable == v & !is.na(includes2)][[col]]))
+excludes_in <- function(a, v) unique(pg[approach == a & variable == v & !is.na(includes1), excludes])
+# The combination products by route, and the partner categories, from the product table and the grid.
+b_route <- unique(ptab[classification %like% "^B", .(category = classification, route)])
+stopifnot(!anyDuplicated(b_route$category))
+b_oral <- cat_order(b_route[route == "oral", category])
+b_patch <- cat_order(b_route[route == "transdermal", category])
+partners_all <- setdiff(grep("^[CDEI]", categories, value = TRUE), "D4")
+b_oral
+b_patch
+partners_all
+stopifnot(setequal(c(b_oral, b_patch), b_route$category), length(b_patch) == 2L, length(b_oral) == 10L)
 ```
 
 ### Approach 1: any systemic MHT
 
 ```{r approach-1}
 knitr::kable(rule_table("1"))
+stopifnot(
+  identical(alone_in("1", "systemic_mht"), cat_order(c("A1", "A2", "A6", b_oral, b_patch))),
+  all(is.na(pg[approach == "1", includes2])),
+  identical(alone_in("1", "tibolone"), "F1")
+)
 ```
 
 `A1`, `A2`, `A6` and every `B` product are one level, `systemic_mht`. Tibolone is its own level. No rule of approach 1 reads a progestogen or a contraceptive. A woman on oestrogen with a separate progestogen is `systemic_mht`. A woman on a progestogen alone is not exposed.
@@ -458,6 +595,12 @@ knitr::kable(rule_table("1"))
 
 ```{r approach-2}
 knitr::kable(rule_table("2"))
+stopifnot(
+  identical(alone_in("2", "transdermal_estrogen"), cat_order(c("A1", b_patch))),
+  identical(alone_in("2", "peroral_estrogen"), cat_order(c("A2", "A6", b_oral))),
+  all(is.na(pg[approach == "2", includes2])),
+  identical(alone_in("2", "tibolone"), "F1")
+)
 ```
 
 Approach 2 splits systemic oestrogen by route. No rule reads injected oestrogen (`A7`), so it lights no route. The combined products follow the route of their oestrogen: the two patches, `B1` and `B7`, are transdermal, and the ten tablets are peroral. Tibolone is again its own level.
@@ -466,9 +609,20 @@ Approach 2 splits systemic oestrogen by route. No rule reads injected oestrogen 
 
 ```{r approach-3}
 knitr::kable(rule_table("3"))
+bioidentical <- c("B4", "B11")
+stopifnot(
+  identical(alone_in("3", "estrogen_only"), c("A1", "A2", "A6")),
+  identical(excludes_in("3", "estrogen_only"), paste(cat_order(c(b_oral, b_patch, partners_all)), collapse = " ")),
+  identical(alone_in("3", "estrogen_progesterone_bioidentical"), bioidentical),
+  identical(pair_in("3", "estrogen_progesterone_bioidentical", "includes1"), c("A1", "A2", "A6")),
+  identical(pair_in("3", "estrogen_progesterone_bioidentical", "includes2"), c("C1", "C5")),
+  identical(alone_in("3", "estrogen_progesterone_synthetic"), setdiff(cat_order(c(b_oral, b_patch)), bioidentical)),
+  identical(pair_in("3", "estrogen_progesterone_synthetic", "includes2"), setdiff(partners_all, c("C1", "C5"))),
+  identical(alone_in("3", "tibolone"), "F1")
+)
 ```
 
-Approach 3 asks what accompanies the oestrogen. `estrogen_only` is `A1`, `A2` or `A6` with no combined product, no progestogen and no contraceptive in the same week. The two `estrogen_progesterone` levels split the progestogen. The codebook's `bioidentical` level holds progesterone (`C1`), of every route the table gives it, and dydrogesterone (`C5`, and the combined products `B4` and `B11`). Its `synthetic` level holds every other progestogen, including injected progesterone (`C2`), whether in a combined product or dispensed separately. The two names are the codebook's labels, and this vignette does not judge them. Tibolone is its own level. A progestogen or a contraceptive alone lights nothing.
+Approach 3 splits systemic oestrogen by the progestogen taken with it. `estrogen_only` is `A1`, `A2` or `A6` with no combined product, no progestogen and no contraceptive in the same week. The two `estrogen_progesterone` levels split the progestogen. The codebook's `bioidentical` level holds progesterone (`C1`), of every route the table gives it, and dydrogesterone (`C5`, and the combined products `B4` and `B11`). Its `synthetic` level holds every other progestogen, including injected progesterone (`C2`), whether in a combined product or dispensed separately. The two names are the codebook's labels. Tibolone is its own level. A progestogen or a contraceptive alone lights nothing.
 
 Approach 3 also declares `local_or_none_mht` with an empty rule. That rule lights nothing.
 
@@ -477,22 +631,24 @@ Approach 3 also declares `local_or_none_mht` with an empty rule. That rule light
 ```{r approach-4}
 knitr::kable(rule_table("4"))
 four <- pg[approach == "4" & !is.na(includes1)]
-# The oestrogens and partners of one level's pair rules, as the workbook states them.
-pair_side <- function(v, col) cat_order(na.omit(four[variable == v & !is.na(includes2)][[col]]))
-alone_of <- function(v) cat_order(four[variable == v & is.na(includes2), includes1])
-progesterone <- pair_side("oral_estrogen_progesterone", "includes2")
-other_pg <- pair_side("oral_estrogen_other_progestogen", "includes2")
+progesterone <- pair_in("4", "oral_estrogen_progesterone", "includes2")
+other_pg <- pair_in("4", "oral_estrogen_other_progestogen", "includes2")
 stopifnot(
   identical(progesterone, c("C1", "C5")),
-  identical(pair_side("transdermal_estrogen_progesterone", "includes2"), progesterone),
-  identical(pair_side("transdermal_estrogen_other_progestogen", "includes2"), other_pg),
-  !any(progesterone %in% other_pg),
-  identical(pair_side("oral_estrogen_progesterone", "includes1"), c("A2", "A6")),
-  identical(pair_side("transdermal_estrogen_progesterone", "includes1"), "A1"),
-  identical(alone_of("oral_estrogen_progesterone"), c("B4", "B11")),
-  identical(alone_of("transdermal_estrogen_other_progestogen"), c("B1", "B7")),
-  identical(alone_of("estrogen_only"), c("A1", "A2", "A6")),
-  identical(alone_of("tibolone"), "F1"),
+  identical(other_pg, setdiff(partners_all, c("C1", "C2", "C5"))),
+  identical(pair_in("4", "transdermal_estrogen_progesterone", "includes2"), progesterone),
+  identical(pair_in("4", "transdermal_estrogen_other_progestogen", "includes2"), other_pg),
+  identical(pair_in("4", "oral_estrogen_progesterone", "includes1"), c("A2", "A6")),
+  identical(pair_in("4", "oral_estrogen_other_progestogen", "includes1"), c("A2", "A6")),
+  identical(pair_in("4", "transdermal_estrogen_progesterone", "includes1"), "A1"),
+  identical(pair_in("4", "transdermal_estrogen_other_progestogen", "includes1"), "A1"),
+  identical(alone_in("4", "oral_estrogen_progesterone"), bioidentical),
+  identical(alone_in("4", "oral_estrogen_other_progestogen"), setdiff(b_oral, bioidentical)),
+  identical(alone_in("4", "transdermal_estrogen_other_progestogen"), b_patch),
+  length(alone_in("4", "transdermal_estrogen_progesterone")) == 0L,
+  identical(alone_in("4", "estrogen_only"), c("A1", "A2", "A6")),
+  identical(excludes_in("4", "estrogen_only"), excludes_in("3", "estrogen_only")),
+  identical(alone_in("4", "tibolone"), "F1"),
   identical(pg[approach == "4" & is.na(includes1), variable], "local_or_none_mht"),
   identical(
     setdiff(cat_order(na.omit(pg[approach == "3", includes2])), c(progesterone, other_pg)),
@@ -501,7 +657,7 @@ stopifnot(
 )
 ```
 
-Approach 4 crosses the route of approach 2 with the progestogen of approach 3, with one difference: no approach 4 pair reads injected progesterone (`C2`). The chunk checks that difference against the approach 3 rules. Its levels, in plain names:
+Approach 4 crosses the route of approach 2 with the progestogen of approach 3, with one difference: no approach 4 pair reads injected progesterone (`C2`). The chunk checks that difference against the approach 3 rules. Its levels:
 
 - `oral_estrogen_progesterone`: Femoston (`B11`) or Femostonconti (`B4`), the two oral combinations of dydrogesterone and oestrogen. Or an oral oestrogen (`A2` or `A6`) with progesterone (`C1`) or dydrogesterone (`C5`).
 - `oral_estrogen_other_progestogen`: an oral combination product of any other category. Or `A2` or `A6` with an other progestogen.
@@ -552,7 +708,7 @@ stopifnot(
 )
 ```
 
-A separate progestogen lights an approach 4 level only in a week with an oestrogen. The chunk dispenses one product of each partner category alone, then with Progynon (`A2`). Each supply covers weeks 1 to 8 or more, and the table shows the level in weeks 1 to 8.
+A separate progestogen lights an approach 4 level only in a week with an oestrogen. The chunk dispenses one product of each partner category alone, and then with Progynon (`A2`). Each supply covers weeks 1 to 8 or more, and the table shows the level in weeks 1 to 8.
 
 ```{r approach-4-partners}
 partners <- data.table(
@@ -578,7 +734,7 @@ stopifnot(
 
 ### The reference level
 
-`local_or_none_mht` is the value a week takes when no treatment variable is lit. The rules that name it, in every approach, are inert. The resolver never reads the column they light, and it deletes that column with the rest of its working columns. The name says what such a week holds: a local oestrogen, an injected oestrogen, a progestogen alone, a contraceptive, an androgen, Duavive, or nothing. Under approach 4 it also holds a week of `A1`, `A2` or `A6` with injected progesterone (`C2`).
+`local_or_none_mht` is the value a week takes when no treatment variable is lit. The rules that name it, in every approach, are inert. The resolver never reads the column they light, and it deletes that column with the rest of its working columns. Such a week holds a local oestrogen, an injected oestrogen, a progestogen alone, a contraceptive, an androgen, Duavive, or nothing. Under approach 4 it also holds a week of `A1`, `A2` or `A6` with injected progesterone (`C2`).
 
 ### A week of injected oestrogen alone
 
@@ -606,20 +762,34 @@ stopifnot(
 
 ### Bridging a gap
 
-Before the resolver compares treatment variables, it bridges short gaps in each of them separately. For one variable, a run of up to four weeks in which it is unlit, between two weeks in which it is lit, becomes lit. A leading or a trailing run is not a gap, so no woman starts early and none stops late. The category columns are not bridged: bridging happens inside the approach step.
+Before the resolver compares treatment variables, it bridges short gaps in each of them separately. For one variable, a run of up to four weeks in which it is unlit, between two weeks in which it is lit, becomes lit. A leading or a trailing run is not a gap, so bridging never moves a start or a stop. The category columns are not bridged: bridging happens inside the approach step.
 
 ```{r bridge}
-skel <- run_toy(rbind(rx("Divigel", 1, 10), rx("Divigel", 14, 7)))
-episodes(skel, "approach1")
-skel <- run_toy(rbind(rx("Divigel", 1, 10), rx("Divigel", 16, 5)))
-episodes(skel, "approach1")
+gap4 <- run_toy(rbind(rx("Divigel", 1, 10), rx("Divigel", 15, 6)))
+episodes(gap4, "approach1")
+gap5 <- run_toy(rbind(rx("Divigel", 1, 10), rx("Divigel", 16, 5)))
+episodes(gap5, "approach1")
+stopifnot(
+  !any(gap4$A1[11:14]), all(gap4$approach1[1:20] == "systemic_mht"),
+  !any(gap5$A1[11:15]), all(gap5$approach1[11:15] == "local_or_none_mht")
+)
 ```
 
-A three-week gap is bridged. A five-week gap is not, and the woman holds two episodes.
+A four-week gap is bridged, although the `A1` column stays `FALSE` in those weeks. A five-week gap is not, and the woman holds two episodes.
 
 ### One level per week: the most recent start wins
 
-A week can light two treatment variables. Concomitance is judged at ISO-week resolution, so two products dispensed on different days of one week count as concomitant. The resolver gives each variable a run length, which counts the weeks since it last turned on, and reports the variable with the shortest run. The treatment the woman started most recently is the one reported.
+A week can light two treatment variables. Concomitance is judged at ISO-week resolution, so two products dispensed on different days of one week count as concomitant. The resolver gives each variable a run length, which counts the weeks since it last turned on, and reports the variable with the shortest run.
+
+The chunk below dispenses Progynon on the Monday and Divigel on the Friday of week 1. The two start in the same ISO week, so approach 2 reads a clash, as described at the end of this section.
+
+```{r same-week}
+friday <- run_toy(rbind(rx("Progynon", 1, 10), data.table(
+  lopnr = 1L, produkt = "Divigel", edatum = monday + 4L, fddd = 70, lnmn = NA_character_
+)))
+episodes(friday, "approach2")
+stopifnot(friday$approach2[1] == "clashingprescriptions")
+```
 
 The woman below takes Progynon (`A2`) for 30 weeks and adds Divigel (`A1`) from week 11 for 20 weeks.
 
@@ -705,7 +875,7 @@ skel <- run_toy(rbind(rx("Progynon", 1, 30), rx("Divigel", 1, 20)))
 episodes(skel, "approach2")
 ```
 
-Neither end of that rule is arbitrary. A clash carried to the end of follow-up would keep a woman who stopped and restarted out of the comparison for good. A clash ended with the overlap would read her as a new user in the week the overlap ends, and she was treated throughout.
+The clash ends there for two reasons. A clash carried to the end of follow-up would keep a woman who stopped and restarted out of the comparison permanently. A clash ended with the overlap would read her as a new user in the week the overlap ends, and she was treated throughout.
 
 Under approach 4, a woman who starts both progestogen types in one week clashes. The woman below starts Divigel, Utrogestan 100 mg and Provera on the same day, each for weeks 1 to 12.
 
@@ -743,7 +913,23 @@ episodes(skeleton[id %in% c(1, 2)], "rd_approach3_single")
 episodes(skeleton[id %in% c(1, 2)], "rd_approach4_single")
 ```
 
-Person 1 becomes `previous`, a former user. Person 2 becomes `exclude`, because 73 weeks is under 156. Every week before a woman's first treatment stays `local_or_none_mht`.
+Person 1 becomes `previous`, a former user. Person 2 becomes `exclude`, because 73 weeks is under 156.
+
+The chunk below tests the cutoff. Each woman starts Divigel in week 5, so weeks 1 to 4 come before her first treatment. One takes it for 155 weeks and the other for 156.
+
+```{r cutoff}
+short <- run_toy(rx("Divigel", 5, 155), 200L)
+long <- run_toy(rx("Divigel", 5, 156), 200L)
+episodes(short, "rd_approach1_single")
+episodes(long, "rd_approach1_single")
+stopifnot(
+  all(short$rd_approach1_single[1:4] == "local_or_none_mht"),
+  all(short$rd_approach1_single[160:200] == "exclude"),
+  all(long$rd_approach1_single[161:200] == "previous")
+)
+```
+
+155 weeks is under 156, so the untreated weeks after it are `exclude`. 156 weeks is not, so they are `previous`. Every week before a woman's first treatment stays `local_or_none_mht`.
 
 ### Re-initiation, single against multiple
 
@@ -783,13 +969,34 @@ episodes(skeleton[id == 16], "rd_approach3_single")
 episodes(skeleton[id == 16], "rd_approach3b_single")
 ```
 
+The chunk below checks that claim. A woman takes Femoston (`B11`, the `bioidentical` level) for 10 weeks, then Cyclabil (`B12`, the `synthetic` level) for 10 weeks. The chunk collapses her `approach3` column, and every fixture person's, into the `approach3b` level, and runs the exposure layer again on the result. Its `rd_approach3` columns equal the `rd_approach3b` columns the function wrote.
+
+```{r approach-3b-pass}
+switcher <- run_toy(rbind(rx("Femoston", 1, 10), rx("Cyclabil", 11, 10)))
+episodes(switcher, "rd_approach3_single")
+episodes(switcher, "rd_approach3b_single")
+second_pass <- function(skel) {
+  collapsed <- setdiff(unique(skel$rd_approach3b_single), unique(skel$rd_approach3_single))
+  x <- copy(skel)
+  x[approach3 %like% "^estrogen_progesterone", approach3 := collapsed]
+  mht:::create_exposure_variables_v20260924(x)
+  return(identical(x$rd_approach3_single, skel$rd_approach3b_single) &&
+    identical(x$rd_approach3_multiple, skel$rd_approach3b_multiple))
+}
+stopifnot(
+  identical(unique(switcher$approach3[1:20]), c("estrogen_progesterone_bioidentical", "estrogen_progesterone_synthetic")),
+  second_pass(switcher),
+  second_pass(skeleton)
+)
+```
+
 ## 6. The exclusion flags
 
 `ri_mht_excluded_product` is `TRUE` in every week of a person whose supplied prescriptions include a flagged product, and `FALSE` otherwise. `ri_mht_excluded_reason` carries the table's reason, or `NA`. Where one person holds products flagged for different reasons, the reasons join in sorted order, separated by `; `.
 
-The flag is set from holding the product. It does not depend on that prescription having a usable duration or a dispensing date, and it does not depend on the week. A flagged prescription dispensed before or after follow-up flags every observed week all the same. The prescriptions the caller passes therefore define the window of ascertainment. The `ri_` prefix means person level and time invariant.
+The flag is set from holding the product. It does not depend on that prescription having a usable duration or a dispensing date, and it does not depend on the week. A flagged prescription dispensed before or after follow-up also flags every observed week. The prescriptions the caller passes therefore define the window of ascertainment. The `ri_` prefix means person level and time invariant.
 
-The function removes nobody. It reports. A flagged woman keeps every exposure column, computed as for anyone else. A study removes her only through an exclusion that it names, and that exclusion reads `ri_mht_excluded_product`.
+The function removes nobody. A flagged woman keeps every exposure column, computed as for anyone else. A study removes her only through an exclusion that it names, and that exclusion reads `ri_mht_excluded_product`.
 
 ```{r flags}
 skeleton[, .N, keyby = .(ri_mht_excluded_product, ri_mht_excluded_reason)]
@@ -808,6 +1015,23 @@ stopifnot(
 
 Person 8 holds one Neofollin prescription among six others. Person 18 holds one Estradiol Valerate prescription and nothing else. Every one of their 312 weeks is flagged. Person 8's approach columns still show her other products. Person 18 is `local_or_none_mht` in every week of every approach.
 
+The chunk below covers the other cases. The first woman holds Neofollin and Prolutex, which the table flags for different reasons. The second holds one Neofollin prescription with no date and no quantity. The third holds one dispensed in week 100, after her 40 observed weeks.
+
+```{r flag-cases}
+reason_of <- function(p) ptab[produkt_clean == key_of(p), unique(exclusion_reason)]
+two <- run_toy(rbind(rx("Neofollin", 1, 4), rx("Prolutex", 1, 4)))
+undated <- suppressWarnings(run_toy(data.table(
+  lopnr = 1L, produkt = "Neofollin", edatum = as.Date(NA), fddd = NA_real_, lnmn = NA_character_
+)))
+late <- run_toy(rx("Neofollin", 100, 4))
+unique(two$ri_mht_excluded_reason)
+stopifnot(
+  identical(unique(two$ri_mht_excluded_reason), paste(sort(c(reason_of("Neofollin"), reason_of("Prolutex"))), collapse = "; ")),
+  all(undated$ri_mht_excluded_product), !any(undated$A7),
+  all(late$ri_mht_excluded_product), !any(late$A7)
+)
+```
+
 No approach rule reads `A7`, so a study that keeps a flagged woman sees no exposure from her `A7` products. Her exposure columns equal those that the function writes when the input holds no `A7` row at all. The chunk removes every `A7` row, runs the function again, and compares the two results.
 
 ```{r no-a7}
@@ -824,9 +1048,27 @@ stopifnot(length(exposure) == 14L, identical(skeleton[, ..exposure], no_a7[, ..e
 
 ## 7. What the function does not do
 
+The chunk below records every `readxl::read_excel()` call during one run of the function. It also lists the function's arguments: none of them carries a diagnosis or a covariate.
+
+```{r sheets-read}
+calls <- new.env()
+calls$seen <- character(0)
+trace("read_excel", where = asNamespace("readxl"), print = FALSE, tracer = bquote(
+  assign("seen", c(get("seen", envir = .(calls)), paste(basename(path), sheet)), envir = .(calls))
+))
+invisible(run_toy(rx("Divigel", 1, 10)))
+untrace("read_excel", where = asNamespace("readxl"))
+sort(unique(calls$seen))
+names(formals(add_lmed_v20260924))
+stopifnot(setequal(unique(calls$seen), c(
+  "dataDictionary20260924.xlsx MHT_groups", "dataDictionary20260924.xlsx post_grouping",
+  "product_table_20260924.xlsx G", "product_table_20260924.xlsx other"
+)))
+```
+
 - It removes no person. The exclusion flag is the caller's to act on.
 - It reads no diagnosis and no covariate. The codebook's diagnosis-based exclusion is not applied. The table instead flags products whose holders the study removes.
 - It builds no history before a woman's first observed week. A prescription dispensed before that week still covers the weeks of it inside follow-up, and the episode reads as starting in the first observed week.
 - It imputes no duration, outside the six fixed-duration products. Any other prescription with no usable `fddd` contributes nothing.
 - It gives approach 4 no separate level for a week that holds both progestogen types. The level started most recently is reported, as in section 4.
-- It reads the `Rules`, `FDDD` and `covariates` sheets of the codebook, and the `README` sheet of the product table, not at all.
+- It does not read the `Rules`, `FDDD` or `covariates` sheets of the codebook, or the `README` sheet of the product table.

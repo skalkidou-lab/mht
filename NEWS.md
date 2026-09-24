@@ -1,3 +1,7 @@
+# mht 26.9.26
+
+* **`vignette("lmed-v20260924")` shows each behaviour it states.** New worked cases cover name lookup, unknown products, table validation, week boundaries, refills, missing quantities and dates, skeleton errors, the four-week bridge, same-week starts, the 156-week cutoff, approach 3b, flag reasons and the workbook sheets the function reads. Each case has a `stopifnot()` check. The approach 1 to 4 rule descriptions are checked against categories read from the workbooks.
+
 # mht 26.9.25
 
 * **`vignette("lmed-v20260924")` now stands alone.** It states every step of `add_lmed_v20260924()`, in the structure of `vignette("lmed-v20260922")`, with approach 4 added to the sections on treatment levels and exposure variables. Its tables and checks read the two 2026-09-24 workbooks. The function and its workbooks are unchanged.
