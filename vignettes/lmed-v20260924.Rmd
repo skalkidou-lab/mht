@@ -1,0 +1,450 @@
+---
+title: "Approach 4: oestrogen route by progestogen type"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Approach 4: oestrogen route by progestogen type}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(collapse = TRUE, comment = "#>")
+library(data.table)
+library(mht)
+
+# Sort category codes as A1, A2, ..., B1, B2, ..., B12, C1, ...
+cat_order <- function(x) {
+  x <- unique(x)
+  return(x[order(substr(x, 1, 1), as.integer(substring(x, 2)))])
+}
+
+# A one-person skeleton of consecutive ISO weeks. Week 1 starts on Monday
+# 2020-01-06.
+monday <- as.Date("2020-01-06")
+toy_skeleton <- function(n_weeks) {
+  return(data.table(
+    id = 1L,
+    isoyearweek = cstime::date_to_isoyearweek_c(monday + 7L * (seq_len(n_weeks) - 1L))
+  ))
+}
+
+# One dispensing for person 1 on the Monday of week `week`. The codebook turns
+# `fddd` into a duration, so the prose states the weeks each input covers.
+rx <- function(produkt, week, fddd, lnmn = NA_character_) {
+  return(data.table(
+    lopnr = 1L,
+    produkt = produkt,
+    edatum = monday + 7L * (week - 1L),
+    fddd = fddd,
+    lnmn = lnmn
+  ))
+}
+UTROGESTAN <- "Utrogestan, kapsel, mjuk 100 mg"
+
+# Run add_lmed_v20260924() on one person, and number the weeks from 1.
+run4 <- function(lmed, n_weeks = 30L) {
+  skel <- toy_skeleton(n_weeks)
+  add_lmed_v20260924(skel, lmed, verbose = FALSE)
+  skel[, week := seq_len(.N)]
+  return(skel[])
+}
+
+# One row per run of equal values in one column.
+episodes <- function(skel, col = "approach4") {
+  out <- skel[, .(from = week[1], to = week[.N], level = get(col)[1]), by = .(run = rleid(get(col)))]
+  out[, run := NULL]
+  return(out[])
+}
+
+# The level of `col` in each week of `weeks`.
+level_in <- function(skel, weeks, col = "approach4") {
+  return(skel[match(weeks, week)][[col]])
+}
+```
+
+`add_lmed_v20260924()` adds approach 4 to the output of `add_lmed_v20260922()`. Approach 4 splits systemic oestrogen by its route and by the type of progestogen dispensed with it. `vignette("lmed-v20260922")` explains the steps the two functions share, and this vignette does not repeat them. Every chunk shown below checks its claims with `stopifnot()`, so the vignette fails to build if a claim is false.
+
+## 1. What the 2026-09-24 function adds
+
+The function reads `product_table_20260924.xlsx` and `dataDictionary20260924.xlsx`, and no other workbook. The product table is `product_table_20260922.xlsx` with one note cell reworded. Every other cell of every sheet is unchanged. The codebook adds 47 approach 4 rules to the `post_grouping` sheet, after the 88 rules of approaches 1 to 3.
+
+```{r workbooks}
+path <- function(file) system.file("2023-mht", file, package = "mht")
+read_pg <- function(file) {
+  return(setDT(readxl::read_excel(
+    path(file), sheet = "post_grouping", col_types = "text", .name_repair = "unique_quiet"
+  )))
+}
+pg <- read_pg("dataDictionary20260924.xlsx")
+pg_before <- read_pg("dataDictionary20260922.xlsx")
+pg[!is.na(approach), .N, keyby = approach]
+read_pt <- function(file) {
+  sheets <- readxl::excel_sheets(path(file))
+  return(setNames(lapply(sheets, function(s) {
+    readxl::read_excel(path(file), sheet = s, col_types = "text", .name_repair = "unique_quiet")
+  }), sheets))
+}
+pt_new <- read_pt("product_table_20260924.xlsx")
+pt_old <- read_pt("product_table_20260922.xlsx")
+ptab <- rbindlist(pt_new[c("G", "other")], use.names = TRUE, fill = TRUE)
+drop_note <- function(x) lapply(x, function(d) d[setdiff(names(d), "note")])
+notes <- function(x) unlist(lapply(x, `[[`, "note"), use.names = FALSE)
+stopifnot(
+  identical(lapply(pt_new, names), lapply(pt_old, names)),
+  identical(drop_note(pt_new), drop_note(pt_old)),
+  sum(!mapply(identical, notes(pt_new), notes(pt_old))) == 1L,
+  sum(pg$approach %in% "4") == 47L,
+  sum(!is.na(pg_before$approach)) == 88L,
+  identical(pg[approach %in% c("1", "2", "3")], pg_before[!is.na(approach)])
+)
+```
+
+The function writes three columns that `add_lmed_v20260922()` does not write: `approach4`, `rd_approach4_single` and `rd_approach4_multiple`. The two `rd_` columns come from `approach4` by the five steps of section 5 of `vignette("lmed-v20260922")`. The chunk runs both functions on the package fixture, and checks that every other column is identical.
+
+```{r fixture}
+lmed <- copy(fake_lmed_2026)
+lmed[, lnmn := NA_character_]
+lmed[produkt == "Utrogestan", lnmn := UTROGESTAN]
+lmed <- lmed[produkt != "Paracetamol"] # a fixture-only name with no table row
+stopifnot(!"paracetamol" %in% ptab$produkt_clean)
+
+before <- copy(fake_skeleton_mht)
+after <- copy(fake_skeleton_mht)
+suppressWarnings(add_lmed_v20260922(before, lmed, verbose = FALSE))
+suppressWarnings(add_lmed_v20260924(after, lmed, verbose = FALSE))
+added <- setdiff(names(after), names(before))
+added
+stopifnot(
+  identical(added, c("approach4", "rd_approach4_single", "rd_approach4_multiple")),
+  identical(setdiff(names(after), added), names(before)),
+  identical(after[, names(before), with = FALSE], before)
+)
+```
+
+## 2. The approach 4 levels
+
+A rule lights its variable in a week that carries every category of its `includes` cells and no category of its `doesnotinclude` cells. The table compresses the rules of approach 4 that name a category. `alone` lists the categories that light the variable on their own. `pairs` reads `oestrogens + progestogens`, and every oestrogen listed pairs with every progestogen listed. `excludes` lists the categories a week must not carry.
+
+```{r levels}
+ex_cols <- grep("^doesnotinclude", names(pg), value = TRUE)
+pg[, excludes := apply(.SD, 1, function(r) paste(cat_order(r[!is.na(r)]), collapse = " ")), .SDcols = ex_cols]
+four <- pg[approach %in% "4" & !is.na(includes1)]
+levels4 <- four[, {
+  p1 <- includes1[!is.na(includes2)]
+  p2 <- includes2[!is.na(includes2)]
+  # The pairs are exactly the cross of the two sets, none missing, none repeated.
+  stopifnot(anyDuplicated(paste(p1, p2)) == 0L,
+            setequal(paste(p1, p2), as.vector(outer(unique(p1), unique(p2), paste))))
+  .(
+    rules = .N,
+    alone = paste(cat_order(includes1[is.na(includes2)]), collapse = " "),
+    pairs = if (length(p1) == 0L) "" else
+      paste(paste(cat_order(p1), collapse = "/"), "+", paste(cat_order(p2), collapse = "/")),
+    excludes = paste(unique(excludes[nzchar(excludes)]), collapse = " | ")
+  )
+}, keyby = variable]
+knitr::kable(levels4)
+
+other <- "C3/C4/D1/D2/D3/E1/I1/I2"
+expected <- data.table(
+  variable = c("estrogen_only", "oral_estrogen_other_progestogen", "oral_estrogen_progesterone",
+               "tibolone", "transdermal_estrogen_other_progestogen", "transdermal_estrogen_progesterone"),
+  rules = c(3L, 24L, 6L, 1L, 10L, 2L),
+  alone = c("A1 A2 A6", "B2 B3 B5 B6 B8 B9 B10 B12", "B4 B11", "F1", "B1 B7", ""),
+  pairs = c("", paste("A2/A6 +", other), "A2/A6 + C1/C5", "", paste("A1 +", other), "A1 + C1/C5"),
+  excludes = c("B1 B2 B3 B4 B5 B6 B7 B8 B9 B10 B11 B12 C1 C2 C3 C4 C5 D1 D2 D3 E1 I1 I2",
+               "", "", "", "", "")
+)
+stopifnot(
+  identical(as.data.frame(levels4), as.data.frame(expected)),
+  identical(pg[approach %in% "4" & is.na(includes1), variable], "local_or_none_mht")
+)
+```
+
+The prose from here on names products, categories and substances. Each claim sits next to a chunk that checks it against the product table. `is_product()` checks the category, the full ATC code and optionally the route of one product. `PRODUCT_ATC` holds that code for every product the prose names. `cats_are()` checks every product of a set of categories. `has_code()` checks that each category of a set holds at least one product with a given ATC code. `ATC` holds the WHO ATC code, or code prefix, of each substance or group that the prose names.
+
+```{r claims}
+ATC <- list(
+  oestrogen = "G03C", combination = "G03F", progestogen = "G03D", contraceptive_progestogen = "G03AC",
+  estradiol = "G03CA03", estriol = c("G03CA04", "G03CC06"), prasterone = "G03XX01", progesterone = "G03DA04",
+  dydrogesterone = "G03DB01", dydrogesterone_and_oestrogen = c("G03FA14", "G03FB08"), desogestrel = "G03AC09",
+  drospirenone = "G03AC10", dienogest = "G03DB08", progestogen_iud = "G02BA03", tibolone = "G03CX01",
+  oestrogens_and_bazedoxifene = "G03CC07", testosterone = "G03BA03"
+)
+PRODUCT_ATC <- c(
+  Femoston = "G03FB08", Femostonconti = "G03FA14", Cerazette = ATC$desogestrel, Slinda = ATC$drospirenone,
+  Provera = "G03DA02", `Primolut-Nor` = "G03DC02", `Depo-Provera` = "G03AC06", Nexplanon = "G03AC08",
+  Implanon = "G03AC08", Jadelle = "G03AC03", Progynon = ATC$estradiol, Utrogestan = ATC$progesterone,
+  Duphaston = ATC$dydrogesterone, Vagifem = ATC$estradiol, `Oestriol Aspen` = "G03CA04", Divigel = ATC$estradiol,
+  Prolutex = ATC$progesterone, Intrarosa = ATC$prasterone, Duavive = ATC$oestrogens_and_bazedoxifene,
+  Mirena = ATC$progestogen_iud, Kyleena = ATC$progestogen_iud, Levosert = ATC$progestogen_iud,
+  Levosertone = ATC$progestogen_iud, Jaydess = ATC$progestogen_iud
+)
+has_prefix <- function(x, prefix) Reduce(`|`, lapply(prefix, startsWith, x = x))
+# TRUE when every table row of product `name` has category `cat`, the ATC code
+# PRODUCT_ATC[[name]], and a route in `route` (any route when NULL).
+is_product <- function(name, cat, route = NULL) {
+  p <- ptab[produkt_clean == tolower(gsub("[^A-Za-z]", "", name))]
+  return(nrow(p) > 0L && all(p$classification == cat) && all(p$atc == PRODUCT_ATC[[name]]) &&
+    (is.null(route) || all(p$route %in% route)))
+}
+# TRUE when each category in `cats` has products, and all of them match.
+cats_are <- function(cats, atc, route = NULL) {
+  p <- ptab[classification %in% cats]
+  return(setequal(p$classification, cats) && all(has_prefix(p$atc, atc)) &&
+    (is.null(route) || all(p$route %in% route)))
+}
+# TRUE when each category in `cats` has a product with an ATC code in `atc`.
+has_code <- function(cats, atc) all(vapply(cats, function(k) any(ptab[classification == k, atc] %in% atc), TRUE))
+combos <- c("B2", "B3", "B5", "B6", "B8", "B9", "B10", "B12")
+stopifnot(
+  is_product("Femoston", "B11", "oral"), is_product("Femostonconti", "B4", "oral"),
+  setequal(ptab[atc %in% ATC$dydrogesterone_and_oestrogen, produkt_clean], c("femoston", "femostonconti")),
+  cats_are(c("A2", "A6"), ATC$oestrogen, "oral"), cats_are("A1", ATC$oestrogen, "transdermal"),
+  cats_are("C1", ATC$progesterone), cats_are("C5", ATC$dydrogesterone), cats_are("F1", ATC$tibolone),
+  cats_are(combos, ATC$combination, "oral"), cats_are(c("B1", "B7"), ATC$combination, "transdermal")
+)
+```
+
+The levels, in plain names:
+
+- `oral_estrogen_progesterone`: Femoston (B11) or Femostonconti (B4), the two oral combinations of dydrogesterone and oestrogen. Or an oral oestrogen (A2 or A6) with progesterone (C1) or dydrogesterone (C5).
+- `oral_estrogen_other_progestogen`: an oral combination product of any other category (B2, B3, B5, B6, B8, B9, B10 or B12). Or A2 or A6 with an other progestogen (section 3).
+- `transdermal_estrogen_progesterone`: a transdermal oestrogen (A1) with C1 or C5.
+- `transdermal_estrogen_other_progestogen`: a transdermal combination product (B1 or B7), or A1 with an other progestogen.
+- `estrogen_only`: A1, A2 or A6, in a week with no category of the `excludes` column above.
+- `tibolone`: tibolone (F1).
+- `local_or_none_mht`: every week that lights no level above. Its rule has no category, and it lights nothing.
+
+The next table lists the products of each category that approach 4 reads, from the product table. `levels` names the variables whose rules read the category.
+
+```{r categories}
+# One row per category: its routes, ATC codes and distinct product names.
+by_category <- function(cats) {
+  out <- ptab[classification %in% cats, .(
+    route = paste(unique(route), collapse = ", "),
+    atc = paste(sort(unique(atc)), collapse = " "),
+    products = paste(unique(trimws(gsub("\u00ae", "", produkt_raw))), collapse = ", ")
+  ), keyby = .(category = classification)]
+  return(out[match(cats, category)])
+}
+read4 <- cat_order(c(four$includes1, four$includes2[!is.na(four$includes2)]))
+in_rules <- melt(four[, .(variable, includes1, includes2)], id.vars = "variable", variable.name = "column", na.rm = TRUE)
+in_rules <- in_rules[, .(levels = paste(unique(variable), collapse = ", ")), keyby = .(category = value)]
+legend <- by_category(read4)[in_rules, on = "category"][match(read4, category)]
+knitr::kable(legend)
+stopifnot(!anyNA(legend$category), !anyNA(legend$products), nrow(legend) == 26L)
+```
+
+## 3. Which progestogens count as "other"
+
+The two `progesterone` levels read progesterone (C1) and dydrogesterone (C5), dispensed separately or in the combination products B4 and B11. Every other progestogen that approach 4 reads is "other":
+
+- C3: desogestrel pills such as Cerazette, the drospirenone pill Slinda, and dienogest.
+- C4: oral progestogens such as Provera and Primolut-Nor.
+- D1: the progestogen injection Depo-Provera.
+- D2 and D3: implants, Nexplanon, Implanon and Jadelle.
+- E1: hormonal IUDs.
+- I1 and I2: oral contraceptive progestogens.
+
+```{r other-claims}
+stopifnot(
+  cats_are("C1", ATC$progesterone), cats_are("C5", ATC$dydrogesterone),
+  cats_are("C3", c(ATC$desogestrel, ATC$drospirenone, ATC$dienogest), "oral"),
+  has_code("C3", ATC$desogestrel), has_code("C3", ATC$drospirenone), has_code("C3", ATC$dienogest),
+  is_product("Cerazette", "C3"), is_product("Slinda", "C3"),
+  cats_are("C4", ATC$progestogen, "oral"), is_product("Provera", "C4"), is_product("Primolut-Nor", "C4"),
+  is_product("Depo-Provera", "D1", "injection"), cats_are("D1", ATC$contraceptive_progestogen, "injection"),
+  cats_are(c("D2", "D3"), ATC$contraceptive_progestogen, "implant"),
+  is_product("Nexplanon", "D2"), is_product("Implanon", "D2"), is_product("Jadelle", "D3"),
+  cats_are("E1", ATC$progestogen_iud, "iud"), cats_are(c("I1", "I2"), ATC$contraceptive_progestogen, "oral")
+)
+```
+
+A separate progestogen lights a level only in a week with an oestrogen. The chunk dispenses each product alone, then with Progynon (A2). Each supply covers weeks 1 to 8 or more, and the table shows the level in weeks 1 to 8.
+
+```{r other}
+progestogens <- data.table(
+  produkt = c("Utrogestan", "Duphaston", "Cerazette", "Slinda", "Provera",
+              "Depo-Provera", "Nexplanon", "Mirena"),
+  category = c("C1", "C5", "C3", "C3", "C4", "D1", "D2", "E1"),
+  fddd = c(56, 24, 12, 84, 12, 84, 84, 1),
+  lnmn = c(UTROGESTAN, NA, NA, NA, NA, NA, NA, NA)
+)
+weeks <- 1:8
+stopifnot(is_product("Progynon", "A2"))
+paired <- progestogens[, {
+  alone <- run4(rx(produkt, 1, fddd, lnmn))
+  with_a2 <- run4(rbind(rx(produkt, 1, fddd, lnmn), rx("Progynon", 1, 56)))
+  stopifnot(is_product(produkt, category), all(level_in(alone, weeks, category)))
+  .(alone = toString(unique(level_in(alone, weeks))),
+    with_progynon = toString(unique(level_in(with_a2, weeks))))
+}, by = .(produkt, category)]
+knitr::kable(paired)
+stopifnot(
+  all(paired$alone == "local_or_none_mht"),
+  identical(paired$with_progynon, rep(c("oral_estrogen_progesterone", "oral_estrogen_other_progestogen"), c(2L, 6L)))
+)
+```
+
+## 4. Products that enter no level
+
+No approach 4 rule needs A3, A4, A5, A7, C2, G1 or H1. A3 holds vaginal oestradiol. A4 holds vaginal oestriol and prasterone (Intrarosa). A5 is oral oestriol. A7 is an injected oestradiol, G1 is Duavive and H1 holds testosterone. C2 is Prolutex, an injected progesterone. A week of these categories alone is `local_or_none_mht`.
+
+```{r no-level-products}
+no_level <- c("A3", "A4", "A5", "A7", "C2", "G1", "H1")
+knitr::kable(by_category(no_level))
+stopifnot(
+  !any(no_level %in% read4), cats_are("A3", ATC$estradiol, "vaginal"),
+  cats_are("A4", c(ATC$estriol, ATC$prasterone), "vaginal"),
+  has_code("A4", ATC$estriol), has_code("A4", ATC$prasterone), is_product("Intrarosa", "A4"),
+  cats_are("A5", ATC$estriol, "oral"), cats_are("A7", ATC$estradiol, "injection"),
+  is_product("Duavive", "G1"), all(startsWith(ptab[classification == "G1", produkt_clean], "duavive")),
+  cats_are("H1", ATC$testosterone), is_product("Prolutex", "C2", "injection"),
+  cats_are("C2", ATC$progesterone, "injection"),
+  all(startsWith(ptab[classification == "C2", produkt_clean], "prolutex")),
+  all(ptab[classification == "C2", exclude_entire_person] == "TRUE")
+)
+```
+
+The chunk below dispenses Vagifem (A3), Oestriol Aspen (A5), and Divigel (A1) with Prolutex.
+
+```{r no-level}
+stopifnot(is_product("Vagifem", "A3"), is_product("Oestriol Aspen", "A5"), is_product("Divigel", "A1"))
+vaginal <- run4(rx("Vagifem", 1, 56))
+oestriol <- run4(rx("Oestriol Aspen", 1, 56))
+prolutex <- run4(rbind(rx("Divigel", 1, 56), rx("Prolutex", 1, 56)))
+unique(prolutex[, .(approach4, approach3, ri_mht_excluded_product)])
+stopifnot(
+  all(vaginal$A3[1:8]), all(vaginal$approach4 == "local_or_none_mht"),
+  all(oestriol$A5[1:8]), all(oestriol$approach4 == "local_or_none_mht"),
+  all(prolutex$C2[1:8]), all(prolutex$approach4 == "local_or_none_mht"),
+  all(prolutex$approach3[1:8] == "estrogen_progesterone_synthetic"),
+  all(prolutex$ri_mht_excluded_product)
+)
+```
+
+Divigel with Prolutex lights no approach 4 level, because C2 is among the `doesnotinclude` cells of `estrogen_only`. Approach 3 reads the same weeks as `estrogen_progesterone_synthetic`. The product table marks Prolutex for removal, so `ri_mht_excluded_product` is `TRUE` in every week of its holder.
+
+## 5. Two levels in one week: the most recent start wins
+
+The resolver is the one of `add_lmed_v20260922()`, unchanged. When two approach 4 levels are lit in one week, `approach4` reports the level that started most recently. Only two levels that start in the same week are a clash.
+
+The woman below takes Progynon (A2) and Provera (C4) from week 1 to week 20. She adds Utrogestan (C1) 100 mg from week 5 to week 12.
+
+```{r added}
+stopifnot(is_product("Progynon", "A2"), is_product("Provera", "C4"), is_product("Utrogestan", "C1"))
+utro <- run4(rbind(
+  rx("Progynon", 1, 140),
+  rx("Provera", 1, 20),
+  rx("Utrogestan", 5, 56, UTROGESTAN)
+))
+episodes(utro)
+stopifnot(
+  all(level_in(utro, 1:4) == "oral_estrogen_other_progestogen"),
+  all(level_in(utro, 5:12) == "oral_estrogen_progesterone"),
+  all(level_in(utro, 13:20) == "oral_estrogen_other_progestogen"),
+  level_in(utro, 21) == "local_or_none_mht"
+)
+```
+
+Weeks 5 to 12 light both levels. `oral_estrogen_progesterone` started in week 5, later than the other level, so it is reported. When the Utrogestan supply ends, only `oral_estrogen_other_progestogen` is lit, and the woman returns to it in week 13.
+
+The woman below starts Divigel, Utrogestan and Provera on the same day, each for weeks 1 to 12. Both transdermal levels start in week 1, and neither wins.
+
+```{r clash}
+stopifnot(is_product("Divigel", "A1"), is_product("Utrogestan", "C1"), is_product("Provera", "C4"))
+clash <- run4(rbind(
+  rx("Divigel", 1, 84),
+  rx("Utrogestan", 1, 84, UTROGESTAN),
+  rx("Provera", 1, 12)
+))
+episodes(clash)
+stopifnot(
+  all(level_in(clash, 1:12) == "clashingprescriptions"),
+  level_in(clash, 13) == "local_or_none_mht"
+)
+```
+
+The clash lasts to the last treated week of the episode, week 12. Week 13 is an ordinary stop.
+
+## 6. Why there is no mixed level
+
+Approach 4 has no level for a week that holds both progestogen types. Such a week lights two levels, and the resolver reports the one that started most recently. A woman who switches regimen therefore moves to the new level in the week she starts it, while the old supply still lasts. In weeks 5 to 12 of section 5, the woman holds C1 and C4 together, and `approach4` reports one level.
+
+```{r no-mixed}
+stopifnot(
+  setequal(unique(pg[approach %in% "4", variable]), c(expected$variable, "local_or_none_mht")),
+  all(utro[week %in% 5:12, C1 & C4]),
+  uniqueN(level_in(utro, 5:12)) == 1L
+)
+```
+
+## 7. A combination product, then a switch
+
+No rule pairs a combination product with a separate progestogen. A progestogen taken after a combination product, without an oestrogen, is not MHT. It lights no level, so the combination product keeps its own level while its supply lasts.
+
+The woman below takes Femoston (B11) for weeks 1 to 12. In week 5 she collects Provera (C4) alone, which covers weeks 5 to 16.
+
+```{r femoston-provera}
+stopifnot(is_product("Femoston", "B11"), is_product("Provera", "C4"))
+to_provera <- run4(rbind(rx("Femoston", 1, 84), rx("Provera", 5, 12)))
+episodes(to_provera)
+stopifnot(
+  all(level_in(to_provera, 1:12) == "oral_estrogen_progesterone"),
+  all(level_in(to_provera, 13:30) == "local_or_none_mht"),
+  all(to_provera$C4[5:16])
+)
+```
+
+She stays `oral_estrogen_progesterone` until the Femoston supply ends in week 12. From week 13 she is untreated, although Provera covers weeks 13 to 16.
+
+The woman below also takes Femoston for weeks 1 to 12. In week 5 she starts Progynon and Provera, which cover weeks 5 to 16.
+
+```{r femoston-progynon}
+stopifnot(is_product("Femoston", "B11"), is_product("Progynon", "A2"), is_product("Provera", "C4"))
+to_pair <- run4(rbind(rx("Femoston", 1, 84), rx("Progynon", 5, 84), rx("Provera", 5, 12)))
+episodes(to_pair)
+stopifnot(
+  all(level_in(to_pair, 1:4) == "oral_estrogen_progesterone"),
+  all(level_in(to_pair, 5:16) == "oral_estrogen_other_progestogen"),
+  level_in(to_pair, 17) == "local_or_none_mht"
+)
+```
+
+The pair A2 + C4 starts in week 5, so she moves to `oral_estrogen_other_progestogen` in week 5, while Femoston still lasts.
+
+## 8. A hormonal IUD lasts for years
+
+The codebook gives each hormonal IUD a fixed duration, whatever the dispensed quantity. Kyleena, Levosert, Levosertone and Mirena last 1680 days, which is 240 weeks. Jaydess lasts 1008 days, which is 144 weeks. The IUD pairs with any A1, A2 or A6 supply in that window.
+
+```{r iud-durations}
+groups <- setDT(readxl::read_excel(path("dataDictionary20260924.xlsx"), sheet = "MHT_groups", col_types = "text"))
+iud <- ptab[classification == "E1", unique(produkt_raw)]
+iud_days <- groups[Preparatnamn %in% iud, .(produkt = Preparatnamn, days = as.numeric(FDDD))]
+iud_days[, weeks := vapply(produkt, function(p) sum(run4(rx(p, 1, 1), 250L)$E1), integer(1))]
+iud_days
+stopifnot(
+  setequal(iud_days$produkt, iud),
+  all(vapply(iud, is_product, TRUE, cat = "E1")),
+  identical(iud_days[order(produkt), days], c(1008, 1680, 1680, 1680, 1680)),
+  all(iud_days$weeks == iud_days$days / 7),
+  setequal(iud_days[days == 1680, produkt], c("Kyleena", "Levosert", "Levosertone", "Mirena")),
+  identical(iud_days[days == 1008, produkt], "Jaydess")
+)
+```
+
+The woman below collects Mirena (E1) in week 1. She takes Divigel for weeks 200 to 207, then again for weeks 245 to 252.
+
+```{r iud}
+stopifnot(is_product("Mirena", "E1"), is_product("Divigel", "A1"))
+mirena <- run4(rbind(rx("Mirena", 1, 1), rx("Divigel", 200, 56), rx("Divigel", 245, 56)), 260L)
+episodes(mirena)
+stopifnot(
+  all(mirena$E1[1:240]), !any(mirena$E1[241:260]),
+  all(level_in(mirena, 200:207) == "transdermal_estrogen_other_progestogen"),
+  all(level_in(mirena, 245:252) == "estrogen_only")
+)
+```
+
+In weeks 200 to 207 the Mirena supply still lasts, so Divigel reads as `transdermal_estrogen_other_progestogen`. The Mirena supply ends in week 240, so the second Divigel supply reads as `estrogen_only`.

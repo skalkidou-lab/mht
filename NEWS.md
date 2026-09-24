@@ -1,3 +1,12 @@
+# mht 26.9.24
+
+* **`add_lmed_v20260924()` is the 2026-09-24 entry point.** It reads `product_table_20260924.xlsx`, the 2026-09-22 table with one note cell reworded, and `dataDictionary20260924.xlsx`, and no other workbook. It writes every column that `add_lmed_v20260922()` writes, and adds `approach4`, `rd_approach4_single` and `rd_approach4_multiple`.
+* **Approach 4 splits systemic oestrogen by route and by progestogen type.** Its levels are `oral_estrogen_progesterone`, `oral_estrogen_other_progestogen`, `transdermal_estrogen_progesterone`, `transdermal_estrogen_other_progestogen`, `estrogen_only`, `tibolone` and `local_or_none_mht`. The codebook adds 47 approach 4 rules to the `post_grouping` sheet.
+* **The progesterone levels read `C1` (progesterone) or `C5` (dydrogesterone), dispensed separately or in `B4` and `B11`.** Every other progestogen that approach 4 reads is "other", including contraceptive progestogens and hormonal IUDs. A progestogen alone lights no level.
+* **The resolver of `add_lmed_v20260922()` is unchanged.** When two approach 4 levels are lit in one week, `approach4` reports the level that started most recently. Only two levels that start in the same week are a clash.
+* Approaches 1 to 3 and their 88 rules are unchanged. `add_lmed_v20260922()`, its two workbooks and its vignette are unchanged.
+* **`vignette("lmed-v20260924")` explains approach 4.** Its `stopifnot()` chunks check the rules of each level and each worked case, so the vignette fails to build if a claim is false.
+
 # mht 26.9.23
 
 * **`add_lmed_v20260922()` is the 2026-09-22 entry point.** It reads
