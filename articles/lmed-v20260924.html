@@ -28,7 +28,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">mht</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">26.9.25</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">26.9.26</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -79,8 +79,8 @@ prescriptions and a person-week skeleton. It writes menopausal hormone
 therapy (MHT) exposure columns and two person-level exclusion columns
 onto the skeleton. Exposure here means dispensed supply, assumed used.
 The function reads the dispensed quantity and, for two strength-keyed
-rules, the strength. It reads no adherence and no indication. This
-vignette states what it does, in the order it does it:</p>
+rules, the strength. It reads no adherence and no indication. It runs
+six steps, in this order:</p>
 <ol style="list-style-type: decimal">
 <li>It looks each product name up in a shipped product table. The table
 gives the product’s MHT category, and whether the study removes its
@@ -99,8 +99,8 @@ a product the table marks for removal.</li>
 duration rules and the approach rules come from the codebook
 <code>dataDictionary20260924.xlsx</code>. Both workbooks are dated
 2026-09-24 and ship with the package. The function reads no other
-workbook. The tables below read the two files when the vignette builds,
-so they cannot disagree with either file.</p>
+workbook. The tables below are read from the two files when the vignette
+builds.</p>
 <p>Approach 4 is new in this function. It splits systemic oestrogen by
 its route and by the type of progestogen dispensed with it. Every helper
 that reads a workbook, directly or through another helper, has a
@@ -113,8 +113,7 @@ vignette <code>lmed-v20260922</code> stays as the record of that frozen
 version.</p>
 <p>The function’s arguments, the columns it owns and the conditions it
 rejects are in <code><a href="../reference/add_lmed_v20260924.html">?add_lmed_v20260924</a></code> and
-<code><a href="../reference/add_lmed_v20260922.html">?add_lmed_v20260922</a></code>. This vignette does not repeat
-them.</p>
+<code><a href="../reference/add_lmed_v20260922.html">?add_lmed_v20260922</a></code>.</p>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">product_table</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/system.file.html" class="external-link">system.file</a></span><span class="op">(</span><span class="st">"2023-mht"</span>, <span class="st">"product_table_20260924.xlsx"</span>, package <span class="op">=</span> <span class="st">"mht"</span><span class="op">)</span></span>
 <span><span class="va">codebook</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/system.file.html" class="external-link">system.file</a></span><span class="op">(</span><span class="st">"2023-mht"</span>, <span class="st">"dataDictionary20260924.xlsx"</span>, package <span class="op">=</span> <span class="st">"mht"</span><span class="op">)</span></span>
@@ -161,6 +160,27 @@ reduction, so they still match. Extra letters do not:
 per raw register name, so several rows can share one key. Rows that
 share a key MUST agree on the category, on the exclusion flag and on its
 reason. The function errors where they do not.</p>
+<div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu">key_of</span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"Estradot 25"</span>, <span class="st">"Estradot®"</span>, <span class="st">"Estradot"</span>, <span class="st">"Estradot Matrix"</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="co">#&gt; [1] "estradot"       "estradot"       "estradot"       "estradotmatrix"</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/stopifnot.html" class="external-link">stopifnot</a></span><span class="op">(</span></span>
+<span>  <span class="fu"><a href="https://rdrr.io/r/base/all.html" class="external-link">all</a></span><span class="op">(</span><span class="fu">key_of</span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"Estradot 25"</span>, <span class="st">"Estradot®"</span>, <span class="st">"Estradot"</span><span class="op">)</span><span class="op">)</span> <span class="op">==</span> <span class="st">"estradot"</span><span class="op">)</span>,</span>
+<span>  <span class="st">"estradot"</span> <span class="op"><a href="https://rdrr.io/pkg/data.table/man/chmatch.html" class="external-link">%chin%</a></span> <span class="va">ptab</span><span class="op">$</span><span class="va">produkt_clean</span>,</span>
+<span>  <span class="op">!</span><span class="fu">key_of</span><span class="op">(</span><span class="st">"Estradot Matrix"</span><span class="op">)</span> <span class="op"><a href="https://rdrr.io/pkg/data.table/man/chmatch.html" class="external-link">%chin%</a></span> <span class="va">ptab</span><span class="op">$</span><span class="va">produkt_clean</span></span>
+<span><span class="op">)</span></span>
+<span><span class="va">spellings</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/lapply.html" class="external-link">lapply</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"Estradot 25"</span>, <span class="st">"Estradot®"</span>, <span class="st">"Estradot"</span><span class="op">)</span>, <span class="kw">function</span><span class="op">(</span><span class="va">p</span><span class="op">)</span> <span class="fu">run_toy</span><span class="op">(</span><span class="fu">rx</span><span class="op">(</span><span class="va">p</span>, <span class="fl">1</span>, <span class="fl">10</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/stopifnot.html" class="external-link">stopifnot</a></span><span class="op">(</span></span>
+<span>  <span class="fu"><a href="https://rdrr.io/r/base/all.html" class="external-link">all</a></span><span class="op">(</span><span class="va">spellings</span><span class="op">[[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span><span class="op">$</span><span class="va">A1</span><span class="op">[</span><span class="fl">1</span><span class="op">:</span><span class="fl">10</span><span class="op">]</span><span class="op">)</span>,</span>
+<span>  <span class="fu"><a href="https://rdrr.io/r/base/identical.html" class="external-link">identical</a></span><span class="op">(</span><span class="va">spellings</span><span class="op">[[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span>, <span class="va">spellings</span><span class="op">[[</span><span class="fl">2</span><span class="op">]</span><span class="op">]</span><span class="op">)</span>,</span>
+<span>  <span class="fu"><a href="https://rdrr.io/r/base/identical.html" class="external-link">identical</a></span><span class="op">(</span><span class="va">spellings</span><span class="op">[[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span>, <span class="va">spellings</span><span class="op">[[</span><span class="fl">3</span><span class="op">]</span><span class="op">]</span><span class="op">)</span></span>
+<span><span class="op">)</span></span>
+<span><span class="va">msg</span> <span class="op">&lt;-</span> <span class="fu">error_of</span><span class="op">(</span><span class="fu">run_toy</span><span class="op">(</span><span class="fu">rx</span><span class="op">(</span><span class="st">"Estradot Matrix"</span>, <span class="fl">1</span>, <span class="fl">10</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="va">msg</span></span>
+<span><span class="co">#&gt; [1] "1 delivered products have no row in the product table: Estradot Matrix. A product with no row would read as no MHT, so the woman would enter as an unexposed control. Add each one to the table, as a category or as notmht, before the run."</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/stopifnot.html" class="external-link">stopifnot</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/startsWith.html" class="external-link">startsWith</a></span><span class="op">(</span><span class="va">msg</span>, <span class="st">"1 delivered products have no row"</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
+<p>The chunk also runs the function on each spelling. The three runs
+give the same columns, and <code>Estradot Matrix</code> stops the
+run.</p>
 <p>A product name with no row is an error. The function checks the whole
 prescription table before it restricts to the people in the skeleton. A
 product held only by people outside the cohort therefore still needs a
@@ -169,15 +189,55 @@ its holder would enter as an unexposed control. The run stops with an
 error that names up to five such products. This table is frozen. A
 missing row goes into a new dated table, which a new dated function
 reads.</p>
+<p>The chunk below passes six unknown product names, all held by person
+99, who is not in the skeleton. The function stops, names five of the
+six, and writes no column.</p>
+<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">outside</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/data.table/man/data.table.html" class="external-link">data.table</a></span><span class="op">(</span></span>
+<span>  lopnr <span class="op">=</span> <span class="fl">99L</span>, produkt <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste</a></span><span class="op">(</span><span class="st">"Unknown product"</span>, <span class="fl">1</span><span class="op">:</span><span class="fl">6</span><span class="op">)</span>, edatum <span class="op">=</span> <span class="va">monday</span>, fddd <span class="op">=</span> <span class="fl">28</span>, lnmn <span class="op">=</span> <span class="cn">NA_character_</span></span>
+<span><span class="op">)</span></span>
+<span><span class="va">skel</span> <span class="op">&lt;-</span> <span class="fu">toy_skeleton</span><span class="op">(</span><span class="op">)</span></span>
+<span><span class="va">msg</span> <span class="op">&lt;-</span> <span class="fu">error_of</span><span class="op">(</span><span class="fu"><a href="../reference/add_lmed_v20260924.html">add_lmed_v20260924</a></span><span class="op">(</span><span class="va">skel</span>, <span class="fu"><a href="https://rdrr.io/r/base/cbind.html" class="external-link">rbind</a></span><span class="op">(</span><span class="fu">rx</span><span class="op">(</span><span class="st">"Divigel"</span>, <span class="fl">1</span>, <span class="fl">10</span><span class="op">)</span>, <span class="va">outside</span><span class="op">)</span>, verbose <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="va">msg</span></span>
+<span><span class="co">#&gt; [1] "6 delivered products have no row in the product table: Unknown product 1 | Unknown product 2 | Unknown product 3 | Unknown product 4 | Unknown product 5. A product with no row would read as no MHT, so the woman would enter as an unexposed control. Add each one to the table, as a category or as notmht, before the run."</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/stopifnot.html" class="external-link">stopifnot</a></span><span class="op">(</span></span>
+<span>  <span class="fu"><a href="https://rdrr.io/r/base/startsWith.html" class="external-link">startsWith</a></span><span class="op">(</span><span class="va">msg</span>, <span class="st">"6 delivered products have no row"</span><span class="op">)</span>,</span>
+<span>  <span class="fu"><a href="https://rdrr.io/r/base/lengths.html" class="external-link">lengths</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/regmatches.html" class="external-link">regmatches</a></span><span class="op">(</span><span class="va">msg</span>, <span class="fu"><a href="https://rdrr.io/r/base/grep.html" class="external-link">gregexpr</a></span><span class="op">(</span><span class="st">"Unknown product"</span>, <span class="va">msg</span><span class="op">)</span><span class="op">)</span><span class="op">)</span> <span class="op">==</span> <span class="fl">5L</span>,</span>
+<span>  <span class="fu"><a href="https://rdrr.io/r/base/identical.html" class="external-link">identical</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/names.html" class="external-link">names</a></span><span class="op">(</span><span class="va">skel</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"id"</span>, <span class="st">"isoyearweek"</span>, <span class="st">"week"</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="op">)</span></span></code></pre></div>
 <p><code>notmht</code> in the table is a recorded decision that the
 product is not MHT. A prescription of such a product contributes
-nothing, and the function reports nothing about it.</p>
+nothing, and no warning names it.</p>
 <p>The reader validates four things. A category MUST be one the
 person-week grid materialises, one the 2026-08-28 classifier returns, or
 <code>notmht</code>. The exclusion cell MUST read <code>TRUE</code> or
-<code>FALSE</code>. The key MUST equal the raw name reduced, so a key is
-never trusted. Rows sharing a key MUST agree, as above. No other cell is
-checked.</p>
+<code>FALSE</code>. The key MUST equal the raw name reduced, because the
+function recomputes it. Rows sharing a key MUST agree, as above. No
+other cell is checked. The chunk below breaks one row of the table in
+each of the first three ways, and passes each broken table to the
+function’s validator. The intact table passes.</p>
+<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">validate</span> <span class="op">&lt;-</span> <span class="fu">mht</span><span class="fu">:::</span><span class="va">lmed_validate_product_table_v20260902</span></span>
+<span><span class="va">i</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/which.html" class="external-link">which</a></span><span class="op">(</span><span class="va">ptab</span><span class="op">$</span><span class="va">classification</span> <span class="op">==</span> <span class="st">"A1"</span><span class="op">)</span><span class="op">[</span><span class="fl">1</span><span class="op">]</span></span>
+<span><span class="va">broken</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span></span>
+<span>  category <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/pkg/data.table/man/copy.html" class="external-link">copy</a></span><span class="op">(</span><span class="va">ptab</span><span class="op">)</span><span class="op">[</span><span class="va">i</span>, <span class="va">classification</span> <span class="op">:=</span> <span class="st">"Al"</span><span class="op">]</span>,</span>
+<span>  flag <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/pkg/data.table/man/copy.html" class="external-link">copy</a></span><span class="op">(</span><span class="va">ptab</span><span class="op">)</span><span class="op">[</span><span class="va">i</span>, <span class="va">exclude_entire_person</span> <span class="op">:=</span> <span class="st">"yes"</span><span class="op">]</span>,</span>
+<span>  key <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/pkg/data.table/man/copy.html" class="external-link">copy</a></span><span class="op">(</span><span class="va">ptab</span><span class="op">)</span><span class="op">[</span><span class="va">i</span>, <span class="va">produkt_clean</span> <span class="op">:=</span> <span class="st">"estradot"</span><span class="op">]</span></span>
+<span><span class="op">)</span></span>
+<span><span class="va">invalid</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/lapply.html" class="external-link">vapply</a></span><span class="op">(</span><span class="va">broken</span>, <span class="kw">function</span><span class="op">(</span><span class="va">x</span><span class="op">)</span> <span class="fu">error_of</span><span class="op">(</span><span class="fu">validate</span><span class="op">(</span><span class="va">x</span><span class="op">)</span><span class="op">)</span>, <span class="st">""</span><span class="op">)</span></span>
+<span><span class="va">invalid</span></span>
+<span><span class="co">#&gt;                                                                                                                                                                                                          category </span></span>
+<span><span class="co">#&gt; "1 table rows carry a classification that is neither a materialised category nor notmht: Al. A category the person-week grid never materialises reaches no approach rule, so the person would read as untreated." </span></span>
+<span><span class="co">#&gt;                                                                                                                                                                                                              flag </span></span>
+<span><span class="co">#&gt;                                                                       "the exclude_entire_person column carries YES. Only TRUE and FALSE are read. Any other value would silently keep the person in the cohort." </span></span>
+<span><span class="co">#&gt;                                                                                                                                                                                                               key </span></span>
+<span><span class="co">#&gt;                                                                                                                                  "1 table rows carry a produkt_clean that is not produkt_raw normalised: Climara"</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/stopifnot.html" class="external-link">stopifnot</a></span><span class="op">(</span></span>
+<span>  <span class="fu"><a href="https://rdrr.io/r/base/grep.html" class="external-link">grepl</a></span><span class="op">(</span><span class="st">"neither a materialised category nor notmht"</span>, <span class="va">invalid</span><span class="op">[[</span><span class="st">"category"</span><span class="op">]</span><span class="op">]</span><span class="op">)</span>,</span>
+<span>  <span class="fu"><a href="https://rdrr.io/r/base/grep.html" class="external-link">grepl</a></span><span class="op">(</span><span class="st">"exclude_entire_person column carries YES"</span>, <span class="va">invalid</span><span class="op">[[</span><span class="st">"flag"</span><span class="op">]</span><span class="op">]</span><span class="op">)</span>,</span>
+<span>  <span class="fu"><a href="https://rdrr.io/r/base/grep.html" class="external-link">grepl</a></span><span class="op">(</span><span class="st">"not produkt_raw normalised"</span>, <span class="va">invalid</span><span class="op">[[</span><span class="st">"key"</span><span class="op">]</span><span class="op">]</span><span class="op">)</span>,</span>
+<span>  <span class="fu"><a href="https://rdrr.io/r/base/NA.html" class="external-link">is.na</a></span><span class="op">(</span><span class="fu">error_of</span><span class="op">(</span><span class="fu">validate</span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/pkg/data.table/man/copy.html" class="external-link">copy</a></span><span class="op">(</span><span class="va">ptab</span><span class="op">)</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="op">)</span></span></code></pre></div>
 </div>
 <div class="section level3">
 <h3 id="the-categories">The categories<a class="anchor" aria-label="anchor" href="#the-categories"></a>
@@ -190,7 +250,7 @@ the product table’s own English translation of the codebook’s group and
 route cells, shown without the table’s parenthetical notes. The route is
 the codebook’s. The lookup reads the product name only, and never checks
 the route dispensed.</p>
-<div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">legend</span> <span class="op">&lt;-</span> <span class="va">ptab</span><span class="op">[</span><span class="va">classification</span> <span class="op">!=</span> <span class="st">"notmht"</span>,</span>
 <span>  <span class="fu">.</span><span class="op">(</span></span>
 <span>    meaning <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/unique.html" class="external-link">unique</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/grep.html" class="external-link">sub</a></span><span class="op">(</span><span class="st">" \\(.*\\)$"</span>, <span class="st">""</span>, <span class="va">classification_meaning</span><span class="op">)</span><span class="op">)</span>, collapse <span class="op">=</span> <span class="st">" | "</span><span class="op">)</span>,</span>
@@ -407,7 +467,7 @@ oral</td>
 </tr>
 </tbody>
 </table>
-<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/stopifnot.html" class="external-link">stopifnot</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/nrow.html" class="external-link">nrow</a></span><span class="op">(</span><span class="va">legend</span><span class="op">)</span> <span class="op">==</span> <span class="fl">33L</span>, <span class="op">!</span><span class="fu"><a href="https://rdrr.io/r/base/NA.html" class="external-link">anyNA</a></span><span class="op">(</span><span class="va">legend</span><span class="op">$</span><span class="va">products</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
 <p>The letter groups the drug. <code>A</code> is oestrogen alone.
 <code>B</code> is oestrogen with a progestogen in one product.
@@ -424,7 +484,7 @@ the three as MHT exposure.</p>
 </h3>
 <p>The table’s <code>G</code> sheet covers the ATC groups G02 and G03.
 These are its <code>notmht</code> rows:</p>
-<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">ptab</span><span class="op">[</span><span class="va">classification</span> <span class="op">==</span> <span class="st">"notmht"</span> <span class="op">&amp;</span> <span class="va">atc</span> <span class="op"><a href="https://rdrr.io/pkg/data.table/man/like.html" class="external-link">%like%</a></span> <span class="st">"^G0[23]"</span>, <span class="fu">.</span><span class="op">(</span><span class="va">atc</span>, <span class="va">produkt_raw</span><span class="op">)</span><span class="op">]</span></span>
 <span><span class="co">#&gt;         atc                                  produkt_raw</span></span>
 <span><span class="co">#&gt;      &lt;char&gt;                                       &lt;char&gt;</span></span>
@@ -461,7 +521,7 @@ These are its <code>notmht</code> rows:</p>
 <span><span class="co">#&gt;      &lt;char&gt;                                       &lt;char&gt;</span></span></code></pre></div>
 <p>The <code>other</code> sheet holds every row whose ATC code lies
 outside G02 and G03. Every row of it is <code>notmht</code>:</p>
-<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">other</span> <span class="op">&lt;-</span> <span class="va">ptab</span><span class="op">[</span><span class="op">!</span><span class="va">atc</span> <span class="op"><a href="https://rdrr.io/pkg/data.table/man/like.html" class="external-link">%like%</a></span> <span class="st">"^G0[23]"</span><span class="op">]</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/nrow.html" class="external-link">nrow</a></span><span class="op">(</span><span class="va">other</span><span class="op">)</span></span>
 <span><span class="co">#&gt; [1] 2425</span></span>
@@ -469,7 +529,8 @@ outside G02 and G03. Every row of it is <code>notmht</code>:</p>
 <span><span class="co">#&gt; Key: &lt;classification, exclude_entire_person&gt;</span></span>
 <span><span class="co">#&gt;    classification exclude_entire_person     N</span></span>
 <span><span class="co">#&gt;            &lt;char&gt;                &lt;char&gt; &lt;int&gt;</span></span>
-<span><span class="co">#&gt; 1:         notmht                 FALSE  2425</span></span></code></pre></div>
+<span><span class="co">#&gt; 1:         notmht                 FALSE  2425</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/stopifnot.html" class="external-link">stopifnot</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/all.html" class="external-link">all</a></span><span class="op">(</span><span class="va">other</span><span class="op">$</span><span class="va">classification</span> <span class="op">==</span> <span class="st">"notmht"</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/base/all.html" class="external-link">all</a></span><span class="op">(</span><span class="va">other</span><span class="op">$</span><span class="va">exclude_entire_person</span> <span class="op">==</span> <span class="st">"FALSE"</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
 </div>
 <div class="section level3">
 <h3 id="what-changed-against-the-2026-09-22-function">What changed against the 2026-09-22 function<a class="anchor" aria-label="anchor" href="#what-changed-against-the-2026-09-22-function"></a>
@@ -478,7 +539,7 @@ outside G02 and G03. Every row of it is <code>notmht</code>:</p>
 one <code>note</code> cell reworded. No column that the function reads
 changes. The chunk compares every cell of every sheet of the two
 tables.</p>
-<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">read_sheets</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">path</span><span class="op">)</span> <span class="op">{</span></span>
 <span>  <span class="va">sheets</span> <span class="op">&lt;-</span> <span class="fu">readxl</span><span class="fu">::</span><span class="fu"><a href="https://readxl.tidyverse.org/reference/excel_sheets.html" class="external-link">excel_sheets</a></span><span class="op">(</span><span class="va">path</span><span class="op">)</span></span>
 <span>  <span class="kw"><a href="https://rdrr.io/r/base/function.html" class="external-link">return</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/setNames.html" class="external-link">setNames</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/lapply.html" class="external-link">lapply</a></span><span class="op">(</span><span class="va">sheets</span>, <span class="kw">function</span><span class="op">(</span><span class="va">s</span><span class="op">)</span> <span class="op">{</span></span>
@@ -497,9 +558,9 @@ tables.</p>
 <p>The codebook is <code>dataDictionary20260922.xlsx</code> with 47
 approach 4 rules added to the <code>post_grouping</code> sheet, after
 the 88 rules of approaches 1 to 3. Every other sheet is unchanged, and
-so is every rule of approaches 1 to 3. The chunk checks each statement.
-It reads the rules with the function’s own reader.</p>
-<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
+so is every rule of approaches 1 to 3. The chunk reads the rules with
+the function’s own reader.</p>
+<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">codebook_before</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/system.file.html" class="external-link">system.file</a></span><span class="op">(</span><span class="st">"2023-mht"</span>, <span class="st">"dataDictionary20260922.xlsx"</span>, package <span class="op">=</span> <span class="st">"mht"</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/stopifnot.html" class="external-link">stopifnot</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/identical.html" class="external-link">identical</a></span><span class="op">(</span><span class="fu">readxl</span><span class="fu">::</span><span class="fu"><a href="https://readxl.tidyverse.org/reference/excel_sheets.html" class="external-link">excel_sheets</a></span><span class="op">(</span><span class="va">codebook</span><span class="op">)</span>, <span class="fu">readxl</span><span class="fu">::</span><span class="fu"><a href="https://readxl.tidyverse.org/reference/excel_sheets.html" class="external-link">excel_sheets</a></span><span class="op">(</span><span class="va">codebook_before</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="kw">for</span> <span class="op">(</span><span class="va">s</span> <span class="kw">in</span> <span class="fu"><a href="https://rdrr.io/r/base/sets.html" class="external-link">setdiff</a></span><span class="op">(</span><span class="fu">readxl</span><span class="fu">::</span><span class="fu"><a href="https://readxl.tidyverse.org/reference/excel_sheets.html" class="external-link">excel_sheets</a></span><span class="op">(</span><span class="va">codebook</span><span class="op">)</span>, <span class="st">"post_grouping"</span><span class="op">)</span><span class="op">)</span> <span class="op">{</span></span>
@@ -546,7 +607,7 @@ fourth, <code>D4</code>, is a column that no product reaches.
 the inert reference-level rules of section 4, so they move nothing
 either. Approach 4 reads no category that approaches 1 to 3 do not
 already read.</p>
-<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">pg</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/data.table/man/setDT.html" class="external-link">setDT</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/message.html" class="external-link">suppressMessages</a></span><span class="op">(</span></span>
 <span>  <span class="fu">readxl</span><span class="fu">::</span><span class="fu"><a href="https://readxl.tidyverse.org/reference/read_excel.html" class="external-link">read_excel</a></span><span class="op">(</span><span class="va">codebook</span>, sheet <span class="op">=</span> <span class="st">"post_grouping"</span>, col_types <span class="op">=</span> <span class="st">"text"</span><span class="op">)</span></span>
 <span><span class="op">)</span><span class="op">)</span></span>
@@ -586,7 +647,7 @@ category, and its category column still marks each week it covers. Every
 <code>A7</code> product is flagged, so every woman with an
 <code>A7</code> dispensing is flagged. Section 6 states what the
 function does with the flag.</p>
-<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">ptab</span><span class="op">[</span><span class="va">exclude_entire_person</span> <span class="op">==</span> <span class="st">"TRUE"</span>, <span class="fu">.</span><span class="op">(</span><span class="va">produkt_raw</span>, <span class="va">classification</span>, <span class="va">exclusion_reason</span><span class="op">)</span><span class="op">]</span></span>
 <span><span class="co">#&gt;                              produkt_raw classification</span></span>
 <span><span class="co">#&gt;                                   &lt;char&gt;         &lt;char&gt;</span></span>
@@ -634,9 +695,9 @@ rules.</li>
 </ol>
 <p>Step 2 runs before step 3 because an implant carries no useful
 dispensed quantity, and the fixed duration supplies one. Step 4 runs
-after step 3 because a prescription with no duration has no interval,
-whatever its strength. Reading the strength first would turn a missing
-<code>lnmn</code> on such a row into an error for nothing.</p>
+after step 3 because a prescription with no duration has no interval at
+any strength. If step 4 ran first, a missing <code>lnmn</code> on such a
+row would be an error, although step 3 drops the row.</p>
 <p>The duration rules come from the codebook’s <code>MHT_groups</code>
 sheet, and they are matched by prefix, not by exact key. A rule applies
 where its codebook name is a prefix of the reduced product name, and the
@@ -653,10 +714,29 @@ to <code>edatum + d - 1</code>. Both ends convert to an ISO week with
 <code><a href="https://rdrr.io/pkg/cstime/man/date_to_isoyearweek_c.html" class="external-link">cstime::date_to_isoyearweek_c()</a></code>. Each prescription gets its
 own interval. Overlapping intervals of one category are unioned, and
 supply left over at a refill is not carried forward.</p>
+<p>The chunk below shows the week boundaries. One day of Divigel on a
+Sunday marks one week, and two days from that Sunday mark two. A 10-week
+supply refilled in week 9 for 4 weeks covers weeks 1 to 12, the union of
+the two intervals. A 10-week supply dispensed 4 weeks before the
+skeleton starts covers weeks 1 to 6 of it, and the episode starts in
+week 1.</p>
+<div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">on_sunday</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">fddd</span><span class="op">)</span> <span class="fu"><a href="https://rdrr.io/pkg/data.table/man/data.table.html" class="external-link">data.table</a></span><span class="op">(</span>lopnr <span class="op">=</span> <span class="fl">1L</span>, produkt <span class="op">=</span> <span class="st">"Divigel"</span>, edatum <span class="op">=</span> <span class="va">monday</span> <span class="op">+</span> <span class="fl">6L</span>, fddd <span class="op">=</span> <span class="va">fddd</span>, lnmn <span class="op">=</span> <span class="cn">NA_character_</span><span class="op">)</span></span>
+<span><span class="va">one_day</span> <span class="op">&lt;-</span> <span class="fu">run_toy</span><span class="op">(</span><span class="fu">on_sunday</span><span class="op">(</span><span class="fl">1</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="va">two_days</span> <span class="op">&lt;-</span> <span class="fu">run_toy</span><span class="op">(</span><span class="fu">on_sunday</span><span class="op">(</span><span class="fl">2</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="va">refill</span> <span class="op">&lt;-</span> <span class="fu">run_toy</span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/cbind.html" class="external-link">rbind</a></span><span class="op">(</span><span class="fu">rx</span><span class="op">(</span><span class="st">"Divigel"</span>, <span class="fl">1</span>, <span class="fl">10</span><span class="op">)</span>, <span class="fu">rx</span><span class="op">(</span><span class="st">"Divigel"</span>, <span class="fl">9</span>, <span class="fl">4</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="va">early</span> <span class="op">&lt;-</span> <span class="fu">run_toy</span><span class="op">(</span><span class="fu">rx</span><span class="op">(</span><span class="st">"Divigel"</span>, <span class="op">-</span><span class="fl">3</span>, <span class="fl">10</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/stopifnot.html" class="external-link">stopifnot</a></span><span class="op">(</span></span>
+<span>  <span class="fu"><a href="https://rdrr.io/r/base/identical.html" class="external-link">identical</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/which.html" class="external-link">which</a></span><span class="op">(</span><span class="va">one_day</span><span class="op">$</span><span class="va">A1</span><span class="op">)</span>, <span class="fl">1L</span><span class="op">)</span>,</span>
+<span>  <span class="fu"><a href="https://rdrr.io/r/base/identical.html" class="external-link">identical</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/which.html" class="external-link">which</a></span><span class="op">(</span><span class="va">two_days</span><span class="op">$</span><span class="va">A1</span><span class="op">)</span>, <span class="fl">1</span><span class="op">:</span><span class="fl">2</span><span class="op">)</span>,</span>
+<span>  <span class="fu"><a href="https://rdrr.io/r/base/identical.html" class="external-link">identical</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/which.html" class="external-link">which</a></span><span class="op">(</span><span class="va">refill</span><span class="op">$</span><span class="va">A1</span><span class="op">)</span>, <span class="fl">1</span><span class="op">:</span><span class="fl">12</span><span class="op">)</span>,</span>
+<span>  <span class="fu"><a href="https://rdrr.io/r/base/identical.html" class="external-link">identical</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/which.html" class="external-link">which</a></span><span class="op">(</span><span class="va">early</span><span class="op">$</span><span class="va">A1</span><span class="op">)</span>, <span class="fl">1</span><span class="op">:</span><span class="fl">6</span><span class="op">)</span>,</span>
+<span>  <span class="fu"><a href="https://rdrr.io/r/base/identical.html" class="external-link">identical</a></span><span class="op">(</span><span class="va">early</span><span class="op">$</span><span class="va">approach1</span><span class="op">[</span><span class="fl">1</span><span class="op">:</span><span class="fl">7</span><span class="op">]</span>, <span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"systemic_mht"</span>, <span class="st">"local_or_none_mht"</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">6L</span>, <span class="fl">1L</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="op">)</span></span></code></pre></div>
 <div class="section level3">
 <h3 id="fixed-durations">Fixed durations<a class="anchor" aria-label="anchor" href="#fixed-durations"></a>
 </h3>
-<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu">knitr</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/knitr/man/kable.html" class="external-link">kable</a></span><span class="op">(</span><span class="va">groups</span><span class="op">[</span><span class="op">!</span><span class="fu"><a href="https://rdrr.io/r/base/NA.html" class="external-link">is.na</a></span><span class="op">(</span><span class="va">FDDD</span><span class="op">)</span>, <span class="fu">.</span><span class="op">(</span><span class="va">Preparatnamn</span>, <span class="va">Subgrupp</span>, <span class="va">FDDD</span><span class="op">)</span><span class="op">]</span><span class="op">)</span></span></code></pre></div>
 <table class="table">
 <thead><tr class="header">
@@ -697,8 +777,8 @@ supply left over at a refill is not carried forward.</p>
 </tr>
 </tbody>
 </table>
-<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/stopifnot.html" class="external-link">stopifnot</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/nrow.html" class="external-link">nrow</a></span><span class="op">(</span><span class="va">groups</span><span class="op">[</span><span class="op">!</span><span class="fu"><a href="https://rdrr.io/r/base/NA.html" class="external-link">is.na</a></span><span class="op">(</span><span class="va">FDDD</span><span class="op">)</span><span class="op">]</span><span class="op">)</span> <span class="op">==</span> <span class="fl">6L</span><span class="op">)</span></span></code></pre></div>
+<div class="sourceCode" id="cb15"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/stopifnot.html" class="external-link">stopifnot</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/nrow.html" class="external-link">nrow</a></span><span class="op">(</span><span class="va">groups</span><span class="op">[</span><span class="op">!</span><span class="fu"><a href="https://rdrr.io/r/base/NA.html" class="external-link">is.na</a></span><span class="op">(</span><span class="va">FDDD</span><span class="op">)</span><span class="op">]</span><span class="op">)</span> <span class="op">==</span> <span class="fl">6L</span>, <span class="va">groups</span><span class="op">[</span><span class="va">Preparatnamn</span> <span class="op">==</span> <span class="st">"Jadelle"</span>, <span class="va">FDDD</span><span class="op">]</span> <span class="op">==</span> <span class="st">"1680"</span><span class="op">)</span></span></code></pre></div>
 <p>1680 days is five years of twelve 28-day months, which is 240 weeks.
 1008 days is three years of the same months, which is 144 weeks. Jaydess
 is the one product whose fixed duration differs from the rest of its
@@ -707,7 +787,7 @@ device’s interval runs its full length or ends with follow-up. The chunk
 dispenses each hormonal IUD (<code>E1</code>) once, with
 <code>fddd = 1</code>, and counts the weeks its <code>E1</code> column
 marks.</p>
-<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb16"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">iud</span> <span class="op">&lt;-</span> <span class="va">ptab</span><span class="op">[</span><span class="va">classification</span> <span class="op">==</span> <span class="st">"E1"</span>, <span class="fu"><a href="https://rdrr.io/r/base/unique.html" class="external-link">unique</a></span><span class="op">(</span><span class="va">produkt_raw</span><span class="op">)</span><span class="op">]</span></span>
 <span><span class="va">iud_days</span> <span class="op">&lt;-</span> <span class="va">groups</span><span class="op">[</span><span class="va">Preparatnamn</span> <span class="op"><a href="https://rdrr.io/r/base/match.html" class="external-link">%in%</a></span> <span class="va">iud</span>, <span class="fu">.</span><span class="op">(</span>produkt <span class="op">=</span> <span class="va">Preparatnamn</span>, days <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/numeric.html" class="external-link">as.numeric</a></span><span class="op">(</span><span class="va">FDDD</span><span class="op">)</span><span class="op">)</span><span class="op">]</span></span>
 <span><span class="va">iud_days</span><span class="op">[</span>, <span class="va">weeks</span> <span class="op">:=</span> <span class="fu"><a href="https://rdrr.io/r/base/lapply.html" class="external-link">vapply</a></span><span class="op">(</span><span class="va">produkt</span>, <span class="kw">function</span><span class="op">(</span><span class="va">p</span><span class="op">)</span> <span class="fu"><a href="https://rdrr.io/r/base/sum.html" class="external-link">sum</a></span><span class="op">(</span><span class="fu">run_toy</span><span class="op">(</span><span class="fu">rx</span><span class="op">(</span><span class="va">p</span>, <span class="fl">1</span>, fddd <span class="op">=</span> <span class="fl">1</span><span class="op">)</span>, <span class="fl">250L</span><span class="op">)</span><span class="op">$</span><span class="va">E1</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/base/integer.html" class="external-link">integer</a></span><span class="op">(</span><span class="fl">1</span><span class="op">)</span><span class="op">)</span><span class="op">]</span></span>
@@ -735,7 +815,7 @@ more calendar time than it has days. For each such product the codebook
 gives <code>minimum_monthly_dose</code>, the days of supply that make
 one treatment month, and <code>minimum_months</code>, the months a
 prescription must reach.</p>
-<div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb17"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu">knitr</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/knitr/man/kable.html" class="external-link">kable</a></span><span class="op">(</span><span class="va">groups</span><span class="op">[</span></span>
 <span>  <span class="op">!</span><span class="fu"><a href="https://rdrr.io/r/base/NA.html" class="external-link">is.na</a></span><span class="op">(</span><span class="va">minimum_monthly_dose</span><span class="op">)</span>,</span>
 <span>  <span class="fu">.</span><span class="op">(</span><span class="va">Preparatnamn</span>, <span class="va">Subgrupp</span>, <span class="va">minimum_monthly_dose</span>, <span class="va">minimum_months</span>, <span class="va">strength_mg_min</span>, <span class="va">strength_mg_max</span><span class="op">)</span></span>
@@ -913,7 +993,7 @@ the prescription is dropped.</li>
 <li>Otherwise <code>fddd = months * 28</code>.</li>
 </ol>
 <p>The function uses a 28-day month, which is four whole weeks. The
-result rounds down, never up.</p>
+result rounds down.</p>
 <p>Two Utrogestan rules are keyed on strength.
 <code>strength_mg_min</code> is inclusive and
 <code>strength_mg_max</code> is exclusive, so the pair
@@ -928,49 +1008,89 @@ surviving row of it with no readable strength is an error.</p>
 <p>The chunk below drives the duration layer with one row per case. The
 layer is an internal function, so the chunk calls it directly, with the
 product table that the function reads.</p>
-<div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">cases</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/data.table/man/data.table.html" class="external-link">data.table</a></span><span class="op">(</span></span>
-<span>  lopnr <span class="op">=</span> <span class="fl">1L</span>,</span>
-<span>  produkt <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"Divigel"</span>, <span class="st">"Cerazette"</span>, <span class="st">"Provera"</span>, <span class="st">"Provera"</span>, <span class="st">"Utrogestan"</span>, <span class="st">"Utrogestan"</span>, <span class="st">"Utrogest"</span>, <span class="st">"Mirena"</span>, <span class="st">"Jaydess"</span><span class="op">)</span>,</span>
-<span>  lnmn <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="cn">NA</span>, <span class="cn">NA</span>, <span class="cn">NA</span>, <span class="cn">NA</span>, <span class="st">"Utrogestan, kapsel, mjuk 100 mg"</span>, <span class="st">"Utrogestan, kapsel, mjuk 200 mg"</span>, <span class="st">"Utrogest, kapsel, mjuk 100 mg"</span>, <span class="cn">NA</span>, <span class="cn">NA</span><span class="op">)</span>,</span>
+<div class="sourceCode" id="cb18"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">u</span> <span class="op">&lt;-</span> <span class="va">groups</span><span class="op">[</span><span class="va">Preparatnamn</span> <span class="op">==</span> <span class="st">"Utrogestan"</span><span class="op">]</span></span>
+<span><span class="va">u</span><span class="op">[</span>, <span class="fu">.</span><span class="op">(</span><span class="va">Preparatnamn</span>, <span class="va">minimum_monthly_dose</span>, <span class="va">strength_mg_min</span>, <span class="va">strength_mg_max</span><span class="op">)</span><span class="op">]</span></span>
+<span><span class="co">#&gt;    Preparatnamn minimum_monthly_dose strength_mg_min strength_mg_max</span></span>
+<span><span class="co">#&gt;          &lt;char&gt;               &lt;char&gt;          &lt;char&gt;          &lt;char&gt;</span></span>
+<span><span class="co">#&gt; 1:   Utrogestan                   28            &lt;NA&gt;             150</span></span>
+<span><span class="co">#&gt; 2:   Utrogestan                   12             150            &lt;NA&gt;</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/stopifnot.html" class="external-link">stopifnot</a></span><span class="op">(</span></span>
+<span>  <span class="fu"><a href="https://rdrr.io/r/base/nrow.html" class="external-link">nrow</a></span><span class="op">(</span><span class="va">u</span><span class="op">)</span> <span class="op">==</span> <span class="fl">2L</span>,</span>
+<span>  <span class="fu"><a href="https://rdrr.io/r/base/nrow.html" class="external-link">nrow</a></span><span class="op">(</span><span class="va">u</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/NA.html" class="external-link">is.na</a></span><span class="op">(</span><span class="va">strength_mg_min</span><span class="op">)</span> <span class="op">&amp;</span> <span class="va">strength_mg_max</span> <span class="op">==</span> <span class="st">"150"</span><span class="op">]</span><span class="op">)</span> <span class="op">==</span> <span class="fl">1L</span>,</span>
+<span>  <span class="fu"><a href="https://rdrr.io/r/base/nrow.html" class="external-link">nrow</a></span><span class="op">(</span><span class="va">u</span><span class="op">[</span><span class="va">strength_mg_min</span> <span class="op">==</span> <span class="st">"150"</span> <span class="op">&amp;</span> <span class="fu"><a href="https://rdrr.io/r/base/NA.html" class="external-link">is.na</a></span><span class="op">(</span><span class="va">strength_mg_max</span><span class="op">)</span><span class="op">]</span><span class="op">)</span> <span class="op">==</span> <span class="fl">1L</span></span>
+<span><span class="op">)</span></span>
+<span><span class="va">cases</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/data.table/man/data.table.html" class="external-link">data.table</a></span><span class="op">(</span></span>
+<span>  produkt <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"Divigel"</span>, <span class="st">"Cerazette"</span>, <span class="st">"Provera"</span>, <span class="st">"Provera"</span>, <span class="st">"Utrogestan"</span>, <span class="st">"Utrogestan"</span>, <span class="st">"Utrogestan"</span>,</span>
+<span>              <span class="st">"Utrogestan 100mg Capsules"</span>, <span class="st">"Utrogest"</span>, <span class="st">"Gepretix"</span>, <span class="st">"Mirena"</span>, <span class="st">"Jaydess"</span>,</span>
+<span>              <span class="st">"Divigel"</span>, <span class="st">"Divigel"</span>, <span class="st">"Mirena"</span><span class="op">)</span>,</span>
+<span>  lnmn <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="cn">NA</span>, <span class="cn">NA</span>, <span class="cn">NA</span>, <span class="cn">NA</span>, <span class="st">"Utrogestan, kapsel, mjuk 100 mg"</span>, <span class="st">"Utrogestan, kapsel, mjuk 150 mg"</span>,</span>
+<span>           <span class="st">"Utrogestan, kapsel, mjuk 200 mg"</span>, <span class="st">"Utrogestan, kapsel, mjuk 100 mg"</span>,</span>
+<span>           <span class="st">"Utrogest, kapsel, mjuk 100 mg"</span>, <span class="st">"Gepretix, kapsel, mjuk 100 mg"</span>, <span class="cn">NA</span>, <span class="cn">NA</span>, <span class="cn">NA</span>, <span class="cn">NA</span>, <span class="cn">NA</span><span class="op">)</span>,</span>
 <span>  edatum <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/as.Date.html" class="external-link">as.Date</a></span><span class="op">(</span><span class="st">"2020-01-06"</span><span class="op">)</span>,</span>
-<span>  fddd <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">90</span>, <span class="fl">28</span>, <span class="fl">28</span>, <span class="fl">8</span>, <span class="fl">30</span>, <span class="fl">30</span>, <span class="fl">30</span>, <span class="fl">1</span>, <span class="fl">1</span><span class="op">)</span></span>
+<span>  fddd <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">90</span>, <span class="fl">28</span>, <span class="fl">28</span>, <span class="fl">8</span>, <span class="fl">30</span>, <span class="fl">30</span>, <span class="fl">30</span>, <span class="fl">30</span>, <span class="fl">30</span>, <span class="fl">30</span>, <span class="fl">1</span>, <span class="fl">1</span>, <span class="cn">NA</span>, <span class="fl">90</span>, <span class="cn">NA</span><span class="op">)</span></span>
 <span><span class="op">)</span></span>
-<span><span class="va">intervals</span> <span class="op">&lt;-</span> <span class="fu">mht</span><span class="fu">:::</span><span class="fu">lmed_durations_v20260924</span><span class="op">(</span></span>
-<span>  <span class="va">cases</span>,</span>
-<span>  <span class="fu">mht</span><span class="fu">:::</span><span class="fu">lmed_read_product_table_v20260924</span><span class="op">(</span><span class="op">)</span>,</span>
-<span>  verbose <span class="op">=</span> <span class="cn">FALSE</span></span>
+<span><span class="va">cases</span><span class="op">[</span>, <span class="va">lopnr</span> <span class="op">:=</span> <span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq_len</a></span><span class="op">(</span><span class="va">.N</span><span class="op">)</span><span class="op">]</span></span>
+<span><span class="va">cases</span><span class="op">[</span><span class="fl">14</span>, <span class="va">edatum</span> <span class="op">:=</span> <span class="cn">NA</span><span class="op">]</span></span>
+<span><span class="va">warned</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/character.html" class="external-link">character</a></span><span class="op">(</span><span class="fl">0</span><span class="op">)</span></span>
+<span><span class="va">intervals</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/conditions.html" class="external-link">withCallingHandlers</a></span><span class="op">(</span></span>
+<span>  <span class="fu">mht</span><span class="fu">:::</span><span class="fu">lmed_durations_v20260924</span><span class="op">(</span><span class="va">cases</span>, <span class="fu">mht</span><span class="fu">:::</span><span class="fu">lmed_read_product_table_v20260924</span><span class="op">(</span><span class="op">)</span>, verbose <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span>,</span>
+<span>  warning <span class="op">=</span> <span class="kw">function</span><span class="op">(</span><span class="va">w</span><span class="op">)</span> <span class="op">{</span></span>
+<span>    <span class="va">warned</span> <span class="op">&lt;&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">warned</span>, <span class="fu"><a href="https://rdrr.io/r/base/conditions.html" class="external-link">conditionMessage</a></span><span class="op">(</span><span class="va">w</span><span class="op">)</span><span class="op">)</span></span>
+<span>    <span class="fu"><a href="https://rdrr.io/r/base/conditions.html" class="external-link">invokeRestart</a></span><span class="op">(</span><span class="st">"muffleWarning"</span><span class="op">)</span></span>
+<span>  <span class="op">}</span></span>
 <span><span class="op">)</span></span>
-<span><span class="co">#&gt; Warning: 1 of 9 classified prescriptions dropped: 0 with no duration, 1 with a</span></span>
-<span><span class="co">#&gt; duration that is no positive number of days, 0 with no dispensing date</span></span>
-<span><span class="va">intervals</span><span class="op">[</span>, <span class="fu">.</span><span class="op">(</span><span class="va">produkt</span>, <span class="va">lnmn</span>, <span class="va">fddd</span>, <span class="va">duration_days</span>, <span class="va">start_isoyearweek</span>, <span class="va">stop_isoyearweek</span><span class="op">)</span><span class="op">]</span></span>
-<span><span class="co">#&gt;       produkt                            lnmn  fddd duration_days</span></span>
-<span><span class="co">#&gt;        &lt;char&gt;                          &lt;char&gt; &lt;num&gt;         &lt;num&gt;</span></span>
-<span><span class="co">#&gt; 1:    Divigel                            &lt;NA&gt;    90            90</span></span>
-<span><span class="co">#&gt; 2:  Cerazette                            &lt;NA&gt;   196           196</span></span>
-<span><span class="co">#&gt; 3:    Provera                            &lt;NA&gt;   196           196</span></span>
-<span><span class="co">#&gt; 4: Utrogestan Utrogestan, kapsel, mjuk 100 mg    28            28</span></span>
-<span><span class="co">#&gt; 5: Utrogestan Utrogestan, kapsel, mjuk 200 mg    56            56</span></span>
-<span><span class="co">#&gt; 6:   Utrogest   Utrogest, kapsel, mjuk 100 mg    28            28</span></span>
-<span><span class="co">#&gt; 7:     Mirena                            &lt;NA&gt;  1680          1680</span></span>
-<span><span class="co">#&gt; 8:    Jaydess                            &lt;NA&gt;  1008          1008</span></span>
-<span><span class="co">#&gt;    start_isoyearweek stop_isoyearweek</span></span>
-<span><span class="co">#&gt;               &lt;char&gt;           &lt;char&gt;</span></span>
-<span><span class="co">#&gt; 1:           2020-02          2020-14</span></span>
-<span><span class="co">#&gt; 2:           2020-02          2020-29</span></span>
-<span><span class="co">#&gt; 3:           2020-02          2020-29</span></span>
-<span><span class="co">#&gt; 4:           2020-02          2020-05</span></span>
-<span><span class="co">#&gt; 5:           2020-02          2020-09</span></span>
-<span><span class="co">#&gt; 6:           2020-02          2020-05</span></span>
-<span><span class="co">#&gt; 7:           2020-02          2024-32</span></span>
-<span><span class="co">#&gt; 8:           2020-02          2022-40</span></span></code></pre></div>
+<span><span class="va">intervals</span><span class="op">[</span>, <span class="fu">.</span><span class="op">(</span>case <span class="op">=</span> <span class="va">lopnr</span>, <span class="va">produkt</span>, <span class="va">lnmn</span>, <span class="va">duration_days</span>, <span class="va">start_isoyearweek</span>, <span class="va">stop_isoyearweek</span><span class="op">)</span><span class="op">]</span></span>
+<span><span class="co">#&gt;      case                   produkt                            lnmn</span></span>
+<span><span class="co">#&gt;     &lt;int&gt;                    &lt;char&gt;                          &lt;char&gt;</span></span>
+<span><span class="co">#&gt;  1:     1                   Divigel                            &lt;NA&gt;</span></span>
+<span><span class="co">#&gt;  2:     2                 Cerazette                            &lt;NA&gt;</span></span>
+<span><span class="co">#&gt;  3:     3                   Provera                            &lt;NA&gt;</span></span>
+<span><span class="co">#&gt;  4:     5                Utrogestan Utrogestan, kapsel, mjuk 100 mg</span></span>
+<span><span class="co">#&gt;  5:     6                Utrogestan Utrogestan, kapsel, mjuk 150 mg</span></span>
+<span><span class="co">#&gt;  6:     7                Utrogestan Utrogestan, kapsel, mjuk 200 mg</span></span>
+<span><span class="co">#&gt;  7:     8 Utrogestan 100mg Capsules Utrogestan, kapsel, mjuk 100 mg</span></span>
+<span><span class="co">#&gt;  8:     9                  Utrogest   Utrogest, kapsel, mjuk 100 mg</span></span>
+<span><span class="co">#&gt;  9:    10                  Gepretix   Gepretix, kapsel, mjuk 100 mg</span></span>
+<span><span class="co">#&gt; 10:    11                    Mirena                            &lt;NA&gt;</span></span>
+<span><span class="co">#&gt; 11:    12                   Jaydess                            &lt;NA&gt;</span></span>
+<span><span class="co">#&gt; 12:    15                    Mirena                            &lt;NA&gt;</span></span>
+<span><span class="co">#&gt;     duration_days start_isoyearweek stop_isoyearweek</span></span>
+<span><span class="co">#&gt;             &lt;num&gt;            &lt;char&gt;           &lt;char&gt;</span></span>
+<span><span class="co">#&gt;  1:            90           2020-02          2020-14</span></span>
+<span><span class="co">#&gt;  2:           196           2020-02          2020-29</span></span>
+<span><span class="co">#&gt;  3:           196           2020-02          2020-29</span></span>
+<span><span class="co">#&gt;  4:            28           2020-02          2020-05</span></span>
+<span><span class="co">#&gt;  5:            56           2020-02          2020-09</span></span>
+<span><span class="co">#&gt;  6:            56           2020-02          2020-09</span></span>
+<span><span class="co">#&gt;  7:            28           2020-02          2020-05</span></span>
+<span><span class="co">#&gt;  8:            28           2020-02          2020-05</span></span>
+<span><span class="co">#&gt;  9:            28           2020-02          2020-05</span></span>
+<span><span class="co">#&gt; 10:          1680           2020-02          2024-32</span></span>
+<span><span class="co">#&gt; 11:          1008           2020-02          2022-40</span></span>
+<span><span class="co">#&gt; 12:          1680           2020-02          2024-32</span></span>
+<span><span class="va">warned</span></span>
+<span><span class="co">#&gt; [1] "3 of 15 classified prescriptions dropped: 1 with no duration, 1 with a duration that is no positive number of days, 1 with no dispensing date"</span></span>
+<span><span class="va">days</span> <span class="op">&lt;-</span> <span class="va">intervals</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/match.html" class="external-link">match</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq_len</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/nrow.html" class="external-link">nrow</a></span><span class="op">(</span><span class="va">cases</span><span class="op">)</span><span class="op">)</span>, <span class="va">lopnr</span><span class="op">)</span>, <span class="va">duration_days</span><span class="op">]</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/stopifnot.html" class="external-link">stopifnot</a></span><span class="op">(</span></span>
+<span>  <span class="fu"><a href="https://rdrr.io/r/base/identical.html" class="external-link">identical</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/numeric.html" class="external-link">as.numeric</a></span><span class="op">(</span><span class="va">days</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">90</span>, <span class="fl">196</span>, <span class="fl">196</span>, <span class="cn">NA</span>, <span class="fl">28</span>, <span class="fl">56</span>, <span class="fl">56</span>, <span class="fl">28</span>, <span class="fl">28</span>, <span class="fl">28</span>, <span class="fl">1680</span>, <span class="fl">1008</span>, <span class="cn">NA</span>, <span class="cn">NA</span>, <span class="fl">1680</span><span class="op">)</span><span class="op">)</span>,</span>
+<span>  <span class="fu"><a href="https://rdrr.io/r/base/identical.html" class="external-link">identical</a></span><span class="op">(</span><span class="va">warned</span>, <span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste</a></span><span class="op">(</span></span>
+<span>    <span class="st">"3 of 15 classified prescriptions dropped: 1 with no duration,"</span>,</span>
+<span>    <span class="st">"1 with a duration that is no positive number of days, 1 with no dispensing date"</span></span>
+<span>  <span class="op">)</span><span class="op">)</span></span>
+<span><span class="op">)</span></span></code></pre></div>
 <p>Divigel has no rule and keeps 90 days. Cerazette and Provera at 28
 days of supply reach seven months, which is 196 days. Provera at 8 days
 of supply reaches two months. The rule needs three, so the prescription
 is dropped and the warning reports it. Utrogestan 100 mg needs 28 days
-of supply per month and gets one month. Utrogestan 200 mg needs 12 and
-gets two. Utrogest 100 mg takes the Utrogestan rule. Mirena and Jaydess
-take their fixed durations, whatever <code>fddd</code> says.</p>
+of supply per month and gets one month. Utrogestan 150 mg and 200 mg
+take the other rule, which needs 12, and get two. The names
+<code>Utrogestan 100mg Capsules</code>, <code>Utrogest</code> and
+<code>Gepretix</code> take the Utrogestan rules. Mirena and Jaydess take
+their fixed durations regardless of <code>fddd</code>, and so does a
+Mirena with no <code>fddd</code>. A Divigel with no <code>fddd</code>
+and a Divigel with no dispensing date are dropped, and the warning
+counts them.</p>
 </div>
 <div class="section level3">
 <h3 id="dropped-prescriptions">Dropped prescriptions<a class="anchor" aria-label="anchor" href="#dropped-prescriptions"></a>
@@ -994,7 +1114,17 @@ is never imputed.</p>
 <p>The skeleton MUST hold each person’s ISO weeks once each, with no gap
 between the first and the last. Gap bridging and the three-year rule
 both count rows, and a row is one elapsed week only under that
-condition. The function errors otherwise, before it writes anything.</p>
+condition. The function errors otherwise, before it writes anything. The
+chunk below drops week 5 from a toy skeleton.</p>
+<div class="sourceCode" id="cb19"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">gapped</span> <span class="op">&lt;-</span> <span class="fu">toy_skeleton</span><span class="op">(</span><span class="op">)</span><span class="op">[</span><span class="op">-</span><span class="fl">5</span><span class="op">]</span></span>
+<span><span class="fu">error_of</span><span class="op">(</span><span class="fu"><a href="../reference/add_lmed_v20260924.html">add_lmed_v20260924</a></span><span class="op">(</span><span class="va">gapped</span>, <span class="fu">rx</span><span class="op">(</span><span class="st">"Divigel"</span>, <span class="fl">1</span>, <span class="fl">10</span><span class="op">)</span>, verbose <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="co">#&gt; [1] "the check fails for 1 of 1 persons. Each person must hold each ISO week once, consecutively. id 1 has 39 rows, 39 distinct weeks, spanning 40 weeks"</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/stopifnot.html" class="external-link">stopifnot</a></span><span class="op">(</span></span>
+<span>  <span class="fu"><a href="https://rdrr.io/r/base/grep.html" class="external-link">grepl</a></span><span class="op">(</span><span class="st">"id 1 has 39 rows, 39 distinct weeks, spanning 40 weeks"</span>,</span>
+<span>        <span class="fu">error_of</span><span class="op">(</span><span class="fu"><a href="../reference/add_lmed_v20260924.html">add_lmed_v20260924</a></span><span class="op">(</span><span class="va">gapped</span>, <span class="fu">rx</span><span class="op">(</span><span class="st">"Divigel"</span>, <span class="fl">1</span>, <span class="fl">10</span><span class="op">)</span>, verbose <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span><span class="op">)</span>, fixed <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span>,</span>
+<span>  <span class="fu"><a href="https://rdrr.io/r/base/identical.html" class="external-link">identical</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/names.html" class="external-link">names</a></span><span class="op">(</span><span class="va">gapped</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"id"</span>, <span class="st">"isoyearweek"</span>, <span class="st">"week"</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="op">)</span></span></code></pre></div>
 <p>Each of the 33 grid categories gets one logical column.
 <code>G1</code> is discarded before this step, and <code>D4</code> is a
 column that no product reaches. A week is <code>TRUE</code> for a
@@ -1002,7 +1132,7 @@ category where any interval of that category includes at least one day
 of the week. One day of supply on a Sunday marks that week. The same day
 plus the Monday marks two weeks. An episode already running at a
 person’s first week is clipped: it reads as starting in that week. The
-function counts observed weeks and never reaches behind the first
+function counts observed weeks and reads no week before the first
 one.</p>
 <p>The synthetic fixtures show the result. <code>fake_lmed_2026</code>
 holds one Utrogestan user, so <code>lnmn</code> is set for those rows
@@ -1010,7 +1140,7 @@ first. It also carries one product name, <code>Paracetamol</code>, that
 has no row in the product table, so the chunk drops that row. The
 function would stop on it otherwise. Person 18 held only that row, so
 the chunk gives her one Estradiol Valerate dispensing instead.</p>
-<div class="sourceCode" id="cb15"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb20"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">skeleton</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/data.table/man/copy.html" class="external-link">copy</a></span><span class="op">(</span><span class="va">fake_skeleton_mht</span><span class="op">)</span></span>
 <span><span class="va">lmed</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/data.table/man/copy.html" class="external-link">copy</a></span><span class="op">(</span><span class="va">fake_lmed_2026</span><span class="op">)</span></span>
 <span><span class="va">lmed</span><span class="op">[</span>, <span class="va">lnmn</span> <span class="op">:=</span> <span class="cn">NA_character_</span><span class="op">]</span></span>
@@ -1043,7 +1173,7 @@ the chunk gives her one Estradiol Valerate dispensing instead.</p>
 <span><span class="co">#&gt; 1:     5     5     5</span></span></code></pre></div>
 <p>The grid materialises 33 categories. Three of them, <code>A7</code>,
 <code>D4</code> and <code>H1</code>, are read by no approach rule:</p>
-<div class="sourceCode" id="cb16"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb21"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/sets.html" class="external-link">setdiff</a></span><span class="op">(</span><span class="va">categories</span>, <span class="va">read</span><span class="op">)</span></span>
 <span><span class="co">#&gt; [1] "A7" "D4" "H1"</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/stopifnot.html" class="external-link">stopifnot</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/length.html" class="external-link">length</a></span><span class="op">(</span><span class="va">categories</span><span class="op">)</span> <span class="op">==</span> <span class="fl">33L</span>, <span class="fu"><a href="https://rdrr.io/r/base/identical.html" class="external-link">identical</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/sets.html" class="external-link">setdiff</a></span><span class="op">(</span><span class="va">categories</span>, <span class="va">read</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"A7"</span>, <span class="st">"D4"</span>, <span class="st">"H1"</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
@@ -1053,7 +1183,7 @@ the chunk gives her one Estradiol Valerate dispensing instead.</p>
 <p>The chunk below runs <code><a href="../reference/add_lmed_v20260922.html">add_lmed_v20260922()</a></code> on the same
 input. The 2026-09-24 function writes the three approach 4 columns in
 addition. Every other column is identical, for every person.</p>
-<div class="sourceCode" id="cb17"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb22"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">older</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/data.table/man/copy.html" class="external-link">copy</a></span><span class="op">(</span><span class="va">fake_skeleton_mht</span><span class="op">)</span></span>
 <span><span class="fu"><a href="../reference/add_lmed_v20260922.html">add_lmed_v20260922</a></span><span class="op">(</span><span class="va">older</span>, <span class="va">lmed</span>, verbose <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span>
 <span><span class="co">#&gt; Warning: 1 of 128 classified prescriptions dropped: 0 with no duration, 1 with</span></span>
@@ -1094,10 +1224,15 @@ no ISO week:</p>
 </tbody>
 </table>
 <p>The function stops on the annual row, before it writes anything:</p>
-<pre><code>skeleton$isoyearweek holds a value that is no ISO week: 1946-**</code></pre>
+<div class="sourceCode" id="cb23"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">annual</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/cbind.html" class="external-link">rbind</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/pkg/data.table/man/data.table.html" class="external-link">data.table</a></span><span class="op">(</span>id <span class="op">=</span> <span class="fl">1L</span>, isoyearweek <span class="op">=</span> <span class="st">"1946-**"</span>, week <span class="op">=</span> <span class="fl">0L</span><span class="op">)</span>, <span class="fu">toy_skeleton</span><span class="op">(</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="va">msg</span> <span class="op">&lt;-</span> <span class="fu">error_of</span><span class="op">(</span><span class="fu"><a href="../reference/add_lmed_v20260924.html">add_lmed_v20260924</a></span><span class="op">(</span><span class="va">annual</span>, <span class="fu">rx</span><span class="op">(</span><span class="st">"Divigel"</span>, <span class="fl">1</span>, <span class="fl">10</span><span class="op">)</span>, verbose <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="va">msg</span></span>
+<span><span class="co">#&gt; [1] "skeleton$isoyearweek holds a value that is no ISO week: 1946-**"</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/stopifnot.html" class="external-link">stopifnot</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/grep.html" class="external-link">grepl</a></span><span class="op">(</span><span class="st">"no ISO week: 1946-**"</span>, <span class="va">msg</span>, fixed <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/base/identical.html" class="external-link">identical</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/names.html" class="external-link">names</a></span><span class="op">(</span><span class="va">annual</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"id"</span>, <span class="st">"isoyearweek"</span>, <span class="st">"week"</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
 <p>Pass the weekly rows only, and fill the annual rows in the
 caller:</p>
-<div class="sourceCode" id="cb19"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb24"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">weekly</span> <span class="op">&lt;-</span> <span class="va">skeleton</span><span class="op">[</span><span class="va">is_isoyear</span> <span class="op">==</span> <span class="cn">FALSE</span><span class="op">]</span></span>
 <span><span class="fu"><a href="../reference/add_lmed_v20260924.html">add_lmed_v20260924</a></span><span class="op">(</span><span class="va">weekly</span>, <span class="va">lmed</span><span class="op">)</span></span></code></pre></div>
 <p>The subset is a new <code>data.table</code>, so the function writes
@@ -1122,7 +1257,7 @@ cross, with no pair missing and none repeated. <code>excludes</code>
 lists the categories a week must not carry. Every rule of one variable
 carries the same <code>excludes</code>, and the chunk asserts that
 too.</p>
-<div class="sourceCode" id="cb20"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb25"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">pg</span><span class="op">[</span>, <span class="va">excludes</span> <span class="op">:=</span> <span class="fu"><a href="https://rdrr.io/r/base/apply.html" class="external-link">apply</a></span><span class="op">(</span><span class="va">.SD</span>, <span class="fl">1</span>, <span class="kw">function</span><span class="op">(</span><span class="va">r</span><span class="op">)</span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste</a></span><span class="op">(</span><span class="fu">cat_order</span><span class="op">(</span><span class="va">r</span><span class="op">[</span><span class="op">!</span><span class="fu"><a href="https://rdrr.io/r/base/NA.html" class="external-link">is.na</a></span><span class="op">(</span><span class="va">r</span><span class="op">)</span><span class="op">]</span><span class="op">)</span>, collapse <span class="op">=</span> <span class="st">" "</span><span class="op">)</span><span class="op">)</span>,</span>
 <span>  .SDcols <span class="op">=</span> <span class="va">ex_cols</span><span class="op">]</span></span>
 <span><span class="va">rule_table</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">a</span><span class="op">)</span> <span class="op">{</span></span>
@@ -1144,11 +1279,29 @@ too.</p>
 <span>    <span class="op">)</span></span>
 <span>  <span class="op">}</span>, keyby <span class="op">=</span> <span class="va">variable</span><span class="op">]</span></span>
 <span>  <span class="kw"><a href="https://rdrr.io/r/base/function.html" class="external-link">return</a></span><span class="op">(</span><span class="va">out</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/order.html" class="external-link">order</a></span><span class="op">(</span><span class="va">variable</span> <span class="op">==</span> <span class="st">"local_or_none_mht"</span>, <span class="va">variable</span><span class="op">)</span><span class="op">]</span><span class="op">)</span></span>
-<span><span class="op">}</span></span></code></pre></div>
+<span><span class="op">}</span></span>
+<span><span class="co"># The categories that light variable `v` of approach `a` alone, and the two</span></span>
+<span><span class="co"># sides of its pair rules.</span></span>
+<span><span class="va">alone_in</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">a</span>, <span class="va">v</span><span class="op">)</span> <span class="fu">cat_order</span><span class="op">(</span><span class="va">pg</span><span class="op">[</span><span class="va">approach</span> <span class="op">==</span> <span class="va">a</span> <span class="op">&amp;</span> <span class="va">variable</span> <span class="op">==</span> <span class="va">v</span> <span class="op">&amp;</span> <span class="op">!</span><span class="fu"><a href="https://rdrr.io/r/base/NA.html" class="external-link">is.na</a></span><span class="op">(</span><span class="va">includes1</span><span class="op">)</span> <span class="op">&amp;</span> <span class="fu"><a href="https://rdrr.io/r/base/NA.html" class="external-link">is.na</a></span><span class="op">(</span><span class="va">includes2</span><span class="op">)</span>, <span class="va">includes1</span><span class="op">]</span><span class="op">)</span></span>
+<span><span class="va">pair_in</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">a</span>, <span class="va">v</span>, <span class="va">col</span><span class="op">)</span> <span class="fu">cat_order</span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/na.fail.html" class="external-link">na.omit</a></span><span class="op">(</span><span class="va">pg</span><span class="op">[</span><span class="va">approach</span> <span class="op">==</span> <span class="va">a</span> <span class="op">&amp;</span> <span class="va">variable</span> <span class="op">==</span> <span class="va">v</span> <span class="op">&amp;</span> <span class="op">!</span><span class="fu"><a href="https://rdrr.io/r/base/NA.html" class="external-link">is.na</a></span><span class="op">(</span><span class="va">includes2</span><span class="op">)</span><span class="op">]</span><span class="op">[[</span><span class="va">col</span><span class="op">]</span><span class="op">]</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="va">excludes_in</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">a</span>, <span class="va">v</span><span class="op">)</span> <span class="fu"><a href="https://rdrr.io/r/base/unique.html" class="external-link">unique</a></span><span class="op">(</span><span class="va">pg</span><span class="op">[</span><span class="va">approach</span> <span class="op">==</span> <span class="va">a</span> <span class="op">&amp;</span> <span class="va">variable</span> <span class="op">==</span> <span class="va">v</span> <span class="op">&amp;</span> <span class="op">!</span><span class="fu"><a href="https://rdrr.io/r/base/NA.html" class="external-link">is.na</a></span><span class="op">(</span><span class="va">includes1</span><span class="op">)</span>, <span class="va">excludes</span><span class="op">]</span><span class="op">)</span></span>
+<span><span class="co"># The combination products by route, and the partner categories, from the product table and the grid.</span></span>
+<span><span class="va">b_route</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/unique.html" class="external-link">unique</a></span><span class="op">(</span><span class="va">ptab</span><span class="op">[</span><span class="va">classification</span> <span class="op"><a href="https://rdrr.io/pkg/data.table/man/like.html" class="external-link">%like%</a></span> <span class="st">"^B"</span>, <span class="fu">.</span><span class="op">(</span>category <span class="op">=</span> <span class="va">classification</span>, <span class="va">route</span><span class="op">)</span><span class="op">]</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/stopifnot.html" class="external-link">stopifnot</a></span><span class="op">(</span><span class="op">!</span><span class="fu"><a href="https://rdrr.io/r/base/duplicated.html" class="external-link">anyDuplicated</a></span><span class="op">(</span><span class="va">b_route</span><span class="op">$</span><span class="va">category</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="va">b_oral</span> <span class="op">&lt;-</span> <span class="fu">cat_order</span><span class="op">(</span><span class="va">b_route</span><span class="op">[</span><span class="va">route</span> <span class="op">==</span> <span class="st">"oral"</span>, <span class="va">category</span><span class="op">]</span><span class="op">)</span></span>
+<span><span class="va">b_patch</span> <span class="op">&lt;-</span> <span class="fu">cat_order</span><span class="op">(</span><span class="va">b_route</span><span class="op">[</span><span class="va">route</span> <span class="op">==</span> <span class="st">"transdermal"</span>, <span class="va">category</span><span class="op">]</span><span class="op">)</span></span>
+<span><span class="va">partners_all</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/sets.html" class="external-link">setdiff</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/grep.html" class="external-link">grep</a></span><span class="op">(</span><span class="st">"^[CDEI]"</span>, <span class="va">categories</span>, value <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span>, <span class="st">"D4"</span><span class="op">)</span></span>
+<span><span class="va">b_oral</span></span>
+<span><span class="co">#&gt;  [1] "B2"  "B3"  "B4"  "B5"  "B6"  "B8"  "B9"  "B10" "B11" "B12"</span></span>
+<span><span class="va">b_patch</span></span>
+<span><span class="co">#&gt; [1] "B1" "B7"</span></span>
+<span><span class="va">partners_all</span></span>
+<span><span class="co">#&gt;  [1] "C1" "C2" "C3" "C4" "C5" "D1" "D2" "D3" "E1" "I1" "I2"</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/stopifnot.html" class="external-link">stopifnot</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/sets.html" class="external-link">setequal</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">b_oral</span>, <span class="va">b_patch</span><span class="op">)</span>, <span class="va">b_route</span><span class="op">$</span><span class="va">category</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/base/length.html" class="external-link">length</a></span><span class="op">(</span><span class="va">b_patch</span><span class="op">)</span> <span class="op">==</span> <span class="fl">2L</span>, <span class="fu"><a href="https://rdrr.io/r/base/length.html" class="external-link">length</a></span><span class="op">(</span><span class="va">b_oral</span><span class="op">)</span> <span class="op">==</span> <span class="fl">10L</span><span class="op">)</span></span></code></pre></div>
 <div class="section level3">
 <h3 id="approach-1-any-systemic-mht">Approach 1: any systemic MHT<a class="anchor" aria-label="anchor" href="#approach-1-any-systemic-mht"></a>
 </h3>
-<div class="sourceCode" id="cb21"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb26"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu">knitr</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/knitr/man/kable.html" class="external-link">kable</a></span><span class="op">(</span><span class="fu">rule_table</span><span class="op">(</span><span class="st">"1"</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
 <table class="table">
 <colgroup>
@@ -1189,6 +1342,12 @@ too.</p>
 </tr>
 </tbody>
 </table>
+<div class="sourceCode" id="cb27"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/stopifnot.html" class="external-link">stopifnot</a></span><span class="op">(</span></span>
+<span>  <span class="fu"><a href="https://rdrr.io/r/base/identical.html" class="external-link">identical</a></span><span class="op">(</span><span class="fu">alone_in</span><span class="op">(</span><span class="st">"1"</span>, <span class="st">"systemic_mht"</span><span class="op">)</span>, <span class="fu">cat_order</span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"A1"</span>, <span class="st">"A2"</span>, <span class="st">"A6"</span>, <span class="va">b_oral</span>, <span class="va">b_patch</span><span class="op">)</span><span class="op">)</span><span class="op">)</span>,</span>
+<span>  <span class="fu"><a href="https://rdrr.io/r/base/all.html" class="external-link">all</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/NA.html" class="external-link">is.na</a></span><span class="op">(</span><span class="va">pg</span><span class="op">[</span><span class="va">approach</span> <span class="op">==</span> <span class="st">"1"</span>, <span class="va">includes2</span><span class="op">]</span><span class="op">)</span><span class="op">)</span>,</span>
+<span>  <span class="fu"><a href="https://rdrr.io/r/base/identical.html" class="external-link">identical</a></span><span class="op">(</span><span class="fu">alone_in</span><span class="op">(</span><span class="st">"1"</span>, <span class="st">"tibolone"</span><span class="op">)</span>, <span class="st">"F1"</span><span class="op">)</span></span>
+<span><span class="op">)</span></span></code></pre></div>
 <p><code>A1</code>, <code>A2</code>, <code>A6</code> and every
 <code>B</code> product are one level, <code>systemic_mht</code>.
 Tibolone is its own level. No rule of approach 1 reads a progestogen or
@@ -1199,7 +1358,7 @@ exposed.</p>
 <div class="section level3">
 <h3 id="approach-2-route-of-the-oestrogen">Approach 2: route of the oestrogen<a class="anchor" aria-label="anchor" href="#approach-2-route-of-the-oestrogen"></a>
 </h3>
-<div class="sourceCode" id="cb22"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb28"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu">knitr</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/knitr/man/kable.html" class="external-link">kable</a></span><span class="op">(</span><span class="fu">rule_table</span><span class="op">(</span><span class="st">"2"</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
 <table class="table">
 <colgroup>
@@ -1248,6 +1407,13 @@ D1 D2 D3 E1 I1 I2</td>
 </tr>
 </tbody>
 </table>
+<div class="sourceCode" id="cb29"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/stopifnot.html" class="external-link">stopifnot</a></span><span class="op">(</span></span>
+<span>  <span class="fu"><a href="https://rdrr.io/r/base/identical.html" class="external-link">identical</a></span><span class="op">(</span><span class="fu">alone_in</span><span class="op">(</span><span class="st">"2"</span>, <span class="st">"transdermal_estrogen"</span><span class="op">)</span>, <span class="fu">cat_order</span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"A1"</span>, <span class="va">b_patch</span><span class="op">)</span><span class="op">)</span><span class="op">)</span>,</span>
+<span>  <span class="fu"><a href="https://rdrr.io/r/base/identical.html" class="external-link">identical</a></span><span class="op">(</span><span class="fu">alone_in</span><span class="op">(</span><span class="st">"2"</span>, <span class="st">"peroral_estrogen"</span><span class="op">)</span>, <span class="fu">cat_order</span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"A2"</span>, <span class="st">"A6"</span>, <span class="va">b_oral</span><span class="op">)</span><span class="op">)</span><span class="op">)</span>,</span>
+<span>  <span class="fu"><a href="https://rdrr.io/r/base/all.html" class="external-link">all</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/NA.html" class="external-link">is.na</a></span><span class="op">(</span><span class="va">pg</span><span class="op">[</span><span class="va">approach</span> <span class="op">==</span> <span class="st">"2"</span>, <span class="va">includes2</span><span class="op">]</span><span class="op">)</span><span class="op">)</span>,</span>
+<span>  <span class="fu"><a href="https://rdrr.io/r/base/identical.html" class="external-link">identical</a></span><span class="op">(</span><span class="fu">alone_in</span><span class="op">(</span><span class="st">"2"</span>, <span class="st">"tibolone"</span><span class="op">)</span>, <span class="st">"F1"</span><span class="op">)</span></span>
+<span><span class="op">)</span></span></code></pre></div>
 <p>Approach 2 splits systemic oestrogen by route. No rule reads injected
 oestrogen (<code>A7</code>), so it lights no route. The combined
 products follow the route of their oestrogen: the two patches,
@@ -1257,7 +1423,7 @@ tablets are peroral. Tibolone is again its own level.</p>
 <div class="section level3">
 <h3 id="approach-3-the-progestogen">Approach 3: the progestogen<a class="anchor" aria-label="anchor" href="#approach-3-the-progestogen"></a>
 </h3>
-<div class="sourceCode" id="cb23"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb30"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu">knitr</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/knitr/man/kable.html" class="external-link">kable</a></span><span class="op">(</span><span class="fu">rule_table</span><span class="op">(</span><span class="st">"3"</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
 <table class="table">
 <colgroup>
@@ -1306,8 +1472,20 @@ D1 D2 D3 E1 I1 I2</td>
 </tr>
 </tbody>
 </table>
-<p>Approach 3 asks what accompanies the oestrogen.
-<code>estrogen_only</code> is <code>A1</code>, <code>A2</code> or
+<div class="sourceCode" id="cb31"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">bioidentical</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"B4"</span>, <span class="st">"B11"</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/stopifnot.html" class="external-link">stopifnot</a></span><span class="op">(</span></span>
+<span>  <span class="fu"><a href="https://rdrr.io/r/base/identical.html" class="external-link">identical</a></span><span class="op">(</span><span class="fu">alone_in</span><span class="op">(</span><span class="st">"3"</span>, <span class="st">"estrogen_only"</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"A1"</span>, <span class="st">"A2"</span>, <span class="st">"A6"</span><span class="op">)</span><span class="op">)</span>,</span>
+<span>  <span class="fu"><a href="https://rdrr.io/r/base/identical.html" class="external-link">identical</a></span><span class="op">(</span><span class="fu">excludes_in</span><span class="op">(</span><span class="st">"3"</span>, <span class="st">"estrogen_only"</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste</a></span><span class="op">(</span><span class="fu">cat_order</span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">b_oral</span>, <span class="va">b_patch</span>, <span class="va">partners_all</span><span class="op">)</span><span class="op">)</span>, collapse <span class="op">=</span> <span class="st">" "</span><span class="op">)</span><span class="op">)</span>,</span>
+<span>  <span class="fu"><a href="https://rdrr.io/r/base/identical.html" class="external-link">identical</a></span><span class="op">(</span><span class="fu">alone_in</span><span class="op">(</span><span class="st">"3"</span>, <span class="st">"estrogen_progesterone_bioidentical"</span><span class="op">)</span>, <span class="va">bioidentical</span><span class="op">)</span>,</span>
+<span>  <span class="fu"><a href="https://rdrr.io/r/base/identical.html" class="external-link">identical</a></span><span class="op">(</span><span class="fu">pair_in</span><span class="op">(</span><span class="st">"3"</span>, <span class="st">"estrogen_progesterone_bioidentical"</span>, <span class="st">"includes1"</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"A1"</span>, <span class="st">"A2"</span>, <span class="st">"A6"</span><span class="op">)</span><span class="op">)</span>,</span>
+<span>  <span class="fu"><a href="https://rdrr.io/r/base/identical.html" class="external-link">identical</a></span><span class="op">(</span><span class="fu">pair_in</span><span class="op">(</span><span class="st">"3"</span>, <span class="st">"estrogen_progesterone_bioidentical"</span>, <span class="st">"includes2"</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"C1"</span>, <span class="st">"C5"</span><span class="op">)</span><span class="op">)</span>,</span>
+<span>  <span class="fu"><a href="https://rdrr.io/r/base/identical.html" class="external-link">identical</a></span><span class="op">(</span><span class="fu">alone_in</span><span class="op">(</span><span class="st">"3"</span>, <span class="st">"estrogen_progesterone_synthetic"</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/base/sets.html" class="external-link">setdiff</a></span><span class="op">(</span><span class="fu">cat_order</span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">b_oral</span>, <span class="va">b_patch</span><span class="op">)</span><span class="op">)</span>, <span class="va">bioidentical</span><span class="op">)</span><span class="op">)</span>,</span>
+<span>  <span class="fu"><a href="https://rdrr.io/r/base/identical.html" class="external-link">identical</a></span><span class="op">(</span><span class="fu">pair_in</span><span class="op">(</span><span class="st">"3"</span>, <span class="st">"estrogen_progesterone_synthetic"</span>, <span class="st">"includes2"</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/base/sets.html" class="external-link">setdiff</a></span><span class="op">(</span><span class="va">partners_all</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"C1"</span>, <span class="st">"C5"</span><span class="op">)</span><span class="op">)</span><span class="op">)</span>,</span>
+<span>  <span class="fu"><a href="https://rdrr.io/r/base/identical.html" class="external-link">identical</a></span><span class="op">(</span><span class="fu">alone_in</span><span class="op">(</span><span class="st">"3"</span>, <span class="st">"tibolone"</span><span class="op">)</span>, <span class="st">"F1"</span><span class="op">)</span></span>
+<span><span class="op">)</span></span></code></pre></div>
+<p>Approach 3 splits systemic oestrogen by the progestogen taken with
+it. <code>estrogen_only</code> is <code>A1</code>, <code>A2</code> or
 <code>A6</code> with no combined product, no progestogen and no
 contraceptive in the same week. The two
 <code>estrogen_progesterone</code> levels split the progestogen. The
@@ -1317,16 +1495,15 @@ codebook’s <code>bioidentical</code> level holds progesterone
 <code>B11</code>). Its <code>synthetic</code> level holds every other
 progestogen, including injected progesterone (<code>C2</code>), whether
 in a combined product or dispensed separately. The two names are the
-codebook’s labels, and this vignette does not judge them. Tibolone is
-its own level. A progestogen or a contraceptive alone lights
-nothing.</p>
+codebook’s labels. Tibolone is its own level. A progestogen or a
+contraceptive alone lights nothing.</p>
 <p>Approach 3 also declares <code>local_or_none_mht</code> with an empty
 rule. That rule lights nothing.</p>
 </div>
 <div class="section level3">
 <h3 id="approach-4-route-of-the-oestrogen-by-type-of-progestogen">Approach 4: route of the oestrogen by type of progestogen<a class="anchor" aria-label="anchor" href="#approach-4-route-of-the-oestrogen-by-type-of-progestogen"></a>
 </h3>
-<div class="sourceCode" id="cb24"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb32"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu">knitr</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/knitr/man/kable.html" class="external-link">kable</a></span><span class="op">(</span><span class="fu">rule_table</span><span class="op">(</span><span class="st">"4"</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
 <table class="table">
 <colgroup>
@@ -1389,24 +1566,26 @@ D1 D2 D3 E1 I1 I2</td>
 </tr>
 </tbody>
 </table>
-<div class="sourceCode" id="cb25"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb33"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">four</span> <span class="op">&lt;-</span> <span class="va">pg</span><span class="op">[</span><span class="va">approach</span> <span class="op">==</span> <span class="st">"4"</span> <span class="op">&amp;</span> <span class="op">!</span><span class="fu"><a href="https://rdrr.io/r/base/NA.html" class="external-link">is.na</a></span><span class="op">(</span><span class="va">includes1</span><span class="op">)</span><span class="op">]</span></span>
-<span><span class="co"># The oestrogens and partners of one level's pair rules, as the workbook states them.</span></span>
-<span><span class="va">pair_side</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">v</span>, <span class="va">col</span><span class="op">)</span> <span class="fu">cat_order</span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/na.fail.html" class="external-link">na.omit</a></span><span class="op">(</span><span class="va">four</span><span class="op">[</span><span class="va">variable</span> <span class="op">==</span> <span class="va">v</span> <span class="op">&amp;</span> <span class="op">!</span><span class="fu"><a href="https://rdrr.io/r/base/NA.html" class="external-link">is.na</a></span><span class="op">(</span><span class="va">includes2</span><span class="op">)</span><span class="op">]</span><span class="op">[[</span><span class="va">col</span><span class="op">]</span><span class="op">]</span><span class="op">)</span><span class="op">)</span></span>
-<span><span class="va">alone_of</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">v</span><span class="op">)</span> <span class="fu">cat_order</span><span class="op">(</span><span class="va">four</span><span class="op">[</span><span class="va">variable</span> <span class="op">==</span> <span class="va">v</span> <span class="op">&amp;</span> <span class="fu"><a href="https://rdrr.io/r/base/NA.html" class="external-link">is.na</a></span><span class="op">(</span><span class="va">includes2</span><span class="op">)</span>, <span class="va">includes1</span><span class="op">]</span><span class="op">)</span></span>
-<span><span class="va">progesterone</span> <span class="op">&lt;-</span> <span class="fu">pair_side</span><span class="op">(</span><span class="st">"oral_estrogen_progesterone"</span>, <span class="st">"includes2"</span><span class="op">)</span></span>
-<span><span class="va">other_pg</span> <span class="op">&lt;-</span> <span class="fu">pair_side</span><span class="op">(</span><span class="st">"oral_estrogen_other_progestogen"</span>, <span class="st">"includes2"</span><span class="op">)</span></span>
+<span><span class="va">progesterone</span> <span class="op">&lt;-</span> <span class="fu">pair_in</span><span class="op">(</span><span class="st">"4"</span>, <span class="st">"oral_estrogen_progesterone"</span>, <span class="st">"includes2"</span><span class="op">)</span></span>
+<span><span class="va">other_pg</span> <span class="op">&lt;-</span> <span class="fu">pair_in</span><span class="op">(</span><span class="st">"4"</span>, <span class="st">"oral_estrogen_other_progestogen"</span>, <span class="st">"includes2"</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/stopifnot.html" class="external-link">stopifnot</a></span><span class="op">(</span></span>
 <span>  <span class="fu"><a href="https://rdrr.io/r/base/identical.html" class="external-link">identical</a></span><span class="op">(</span><span class="va">progesterone</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"C1"</span>, <span class="st">"C5"</span><span class="op">)</span><span class="op">)</span>,</span>
-<span>  <span class="fu"><a href="https://rdrr.io/r/base/identical.html" class="external-link">identical</a></span><span class="op">(</span><span class="fu">pair_side</span><span class="op">(</span><span class="st">"transdermal_estrogen_progesterone"</span>, <span class="st">"includes2"</span><span class="op">)</span>, <span class="va">progesterone</span><span class="op">)</span>,</span>
-<span>  <span class="fu"><a href="https://rdrr.io/r/base/identical.html" class="external-link">identical</a></span><span class="op">(</span><span class="fu">pair_side</span><span class="op">(</span><span class="st">"transdermal_estrogen_other_progestogen"</span>, <span class="st">"includes2"</span><span class="op">)</span>, <span class="va">other_pg</span><span class="op">)</span>,</span>
-<span>  <span class="op">!</span><span class="fu"><a href="https://rdrr.io/r/base/any.html" class="external-link">any</a></span><span class="op">(</span><span class="va">progesterone</span> <span class="op"><a href="https://rdrr.io/r/base/match.html" class="external-link">%in%</a></span> <span class="va">other_pg</span><span class="op">)</span>,</span>
-<span>  <span class="fu"><a href="https://rdrr.io/r/base/identical.html" class="external-link">identical</a></span><span class="op">(</span><span class="fu">pair_side</span><span class="op">(</span><span class="st">"oral_estrogen_progesterone"</span>, <span class="st">"includes1"</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"A2"</span>, <span class="st">"A6"</span><span class="op">)</span><span class="op">)</span>,</span>
-<span>  <span class="fu"><a href="https://rdrr.io/r/base/identical.html" class="external-link">identical</a></span><span class="op">(</span><span class="fu">pair_side</span><span class="op">(</span><span class="st">"transdermal_estrogen_progesterone"</span>, <span class="st">"includes1"</span><span class="op">)</span>, <span class="st">"A1"</span><span class="op">)</span>,</span>
-<span>  <span class="fu"><a href="https://rdrr.io/r/base/identical.html" class="external-link">identical</a></span><span class="op">(</span><span class="fu">alone_of</span><span class="op">(</span><span class="st">"oral_estrogen_progesterone"</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"B4"</span>, <span class="st">"B11"</span><span class="op">)</span><span class="op">)</span>,</span>
-<span>  <span class="fu"><a href="https://rdrr.io/r/base/identical.html" class="external-link">identical</a></span><span class="op">(</span><span class="fu">alone_of</span><span class="op">(</span><span class="st">"transdermal_estrogen_other_progestogen"</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"B1"</span>, <span class="st">"B7"</span><span class="op">)</span><span class="op">)</span>,</span>
-<span>  <span class="fu"><a href="https://rdrr.io/r/base/identical.html" class="external-link">identical</a></span><span class="op">(</span><span class="fu">alone_of</span><span class="op">(</span><span class="st">"estrogen_only"</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"A1"</span>, <span class="st">"A2"</span>, <span class="st">"A6"</span><span class="op">)</span><span class="op">)</span>,</span>
-<span>  <span class="fu"><a href="https://rdrr.io/r/base/identical.html" class="external-link">identical</a></span><span class="op">(</span><span class="fu">alone_of</span><span class="op">(</span><span class="st">"tibolone"</span><span class="op">)</span>, <span class="st">"F1"</span><span class="op">)</span>,</span>
+<span>  <span class="fu"><a href="https://rdrr.io/r/base/identical.html" class="external-link">identical</a></span><span class="op">(</span><span class="va">other_pg</span>, <span class="fu"><a href="https://rdrr.io/r/base/sets.html" class="external-link">setdiff</a></span><span class="op">(</span><span class="va">partners_all</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"C1"</span>, <span class="st">"C2"</span>, <span class="st">"C5"</span><span class="op">)</span><span class="op">)</span><span class="op">)</span>,</span>
+<span>  <span class="fu"><a href="https://rdrr.io/r/base/identical.html" class="external-link">identical</a></span><span class="op">(</span><span class="fu">pair_in</span><span class="op">(</span><span class="st">"4"</span>, <span class="st">"transdermal_estrogen_progesterone"</span>, <span class="st">"includes2"</span><span class="op">)</span>, <span class="va">progesterone</span><span class="op">)</span>,</span>
+<span>  <span class="fu"><a href="https://rdrr.io/r/base/identical.html" class="external-link">identical</a></span><span class="op">(</span><span class="fu">pair_in</span><span class="op">(</span><span class="st">"4"</span>, <span class="st">"transdermal_estrogen_other_progestogen"</span>, <span class="st">"includes2"</span><span class="op">)</span>, <span class="va">other_pg</span><span class="op">)</span>,</span>
+<span>  <span class="fu"><a href="https://rdrr.io/r/base/identical.html" class="external-link">identical</a></span><span class="op">(</span><span class="fu">pair_in</span><span class="op">(</span><span class="st">"4"</span>, <span class="st">"oral_estrogen_progesterone"</span>, <span class="st">"includes1"</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"A2"</span>, <span class="st">"A6"</span><span class="op">)</span><span class="op">)</span>,</span>
+<span>  <span class="fu"><a href="https://rdrr.io/r/base/identical.html" class="external-link">identical</a></span><span class="op">(</span><span class="fu">pair_in</span><span class="op">(</span><span class="st">"4"</span>, <span class="st">"oral_estrogen_other_progestogen"</span>, <span class="st">"includes1"</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"A2"</span>, <span class="st">"A6"</span><span class="op">)</span><span class="op">)</span>,</span>
+<span>  <span class="fu"><a href="https://rdrr.io/r/base/identical.html" class="external-link">identical</a></span><span class="op">(</span><span class="fu">pair_in</span><span class="op">(</span><span class="st">"4"</span>, <span class="st">"transdermal_estrogen_progesterone"</span>, <span class="st">"includes1"</span><span class="op">)</span>, <span class="st">"A1"</span><span class="op">)</span>,</span>
+<span>  <span class="fu"><a href="https://rdrr.io/r/base/identical.html" class="external-link">identical</a></span><span class="op">(</span><span class="fu">pair_in</span><span class="op">(</span><span class="st">"4"</span>, <span class="st">"transdermal_estrogen_other_progestogen"</span>, <span class="st">"includes1"</span><span class="op">)</span>, <span class="st">"A1"</span><span class="op">)</span>,</span>
+<span>  <span class="fu"><a href="https://rdrr.io/r/base/identical.html" class="external-link">identical</a></span><span class="op">(</span><span class="fu">alone_in</span><span class="op">(</span><span class="st">"4"</span>, <span class="st">"oral_estrogen_progesterone"</span><span class="op">)</span>, <span class="va">bioidentical</span><span class="op">)</span>,</span>
+<span>  <span class="fu"><a href="https://rdrr.io/r/base/identical.html" class="external-link">identical</a></span><span class="op">(</span><span class="fu">alone_in</span><span class="op">(</span><span class="st">"4"</span>, <span class="st">"oral_estrogen_other_progestogen"</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/base/sets.html" class="external-link">setdiff</a></span><span class="op">(</span><span class="va">b_oral</span>, <span class="va">bioidentical</span><span class="op">)</span><span class="op">)</span>,</span>
+<span>  <span class="fu"><a href="https://rdrr.io/r/base/identical.html" class="external-link">identical</a></span><span class="op">(</span><span class="fu">alone_in</span><span class="op">(</span><span class="st">"4"</span>, <span class="st">"transdermal_estrogen_other_progestogen"</span><span class="op">)</span>, <span class="va">b_patch</span><span class="op">)</span>,</span>
+<span>  <span class="fu"><a href="https://rdrr.io/r/base/length.html" class="external-link">length</a></span><span class="op">(</span><span class="fu">alone_in</span><span class="op">(</span><span class="st">"4"</span>, <span class="st">"transdermal_estrogen_progesterone"</span><span class="op">)</span><span class="op">)</span> <span class="op">==</span> <span class="fl">0L</span>,</span>
+<span>  <span class="fu"><a href="https://rdrr.io/r/base/identical.html" class="external-link">identical</a></span><span class="op">(</span><span class="fu">alone_in</span><span class="op">(</span><span class="st">"4"</span>, <span class="st">"estrogen_only"</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"A1"</span>, <span class="st">"A2"</span>, <span class="st">"A6"</span><span class="op">)</span><span class="op">)</span>,</span>
+<span>  <span class="fu"><a href="https://rdrr.io/r/base/identical.html" class="external-link">identical</a></span><span class="op">(</span><span class="fu">excludes_in</span><span class="op">(</span><span class="st">"4"</span>, <span class="st">"estrogen_only"</span><span class="op">)</span>, <span class="fu">excludes_in</span><span class="op">(</span><span class="st">"3"</span>, <span class="st">"estrogen_only"</span><span class="op">)</span><span class="op">)</span>,</span>
+<span>  <span class="fu"><a href="https://rdrr.io/r/base/identical.html" class="external-link">identical</a></span><span class="op">(</span><span class="fu">alone_in</span><span class="op">(</span><span class="st">"4"</span>, <span class="st">"tibolone"</span><span class="op">)</span>, <span class="st">"F1"</span><span class="op">)</span>,</span>
 <span>  <span class="fu"><a href="https://rdrr.io/r/base/identical.html" class="external-link">identical</a></span><span class="op">(</span><span class="va">pg</span><span class="op">[</span><span class="va">approach</span> <span class="op">==</span> <span class="st">"4"</span> <span class="op">&amp;</span> <span class="fu"><a href="https://rdrr.io/r/base/NA.html" class="external-link">is.na</a></span><span class="op">(</span><span class="va">includes1</span><span class="op">)</span>, <span class="va">variable</span><span class="op">]</span>, <span class="st">"local_or_none_mht"</span><span class="op">)</span>,</span>
 <span>  <span class="fu"><a href="https://rdrr.io/r/base/identical.html" class="external-link">identical</a></span><span class="op">(</span></span>
 <span>    <span class="fu"><a href="https://rdrr.io/r/base/sets.html" class="external-link">setdiff</a></span><span class="op">(</span><span class="fu">cat_order</span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/na.fail.html" class="external-link">na.omit</a></span><span class="op">(</span><span class="va">pg</span><span class="op">[</span><span class="va">approach</span> <span class="op">==</span> <span class="st">"3"</span>, <span class="va">includes2</span><span class="op">]</span><span class="op">)</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">progesterone</span>, <span class="va">other_pg</span><span class="op">)</span><span class="op">)</span>,</span>
@@ -1416,7 +1595,7 @@ D1 D2 D3 E1 I1 I2</td>
 <p>Approach 4 crosses the route of approach 2 with the progestogen of
 approach 3, with one difference: no approach 4 pair reads injected
 progesterone (<code>C2</code>). The chunk checks that difference against
-the approach 3 rules. Its levels, in plain names:</p>
+the approach 3 rules. Its levels:</p>
 <ul>
 <li>
 <code>oral_estrogen_progesterone</code>: Femoston (<code>B11</code>)
@@ -1450,7 +1629,7 @@ dispensed separately or in <code>B4</code> and <code>B11</code>. Every
 other progestogen that approach 4 pairs with an oestrogen is “other”.
 The table lists them from the two workbooks: the categories from the
 rules, and the routes and products from the product table.</p>
-<div class="sourceCode" id="cb26"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb34"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu">knitr</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/knitr/man/kable.html" class="external-link">kable</a></span><span class="op">(</span><span class="va">ptab</span><span class="op">[</span><span class="va">classification</span> <span class="op"><a href="https://rdrr.io/r/base/match.html" class="external-link">%in%</a></span> <span class="va">other_pg</span>, <span class="fu">.</span><span class="op">(</span></span>
 <span>  route <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/unique.html" class="external-link">unique</a></span><span class="op">(</span><span class="va">route</span><span class="op">)</span>, collapse <span class="op">=</span> <span class="st">", "</span><span class="op">)</span>,</span>
 <span>  meaning <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/unique.html" class="external-link">unique</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/grep.html" class="external-link">sub</a></span><span class="op">(</span><span class="st">" \\(.*\\)$"</span>, <span class="st">""</span>, <span class="va">classification_meaning</span><span class="op">)</span><span class="op">)</span>, collapse <span class="op">=</span> <span class="st">" | "</span><span class="op">)</span>,</span>
@@ -1542,7 +1721,7 @@ level. Approach 3 reads the same week as
 routes, its ATC codes, its products and the levels whose rules name it.
 The chunk checks the routes and the product categories that the prose
 above states.</p>
-<div class="sourceCode" id="cb27"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb35"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">read4</span> <span class="op">&lt;-</span> <span class="fu">cat_order</span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">four</span><span class="op">$</span><span class="va">includes1</span>, <span class="fu"><a href="https://rdrr.io/r/stats/na.fail.html" class="external-link">na.omit</a></span><span class="op">(</span><span class="va">four</span><span class="op">$</span><span class="va">includes2</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/sets.html" class="external-link">setdiff</a></span><span class="op">(</span><span class="va">legend</span><span class="op">$</span><span class="va">category</span>, <span class="va">read4</span><span class="op">)</span></span>
 <span><span class="co">#&gt; [1] "A3" "A4" "A5" "A7" "C2" "G1" "H1"</span></span>
@@ -1781,7 +1960,7 @@ transdermal_estrogen_other_progestogen</td>
 </tr>
 </tbody>
 </table>
-<div class="sourceCode" id="cb28"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb36"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">route_of</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">cats</span><span class="op">)</span> <span class="fu"><a href="https://rdrr.io/r/base/unique.html" class="external-link">unique</a></span><span class="op">(</span><span class="va">ptab</span><span class="op">[</span><span class="va">classification</span> <span class="op"><a href="https://rdrr.io/r/base/match.html" class="external-link">%in%</a></span> <span class="va">cats</span>, <span class="va">route</span><span class="op">]</span><span class="op">)</span></span>
 <span><span class="va">cat_of</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">p</span><span class="op">)</span> <span class="fu"><a href="https://rdrr.io/r/base/unique.html" class="external-link">unique</a></span><span class="op">(</span><span class="va">ptab</span><span class="op">[</span><span class="va">produkt_clean</span> <span class="op">==</span> <span class="fu">key_of</span><span class="op">(</span><span class="va">p</span><span class="op">)</span>, <span class="va">classification</span><span class="op">]</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/stopifnot.html" class="external-link">stopifnot</a></span><span class="op">(</span></span>
@@ -1796,9 +1975,9 @@ transdermal_estrogen_other_progestogen</td>
 <span><span class="op">)</span></span></code></pre></div>
 <p>A separate progestogen lights an approach 4 level only in a week with
 an oestrogen. The chunk dispenses one product of each partner category
-alone, then with Progynon (<code>A2</code>). Each supply covers weeks 1
-to 8 or more, and the table shows the level in weeks 1 to 8.</p>
-<div class="sourceCode" id="cb29"><pre class="downlit sourceCode r">
+alone, and then with Progynon (<code>A2</code>). Each supply covers
+weeks 1 to 8 or more, and the table shows the level in weeks 1 to 8.</p>
+<div class="sourceCode" id="cb37"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">partners</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/data.table/man/data.table.html" class="external-link">data.table</a></span><span class="op">(</span></span>
 <span>  produkt <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"Utrogestan"</span>, <span class="st">"Duphaston"</span>, <span class="st">"Cerazette"</span>, <span class="st">"Slinda"</span>, <span class="st">"Provera"</span>, <span class="st">"Depo-Provera"</span>, <span class="st">"Nexplanon"</span>, <span class="st">"Mirena"</span><span class="op">)</span>,</span>
 <span>  fddd <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">56</span>, <span class="fl">24</span>, <span class="fl">12</span>, <span class="fl">84</span>, <span class="fl">12</span>, <span class="fl">84</span>, <span class="fl">84</span>, <span class="fl">1</span><span class="op">)</span>,</span>
@@ -1877,7 +2056,7 @@ to 8 or more, and the table shows the level in weeks 1 to 8.</p>
 </tr>
 </tbody>
 </table>
-<div class="sourceCode" id="cb30"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb38"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/stopifnot.html" class="external-link">stopifnot</a></span><span class="op">(</span></span>
 <span>  <span class="fu"><a href="https://rdrr.io/r/base/all.html" class="external-link">all</a></span><span class="op">(</span><span class="va">paired</span><span class="op">$</span><span class="va">alone</span> <span class="op">==</span> <span class="st">"local_or_none_mht"</span><span class="op">)</span>,</span>
 <span>  <span class="fu"><a href="https://rdrr.io/r/base/identical.html" class="external-link">identical</a></span><span class="op">(</span><span class="va">paired</span><span class="op">$</span><span class="va">with_progynon</span>, <span class="fu"><a href="https://rdrr.io/pkg/data.table/man/fifelse.html" class="external-link">fifelse</a></span><span class="op">(</span><span class="va">paired</span><span class="op">$</span><span class="va">category</span> <span class="op"><a href="https://rdrr.io/r/base/match.html" class="external-link">%in%</a></span> <span class="va">progesterone</span>,</span>
@@ -1890,12 +2069,11 @@ to 8 or more, and the table shows the level in weeks 1 to 8.</p>
 <p><code>local_or_none_mht</code> is the value a week takes when no
 treatment variable is lit. The rules that name it, in every approach,
 are inert. The resolver never reads the column they light, and it
-deletes that column with the rest of its working columns. The name says
-what such a week holds: a local oestrogen, an injected oestrogen, a
-progestogen alone, a contraceptive, an androgen, Duavive, or nothing.
-Under approach 4 it also holds a week of <code>A1</code>,
-<code>A2</code> or <code>A6</code> with injected progesterone
-(<code>C2</code>).</p>
+deletes that column with the rest of its working columns. Such a week
+holds a local oestrogen, an injected oestrogen, a progestogen alone, a
+contraceptive, an androgen, Duavive, or nothing. Under approach 4 it
+also holds a week of <code>A1</code>, <code>A2</code> or <code>A6</code>
+with injected progesterone (<code>C2</code>).</p>
 </div>
 <div class="section level3">
 <h3 id="a-week-of-injected-oestrogen-alone">A week of injected oestrogen alone<a class="anchor" aria-label="anchor" href="#a-week-of-injected-oestrogen-alone"></a>
@@ -1904,7 +2082,7 @@ Under approach 4 it also holds a week of <code>A1</code>,
 nothing else. The chunk runs each of the three <code>A7</code> products
 in turn. Each time, the <code>A7</code> column marks the 10 weeks, and
 every approach reads <code>local_or_none_mht</code> in every week.</p>
-<div class="sourceCode" id="cb31"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb39"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">a7_alone</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/data.table/man/rbindlist.html" class="external-link">rbindlist</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/lapply.html" class="external-link">lapply</a></span><span class="op">(</span><span class="va">ptab</span><span class="op">[</span><span class="va">classification</span> <span class="op">==</span> <span class="st">"A7"</span>, <span class="va">produkt_raw</span><span class="op">]</span>, <span class="kw">function</span><span class="op">(</span><span class="va">p</span><span class="op">)</span> <span class="op">{</span></span>
 <span>  <span class="va">skel</span> <span class="op">&lt;-</span> <span class="fu">run_toy</span><span class="op">(</span><span class="fu">rx</span><span class="op">(</span><span class="va">p</span>, <span class="fl">1</span>, <span class="fl">10</span><span class="op">)</span><span class="op">)</span></span>
 <span>  <span class="kw"><a href="https://rdrr.io/r/base/function.html" class="external-link">return</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/pkg/data.table/man/data.table.html" class="external-link">data.table</a></span><span class="op">(</span></span>
@@ -1939,25 +2117,30 @@ every approach reads <code>local_or_none_mht</code> in every week.</p>
 <p>Before the resolver compares treatment variables, it bridges short
 gaps in each of them separately. For one variable, a run of up to four
 weeks in which it is unlit, between two weeks in which it is lit,
-becomes lit. A leading or a trailing run is not a gap, so no woman
-starts early and none stops late. The category columns are not bridged:
-bridging happens inside the approach step.</p>
-<div class="sourceCode" id="cb32"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">skel</span> <span class="op">&lt;-</span> <span class="fu">run_toy</span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/cbind.html" class="external-link">rbind</a></span><span class="op">(</span><span class="fu">rx</span><span class="op">(</span><span class="st">"Divigel"</span>, <span class="fl">1</span>, <span class="fl">10</span><span class="op">)</span>, <span class="fu">rx</span><span class="op">(</span><span class="st">"Divigel"</span>, <span class="fl">14</span>, <span class="fl">7</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span>
-<span><span class="fu">episodes</span><span class="op">(</span><span class="va">skel</span>, <span class="st">"approach1"</span><span class="op">)</span></span>
+becomes lit. A leading or a trailing run is not a gap, so bridging never
+moves a start or a stop. The category columns are not bridged: bridging
+happens inside the approach step.</p>
+<div class="sourceCode" id="cb40"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">gap4</span> <span class="op">&lt;-</span> <span class="fu">run_toy</span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/cbind.html" class="external-link">rbind</a></span><span class="op">(</span><span class="fu">rx</span><span class="op">(</span><span class="st">"Divigel"</span>, <span class="fl">1</span>, <span class="fl">10</span><span class="op">)</span>, <span class="fu">rx</span><span class="op">(</span><span class="st">"Divigel"</span>, <span class="fl">15</span>, <span class="fl">6</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="fu">episodes</span><span class="op">(</span><span class="va">gap4</span>, <span class="st">"approach1"</span><span class="op">)</span></span>
 <span><span class="co">#&gt;       id  from    to weeks             level</span></span>
 <span><span class="co">#&gt;    &lt;int&gt; &lt;int&gt; &lt;int&gt; &lt;int&gt;            &lt;char&gt;</span></span>
 <span><span class="co">#&gt; 1:     1     1    20    20      systemic_mht</span></span>
 <span><span class="co">#&gt; 2:     1    21    40    20 local_or_none_mht</span></span>
-<span><span class="va">skel</span> <span class="op">&lt;-</span> <span class="fu">run_toy</span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/cbind.html" class="external-link">rbind</a></span><span class="op">(</span><span class="fu">rx</span><span class="op">(</span><span class="st">"Divigel"</span>, <span class="fl">1</span>, <span class="fl">10</span><span class="op">)</span>, <span class="fu">rx</span><span class="op">(</span><span class="st">"Divigel"</span>, <span class="fl">16</span>, <span class="fl">5</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span>
-<span><span class="fu">episodes</span><span class="op">(</span><span class="va">skel</span>, <span class="st">"approach1"</span><span class="op">)</span></span>
+<span><span class="va">gap5</span> <span class="op">&lt;-</span> <span class="fu">run_toy</span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/cbind.html" class="external-link">rbind</a></span><span class="op">(</span><span class="fu">rx</span><span class="op">(</span><span class="st">"Divigel"</span>, <span class="fl">1</span>, <span class="fl">10</span><span class="op">)</span>, <span class="fu">rx</span><span class="op">(</span><span class="st">"Divigel"</span>, <span class="fl">16</span>, <span class="fl">5</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="fu">episodes</span><span class="op">(</span><span class="va">gap5</span>, <span class="st">"approach1"</span><span class="op">)</span></span>
 <span><span class="co">#&gt;       id  from    to weeks             level</span></span>
 <span><span class="co">#&gt;    &lt;int&gt; &lt;int&gt; &lt;int&gt; &lt;int&gt;            &lt;char&gt;</span></span>
 <span><span class="co">#&gt; 1:     1     1    10    10      systemic_mht</span></span>
 <span><span class="co">#&gt; 2:     1    11    15     5 local_or_none_mht</span></span>
 <span><span class="co">#&gt; 3:     1    16    20     5      systemic_mht</span></span>
-<span><span class="co">#&gt; 4:     1    21    40    20 local_or_none_mht</span></span></code></pre></div>
-<p>A three-week gap is bridged. A five-week gap is not, and the woman
+<span><span class="co">#&gt; 4:     1    21    40    20 local_or_none_mht</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/stopifnot.html" class="external-link">stopifnot</a></span><span class="op">(</span></span>
+<span>  <span class="op">!</span><span class="fu"><a href="https://rdrr.io/r/base/any.html" class="external-link">any</a></span><span class="op">(</span><span class="va">gap4</span><span class="op">$</span><span class="va">A1</span><span class="op">[</span><span class="fl">11</span><span class="op">:</span><span class="fl">14</span><span class="op">]</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/base/all.html" class="external-link">all</a></span><span class="op">(</span><span class="va">gap4</span><span class="op">$</span><span class="va">approach1</span><span class="op">[</span><span class="fl">1</span><span class="op">:</span><span class="fl">20</span><span class="op">]</span> <span class="op">==</span> <span class="st">"systemic_mht"</span><span class="op">)</span>,</span>
+<span>  <span class="op">!</span><span class="fu"><a href="https://rdrr.io/r/base/any.html" class="external-link">any</a></span><span class="op">(</span><span class="va">gap5</span><span class="op">$</span><span class="va">A1</span><span class="op">[</span><span class="fl">11</span><span class="op">:</span><span class="fl">15</span><span class="op">]</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/base/all.html" class="external-link">all</a></span><span class="op">(</span><span class="va">gap5</span><span class="op">$</span><span class="va">approach1</span><span class="op">[</span><span class="fl">11</span><span class="op">:</span><span class="fl">15</span><span class="op">]</span> <span class="op">==</span> <span class="st">"local_or_none_mht"</span><span class="op">)</span></span>
+<span><span class="op">)</span></span></code></pre></div>
+<p>A four-week gap is bridged, although the <code>A1</code> column stays
+<code>FALSE</code> in those weeks. A five-week gap is not, and the woman
 holds two episodes.</p>
 </div>
 <div class="section level3">
@@ -1967,11 +2150,23 @@ holds two episodes.</p>
 ISO-week resolution, so two products dispensed on different days of one
 week count as concomitant. The resolver gives each variable a run
 length, which counts the weeks since it last turned on, and reports the
-variable with the shortest run. The treatment the woman started most
-recently is the one reported.</p>
+variable with the shortest run.</p>
+<p>The chunk below dispenses Progynon on the Monday and Divigel on the
+Friday of week 1. The two start in the same ISO week, so approach 2
+reads a clash, as described at the end of this section.</p>
+<div class="sourceCode" id="cb41"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">friday</span> <span class="op">&lt;-</span> <span class="fu">run_toy</span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/cbind.html" class="external-link">rbind</a></span><span class="op">(</span><span class="fu">rx</span><span class="op">(</span><span class="st">"Progynon"</span>, <span class="fl">1</span>, <span class="fl">10</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/pkg/data.table/man/data.table.html" class="external-link">data.table</a></span><span class="op">(</span></span>
+<span>  lopnr <span class="op">=</span> <span class="fl">1L</span>, produkt <span class="op">=</span> <span class="st">"Divigel"</span>, edatum <span class="op">=</span> <span class="va">monday</span> <span class="op">+</span> <span class="fl">4L</span>, fddd <span class="op">=</span> <span class="fl">70</span>, lnmn <span class="op">=</span> <span class="cn">NA_character_</span></span>
+<span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="fu">episodes</span><span class="op">(</span><span class="va">friday</span>, <span class="st">"approach2"</span><span class="op">)</span></span>
+<span><span class="co">#&gt;       id  from    to weeks                 level</span></span>
+<span><span class="co">#&gt;    &lt;int&gt; &lt;int&gt; &lt;int&gt; &lt;int&gt;                &lt;char&gt;</span></span>
+<span><span class="co">#&gt; 1:     1     1    11    11 clashingprescriptions</span></span>
+<span><span class="co">#&gt; 2:     1    12    40    29     local_or_none_mht</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/stopifnot.html" class="external-link">stopifnot</a></span><span class="op">(</span><span class="va">friday</span><span class="op">$</span><span class="va">approach2</span><span class="op">[</span><span class="fl">1</span><span class="op">]</span> <span class="op">==</span> <span class="st">"clashingprescriptions"</span><span class="op">)</span></span></code></pre></div>
 <p>The woman below takes Progynon (<code>A2</code>) for 30 weeks and
 adds Divigel (<code>A1</code>) from week 11 for 20 weeks.</p>
-<div class="sourceCode" id="cb33"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb42"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">skel</span> <span class="op">&lt;-</span> <span class="fu">run_toy</span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/cbind.html" class="external-link">rbind</a></span><span class="op">(</span><span class="fu">rx</span><span class="op">(</span><span class="st">"Progynon"</span>, <span class="fl">1</span>, <span class="fl">30</span><span class="op">)</span>, <span class="fu">rx</span><span class="op">(</span><span class="st">"Divigel"</span>, <span class="fl">11</span>, <span class="fl">20</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="fu">episodes</span><span class="op">(</span><span class="va">skel</span>, <span class="st">"approach1"</span><span class="op">)</span></span>
 <span><span class="co">#&gt;       id  from    to weeks             level</span></span>
@@ -2002,7 +2197,7 @@ Approaches 3 and 4 see <code>estrogen_only</code> throughout, because
 approach 4 splits by route only in the presence of a progestogen.</p>
 <p>An exclusion works the same way. The woman below takes Divigel for 20
 weeks and Utrogestan 100 mg from week 9 for 8 weeks.</p>
-<div class="sourceCode" id="cb34"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb43"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">skel</span> <span class="op">&lt;-</span> <span class="fu">run_toy</span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/cbind.html" class="external-link">rbind</a></span><span class="op">(</span><span class="fu">rx</span><span class="op">(</span><span class="st">"Divigel"</span>, <span class="fl">1</span>, <span class="fl">20</span><span class="op">)</span>, <span class="fu">rx</span><span class="op">(</span><span class="st">"Utrogestan"</span>, <span class="fl">9</span>, <span class="fl">8</span>, <span class="va">UTROGESTAN</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="fu">episodes</span><span class="op">(</span><span class="va">skel</span>, <span class="st">"approach3"</span><span class="op">)</span></span>
 <span><span class="co">#&gt;       id  from    to weeks                              level</span></span>
@@ -2032,7 +2227,7 @@ therefore moves to the new level in the week she starts it, while the
 old supply still lasts. The woman below takes Progynon for weeks 1 to 20
 and Provera (<code>C4</code>) for weeks 1 to 20. She adds Utrogestan 100
 mg for weeks 5 to 12.</p>
-<div class="sourceCode" id="cb35"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb44"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">utro</span> <span class="op">&lt;-</span> <span class="fu">run_toy</span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/cbind.html" class="external-link">rbind</a></span><span class="op">(</span></span>
 <span>  <span class="fu">rx</span><span class="op">(</span><span class="st">"Progynon"</span>, <span class="fl">1</span>, <span class="fl">20</span><span class="op">)</span>,</span>
 <span>  <span class="fu">rx</span><span class="op">(</span><span class="st">"Provera"</span>, <span class="fl">1</span>, fddd <span class="op">=</span> <span class="fl">20</span><span class="op">)</span>,</span>
@@ -2063,7 +2258,7 @@ MHT, and it lights nothing. The woman below takes Femoston
 (<code>B11</code>) for weeks 1 to 12. In week 5 she collects Provera
 alone, which covers weeks 5 to 16. In the second case she collects
 Progynon as well, for weeks 5 to 16.</p>
-<div class="sourceCode" id="cb36"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb45"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">to_provera</span> <span class="op">&lt;-</span> <span class="fu">run_toy</span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/cbind.html" class="external-link">rbind</a></span><span class="op">(</span><span class="fu">rx</span><span class="op">(</span><span class="st">"Femoston"</span>, <span class="fl">1</span>, <span class="fl">12</span><span class="op">)</span>, <span class="fu">rx</span><span class="op">(</span><span class="st">"Provera"</span>, <span class="fl">5</span>, fddd <span class="op">=</span> <span class="fl">12</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="fu">episodes</span><span class="op">(</span><span class="va">to_provera</span>, <span class="st">"approach4"</span><span class="op">)</span></span>
 <span><span class="co">#&gt;       id  from    to weeks                      level</span></span>
@@ -2095,7 +2290,7 @@ pairs with any <code>A1</code>, <code>A2</code> or <code>A6</code>
 supply in that window. The woman below collects Mirena (<code>E1</code>)
 in week 1. She takes Divigel for weeks 200 to 207, then again for weeks
 245 to 252.</p>
-<div class="sourceCode" id="cb37"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb46"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">mirena</span> <span class="op">&lt;-</span> <span class="fu">run_toy</span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/cbind.html" class="external-link">rbind</a></span><span class="op">(</span><span class="fu">rx</span><span class="op">(</span><span class="st">"Mirena"</span>, <span class="fl">1</span>, fddd <span class="op">=</span> <span class="fl">1</span><span class="op">)</span>, <span class="fu">rx</span><span class="op">(</span><span class="st">"Divigel"</span>, <span class="fl">200</span>, <span class="fl">8</span><span class="op">)</span>, <span class="fu">rx</span><span class="op">(</span><span class="st">"Divigel"</span>, <span class="fl">245</span>, <span class="fl">8</span><span class="op">)</span><span class="op">)</span>, <span class="fl">260L</span><span class="op">)</span></span>
 <span><span class="fu">episodes</span><span class="op">(</span><span class="va">mirena</span>, <span class="st">"approach4"</span><span class="op">)</span></span>
 <span><span class="co">#&gt;       id  from    to weeks                                  level</span></span>
@@ -2123,22 +2318,22 @@ lengths, and neither wins. The week is marked
 <code>clashingprescriptions</code>. The mark carries forward to the last
 treated week of that episode, and no further. The first untreated week
 after it is an ordinary stop.</p>
-<div class="sourceCode" id="cb38"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb47"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">skel</span> <span class="op">&lt;-</span> <span class="fu">run_toy</span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/cbind.html" class="external-link">rbind</a></span><span class="op">(</span><span class="fu">rx</span><span class="op">(</span><span class="st">"Progynon"</span>, <span class="fl">1</span>, <span class="fl">30</span><span class="op">)</span>, <span class="fu">rx</span><span class="op">(</span><span class="st">"Divigel"</span>, <span class="fl">1</span>, <span class="fl">20</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="fu">episodes</span><span class="op">(</span><span class="va">skel</span>, <span class="st">"approach2"</span><span class="op">)</span></span>
 <span><span class="co">#&gt;       id  from    to weeks                 level</span></span>
 <span><span class="co">#&gt;    &lt;int&gt; &lt;int&gt; &lt;int&gt; &lt;int&gt;                &lt;char&gt;</span></span>
 <span><span class="co">#&gt; 1:     1     1    30    30 clashingprescriptions</span></span>
 <span><span class="co">#&gt; 2:     1    31    40    10     local_or_none_mht</span></span></code></pre></div>
-<p>Neither end of that rule is arbitrary. A clash carried to the end of
+<p>The clash ends there for two reasons. A clash carried to the end of
 follow-up would keep a woman who stopped and restarted out of the
-comparison for good. A clash ended with the overlap would read her as a
-new user in the week the overlap ends, and she was treated
+comparison permanently. A clash ended with the overlap would read her as
+a new user in the week the overlap ends, and she was treated
 throughout.</p>
 <p>Under approach 4, a woman who starts both progestogen types in one
 week clashes. The woman below starts Divigel, Utrogestan 100 mg and
 Provera on the same day, each for weeks 1 to 12.</p>
-<div class="sourceCode" id="cb39"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb48"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">clash</span> <span class="op">&lt;-</span> <span class="fu">run_toy</span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/cbind.html" class="external-link">rbind</a></span><span class="op">(</span><span class="fu">rx</span><span class="op">(</span><span class="st">"Divigel"</span>, <span class="fl">1</span>, <span class="fl">12</span><span class="op">)</span>, <span class="fu">rx</span><span class="op">(</span><span class="st">"Utrogestan"</span>, <span class="fl">1</span>, <span class="fl">12</span>, <span class="va">UTROGESTAN</span><span class="op">)</span>, <span class="fu">rx</span><span class="op">(</span><span class="st">"Provera"</span>, <span class="fl">1</span>, fddd <span class="op">=</span> <span class="fl">12</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="fu">episodes</span><span class="op">(</span><span class="va">clash</span>, <span class="st">"approach4"</span><span class="op">)</span></span>
 <span><span class="co">#&gt;       id  from    to weeks                 level</span></span>
@@ -2194,7 +2389,7 @@ earlier under approach 4.</p>
 </h3>
 <p>Two women in the fixture stop and never restart. Person 1 was treated
 for 193 weeks, person 2 for 73.</p>
-<div class="sourceCode" id="cb40"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb49"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu">episodes</span><span class="op">(</span><span class="va">skeleton</span><span class="op">[</span><span class="va">id</span> <span class="op"><a href="https://rdrr.io/r/base/match.html" class="external-link">%in%</a></span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span>, <span class="fl">2</span><span class="op">)</span><span class="op">]</span>, <span class="st">"rd_approach3_single"</span><span class="op">)</span></span>
 <span><span class="co">#&gt;       id    from      to weeks         level</span></span>
 <span><span class="co">#&gt;    &lt;int&gt;  &lt;char&gt;  &lt;char&gt; &lt;int&gt;        &lt;char&gt;</span></span>
@@ -2210,8 +2405,33 @@ for 193 weeks, person 2 for 73.</p>
 <span><span class="co">#&gt; 3:     2 2015-02 2016-21    73 estrogen_only</span></span>
 <span><span class="co">#&gt; 4:     2 2016-22 2020-52   239       exclude</span></span></code></pre></div>
 <p>Person 1 becomes <code>previous</code>, a former user. Person 2
-becomes <code>exclude</code>, because 73 weeks is under 156. Every week
-before a woman’s first treatment stays
+becomes <code>exclude</code>, because 73 weeks is under 156.</p>
+<p>The chunk below tests the cutoff. Each woman starts Divigel in week
+5, so weeks 1 to 4 come before her first treatment. One takes it for 155
+weeks and the other for 156.</p>
+<div class="sourceCode" id="cb50"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">short</span> <span class="op">&lt;-</span> <span class="fu">run_toy</span><span class="op">(</span><span class="fu">rx</span><span class="op">(</span><span class="st">"Divigel"</span>, <span class="fl">5</span>, <span class="fl">155</span><span class="op">)</span>, <span class="fl">200L</span><span class="op">)</span></span>
+<span><span class="va">long</span> <span class="op">&lt;-</span> <span class="fu">run_toy</span><span class="op">(</span><span class="fu">rx</span><span class="op">(</span><span class="st">"Divigel"</span>, <span class="fl">5</span>, <span class="fl">156</span><span class="op">)</span>, <span class="fl">200L</span><span class="op">)</span></span>
+<span><span class="fu">episodes</span><span class="op">(</span><span class="va">short</span>, <span class="st">"rd_approach1_single"</span><span class="op">)</span></span>
+<span><span class="co">#&gt;       id  from    to weeks             level</span></span>
+<span><span class="co">#&gt;    &lt;int&gt; &lt;int&gt; &lt;int&gt; &lt;int&gt;            &lt;char&gt;</span></span>
+<span><span class="co">#&gt; 1:     1     1     4     4 local_or_none_mht</span></span>
+<span><span class="co">#&gt; 2:     1     5   159   155      systemic_mht</span></span>
+<span><span class="co">#&gt; 3:     1   160   200    41           exclude</span></span>
+<span><span class="fu">episodes</span><span class="op">(</span><span class="va">long</span>, <span class="st">"rd_approach1_single"</span><span class="op">)</span></span>
+<span><span class="co">#&gt;       id  from    to weeks             level</span></span>
+<span><span class="co">#&gt;    &lt;int&gt; &lt;int&gt; &lt;int&gt; &lt;int&gt;            &lt;char&gt;</span></span>
+<span><span class="co">#&gt; 1:     1     1     4     4 local_or_none_mht</span></span>
+<span><span class="co">#&gt; 2:     1     5   160   156      systemic_mht</span></span>
+<span><span class="co">#&gt; 3:     1   161   200    40          previous</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/stopifnot.html" class="external-link">stopifnot</a></span><span class="op">(</span></span>
+<span>  <span class="fu"><a href="https://rdrr.io/r/base/all.html" class="external-link">all</a></span><span class="op">(</span><span class="va">short</span><span class="op">$</span><span class="va">rd_approach1_single</span><span class="op">[</span><span class="fl">1</span><span class="op">:</span><span class="fl">4</span><span class="op">]</span> <span class="op">==</span> <span class="st">"local_or_none_mht"</span><span class="op">)</span>,</span>
+<span>  <span class="fu"><a href="https://rdrr.io/r/base/all.html" class="external-link">all</a></span><span class="op">(</span><span class="va">short</span><span class="op">$</span><span class="va">rd_approach1_single</span><span class="op">[</span><span class="fl">160</span><span class="op">:</span><span class="fl">200</span><span class="op">]</span> <span class="op">==</span> <span class="st">"exclude"</span><span class="op">)</span>,</span>
+<span>  <span class="fu"><a href="https://rdrr.io/r/base/all.html" class="external-link">all</a></span><span class="op">(</span><span class="va">long</span><span class="op">$</span><span class="va">rd_approach1_single</span><span class="op">[</span><span class="fl">161</span><span class="op">:</span><span class="fl">200</span><span class="op">]</span> <span class="op">==</span> <span class="st">"previous"</span><span class="op">)</span></span>
+<span><span class="op">)</span></span></code></pre></div>
+<p>155 weeks is under 156, so the untreated weeks after it are
+<code>exclude</code>. 156 weeks is not, so they are
+<code>previous</code>. Every week before a woman’s first treatment stays
 <code>local_or_none_mht</code>.</p>
 </div>
 <div class="section level3">
@@ -2219,7 +2439,7 @@ before a woman’s first treatment stays
 </h3>
 <p>Person 6 was treated for 193 weeks, stopped for 21, and restarted for
 50.</p>
-<div class="sourceCode" id="cb41"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb51"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu">episodes</span><span class="op">(</span><span class="va">skeleton</span><span class="op">[</span><span class="va">id</span> <span class="op">==</span> <span class="fl">6</span><span class="op">]</span>, <span class="st">"rd_approach3_single"</span><span class="op">)</span></span>
 <span><span class="co">#&gt;       id    from      to weeks         level</span></span>
 <span><span class="co">#&gt;    &lt;int&gt;  &lt;char&gt;  &lt;char&gt; &lt;int&gt;        &lt;char&gt;</span></span>
@@ -2252,7 +2472,7 @@ because that second episode ran under 156 weeks.</p>
 </h3>
 <p>The woman below takes Divigel for 10 weeks, then Neofollin for 10
 weeks.</p>
-<div class="sourceCode" id="cb42"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb52"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">skel</span> <span class="op">&lt;-</span> <span class="fu">run_toy</span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/cbind.html" class="external-link">rbind</a></span><span class="op">(</span><span class="fu">rx</span><span class="op">(</span><span class="st">"Divigel"</span>, <span class="fl">1</span>, <span class="fl">10</span><span class="op">)</span>, <span class="fu">rx</span><span class="op">(</span><span class="st">"Neofollin"</span>, <span class="fl">11</span>, <span class="fl">10</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="fu">episodes</span><span class="op">(</span><span class="va">skel</span>, <span class="st">"approach1"</span><span class="op">)</span></span>
 <span><span class="co">#&gt;       id  from    to weeks             level</span></span>
@@ -2282,7 +2502,7 @@ two <code>estrogen_progesterone</code> levels collapsed into one. A
 switch between active levels never creates <code>previous</code>, so the
 relabel gives what a full second pass would give. Approach 4 has no such
 collapsed variant.</p>
-<div class="sourceCode" id="cb43"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb53"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu">episodes</span><span class="op">(</span><span class="va">skeleton</span><span class="op">[</span><span class="va">id</span> <span class="op">==</span> <span class="fl">16</span><span class="op">]</span>, <span class="st">"rd_approach3_single"</span><span class="op">)</span></span>
 <span><span class="co">#&gt;       id    from      to weeks                           level</span></span>
 <span><span class="co">#&gt;    &lt;int&gt;  &lt;char&gt;  &lt;char&gt; &lt;int&gt;                          &lt;char&gt;</span></span>
@@ -2293,6 +2513,40 @@ collapsed variant.</p>
 <span><span class="co">#&gt;    &lt;int&gt;  &lt;char&gt;  &lt;char&gt; &lt;int&gt;                &lt;char&gt;</span></span>
 <span><span class="co">#&gt; 1:    16 2015-02 2016-21    73 estrogen_progesterone</span></span>
 <span><span class="co">#&gt; 2:    16 2016-22 2020-52   239               exclude</span></span></code></pre></div>
+<p>The chunk below checks that claim. A woman takes Femoston
+(<code>B11</code>, the <code>bioidentical</code> level) for 10 weeks,
+then Cyclabil (<code>B12</code>, the <code>synthetic</code> level) for
+10 weeks. The chunk collapses her <code>approach3</code> column, and
+every fixture person’s, into the <code>approach3b</code> level, and runs
+the exposure layer again on the result. Its <code>rd_approach3</code>
+columns equal the <code>rd_approach3b</code> columns the function
+wrote.</p>
+<div class="sourceCode" id="cb54"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">switcher</span> <span class="op">&lt;-</span> <span class="fu">run_toy</span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/cbind.html" class="external-link">rbind</a></span><span class="op">(</span><span class="fu">rx</span><span class="op">(</span><span class="st">"Femoston"</span>, <span class="fl">1</span>, <span class="fl">10</span><span class="op">)</span>, <span class="fu">rx</span><span class="op">(</span><span class="st">"Cyclabil"</span>, <span class="fl">11</span>, <span class="fl">10</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="fu">episodes</span><span class="op">(</span><span class="va">switcher</span>, <span class="st">"rd_approach3_single"</span><span class="op">)</span></span>
+<span><span class="co">#&gt;       id  from    to weeks                              level</span></span>
+<span><span class="co">#&gt;    &lt;int&gt; &lt;int&gt; &lt;int&gt; &lt;int&gt;                             &lt;char&gt;</span></span>
+<span><span class="co">#&gt; 1:     1     1    10    10 estrogen_progesterone_bioidentical</span></span>
+<span><span class="co">#&gt; 2:     1    11    20    10    estrogen_progesterone_synthetic</span></span>
+<span><span class="co">#&gt; 3:     1    21    40    20                            exclude</span></span>
+<span><span class="fu">episodes</span><span class="op">(</span><span class="va">switcher</span>, <span class="st">"rd_approach3b_single"</span><span class="op">)</span></span>
+<span><span class="co">#&gt;       id  from    to weeks                 level</span></span>
+<span><span class="co">#&gt;    &lt;int&gt; &lt;int&gt; &lt;int&gt; &lt;int&gt;                &lt;char&gt;</span></span>
+<span><span class="co">#&gt; 1:     1     1    20    20 estrogen_progesterone</span></span>
+<span><span class="co">#&gt; 2:     1    21    40    20               exclude</span></span>
+<span><span class="va">second_pass</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">skel</span><span class="op">)</span> <span class="op">{</span></span>
+<span>  <span class="va">collapsed</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/sets.html" class="external-link">setdiff</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/unique.html" class="external-link">unique</a></span><span class="op">(</span><span class="va">skel</span><span class="op">$</span><span class="va">rd_approach3b_single</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/base/unique.html" class="external-link">unique</a></span><span class="op">(</span><span class="va">skel</span><span class="op">$</span><span class="va">rd_approach3_single</span><span class="op">)</span><span class="op">)</span></span>
+<span>  <span class="va">x</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/data.table/man/copy.html" class="external-link">copy</a></span><span class="op">(</span><span class="va">skel</span><span class="op">)</span></span>
+<span>  <span class="va">x</span><span class="op">[</span><span class="va">approach3</span> <span class="op"><a href="https://rdrr.io/pkg/data.table/man/like.html" class="external-link">%like%</a></span> <span class="st">"^estrogen_progesterone"</span>, <span class="va">approach3</span> <span class="op">:=</span> <span class="va">collapsed</span><span class="op">]</span></span>
+<span>  <span class="fu">mht</span><span class="fu">:::</span><span class="fu">create_exposure_variables_v20260924</span><span class="op">(</span><span class="va">x</span><span class="op">)</span></span>
+<span>  <span class="kw"><a href="https://rdrr.io/r/base/function.html" class="external-link">return</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/identical.html" class="external-link">identical</a></span><span class="op">(</span><span class="va">x</span><span class="op">$</span><span class="va">rd_approach3_single</span>, <span class="va">skel</span><span class="op">$</span><span class="va">rd_approach3b_single</span><span class="op">)</span> <span class="op">&amp;&amp;</span></span>
+<span>    <span class="fu"><a href="https://rdrr.io/r/base/identical.html" class="external-link">identical</a></span><span class="op">(</span><span class="va">x</span><span class="op">$</span><span class="va">rd_approach3_multiple</span>, <span class="va">skel</span><span class="op">$</span><span class="va">rd_approach3b_multiple</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="op">}</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/stopifnot.html" class="external-link">stopifnot</a></span><span class="op">(</span></span>
+<span>  <span class="fu"><a href="https://rdrr.io/r/base/identical.html" class="external-link">identical</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/unique.html" class="external-link">unique</a></span><span class="op">(</span><span class="va">switcher</span><span class="op">$</span><span class="va">approach3</span><span class="op">[</span><span class="fl">1</span><span class="op">:</span><span class="fl">20</span><span class="op">]</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"estrogen_progesterone_bioidentical"</span>, <span class="st">"estrogen_progesterone_synthetic"</span><span class="op">)</span><span class="op">)</span>,</span>
+<span>  <span class="fu">second_pass</span><span class="op">(</span><span class="va">switcher</span><span class="op">)</span>,</span>
+<span>  <span class="fu">second_pass</span><span class="op">(</span><span class="va">skeleton</span><span class="op">)</span></span>
+<span><span class="op">)</span></span></code></pre></div>
 </div>
 </div>
 <div class="section level2">
@@ -2307,14 +2561,14 @@ order, separated by <code>;</code>.</p>
 <p>The flag is set from holding the product. It does not depend on that
 prescription having a usable duration or a dispensing date, and it does
 not depend on the week. A flagged prescription dispensed before or after
-follow-up flags every observed week all the same. The prescriptions the
-caller passes therefore define the window of ascertainment. The
+follow-up also flags every observed week. The prescriptions the caller
+passes therefore define the window of ascertainment. The
 <code>ri_</code> prefix means person level and time invariant.</p>
-<p>The function removes nobody. It reports. A flagged woman keeps every
-exposure column, computed as for anyone else. A study removes her only
-through an exclusion that it names, and that exclusion reads
+<p>The function removes nobody. A flagged woman keeps every exposure
+column, computed as for anyone else. A study removes her only through an
+exclusion that it names, and that exclusion reads
 <code>ri_mht_excluded_product</code>.</p>
-<div class="sourceCode" id="cb44"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb55"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">skeleton</span><span class="op">[</span>, <span class="va">.N</span>, keyby <span class="op">=</span> <span class="fu">.</span><span class="op">(</span><span class="va">ri_mht_excluded_product</span>, <span class="va">ri_mht_excluded_reason</span><span class="op">)</span><span class="op">]</span></span>
 <span><span class="co">#&gt; Key: &lt;ri_mht_excluded_product, ri_mht_excluded_reason&gt;</span></span>
 <span><span class="co">#&gt;    ri_mht_excluded_product            ri_mht_excluded_reason     N</span></span>
@@ -2356,13 +2610,32 @@ holds one Estradiol Valerate prescription and nothing else. Every one of
 their 312 weeks is flagged. Person 8’s approach columns still show her
 other products. Person 18 is <code>local_or_none_mht</code> in every
 week of every approach.</p>
+<p>The chunk below covers the other cases. The first woman holds
+Neofollin and Prolutex, which the table flags for different reasons. The
+second holds one Neofollin prescription with no date and no quantity.
+The third holds one dispensed in week 100, after her 40 observed
+weeks.</p>
+<div class="sourceCode" id="cb56"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">reason_of</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">p</span><span class="op">)</span> <span class="va">ptab</span><span class="op">[</span><span class="va">produkt_clean</span> <span class="op">==</span> <span class="fu">key_of</span><span class="op">(</span><span class="va">p</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/base/unique.html" class="external-link">unique</a></span><span class="op">(</span><span class="va">exclusion_reason</span><span class="op">)</span><span class="op">]</span></span>
+<span><span class="va">two</span> <span class="op">&lt;-</span> <span class="fu">run_toy</span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/cbind.html" class="external-link">rbind</a></span><span class="op">(</span><span class="fu">rx</span><span class="op">(</span><span class="st">"Neofollin"</span>, <span class="fl">1</span>, <span class="fl">4</span><span class="op">)</span>, <span class="fu">rx</span><span class="op">(</span><span class="st">"Prolutex"</span>, <span class="fl">1</span>, <span class="fl">4</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="va">undated</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/warning.html" class="external-link">suppressWarnings</a></span><span class="op">(</span><span class="fu">run_toy</span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/pkg/data.table/man/data.table.html" class="external-link">data.table</a></span><span class="op">(</span></span>
+<span>  lopnr <span class="op">=</span> <span class="fl">1L</span>, produkt <span class="op">=</span> <span class="st">"Neofollin"</span>, edatum <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/as.Date.html" class="external-link">as.Date</a></span><span class="op">(</span><span class="cn">NA</span><span class="op">)</span>, fddd <span class="op">=</span> <span class="cn">NA_real_</span>, lnmn <span class="op">=</span> <span class="cn">NA_character_</span></span>
+<span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="va">late</span> <span class="op">&lt;-</span> <span class="fu">run_toy</span><span class="op">(</span><span class="fu">rx</span><span class="op">(</span><span class="st">"Neofollin"</span>, <span class="fl">100</span>, <span class="fl">4</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/unique.html" class="external-link">unique</a></span><span class="op">(</span><span class="va">two</span><span class="op">$</span><span class="va">ri_mht_excluded_reason</span><span class="op">)</span></span>
+<span><span class="co">#&gt; [1] "possible gender-affirming therapy; possible gender-affirming therapy or IVF"</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/stopifnot.html" class="external-link">stopifnot</a></span><span class="op">(</span></span>
+<span>  <span class="fu"><a href="https://rdrr.io/r/base/identical.html" class="external-link">identical</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/unique.html" class="external-link">unique</a></span><span class="op">(</span><span class="va">two</span><span class="op">$</span><span class="va">ri_mht_excluded_reason</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/sort.html" class="external-link">sort</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fu">reason_of</span><span class="op">(</span><span class="st">"Neofollin"</span><span class="op">)</span>, <span class="fu">reason_of</span><span class="op">(</span><span class="st">"Prolutex"</span><span class="op">)</span><span class="op">)</span><span class="op">)</span>, collapse <span class="op">=</span> <span class="st">"; "</span><span class="op">)</span><span class="op">)</span>,</span>
+<span>  <span class="fu"><a href="https://rdrr.io/r/base/all.html" class="external-link">all</a></span><span class="op">(</span><span class="va">undated</span><span class="op">$</span><span class="va">ri_mht_excluded_product</span><span class="op">)</span>, <span class="op">!</span><span class="fu"><a href="https://rdrr.io/r/base/any.html" class="external-link">any</a></span><span class="op">(</span><span class="va">undated</span><span class="op">$</span><span class="va">A7</span><span class="op">)</span>,</span>
+<span>  <span class="fu"><a href="https://rdrr.io/r/base/all.html" class="external-link">all</a></span><span class="op">(</span><span class="va">late</span><span class="op">$</span><span class="va">ri_mht_excluded_product</span><span class="op">)</span>, <span class="op">!</span><span class="fu"><a href="https://rdrr.io/r/base/any.html" class="external-link">any</a></span><span class="op">(</span><span class="va">late</span><span class="op">$</span><span class="va">A7</span><span class="op">)</span></span>
+<span><span class="op">)</span></span></code></pre></div>
 <p>No approach rule reads <code>A7</code>, so a study that keeps a
 flagged woman sees no exposure from her <code>A7</code> products. Her
 exposure columns equal those that the function writes when the input
 holds no <code>A7</code> row at all. The chunk removes every
 <code>A7</code> row, runs the function again, and compares the two
 results.</p>
-<div class="sourceCode" id="cb45"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb57"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">no_a7</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/data.table/man/copy.html" class="external-link">copy</a></span><span class="op">(</span><span class="va">fake_skeleton_mht</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/warning.html" class="external-link">suppressWarnings</a></span><span class="op">(</span><span class="fu"><a href="../reference/add_lmed_v20260924.html">add_lmed_v20260924</a></span><span class="op">(</span></span>
 <span>  <span class="va">no_a7</span>,</span>
@@ -2381,6 +2654,31 @@ results.</p>
 <div class="section level2">
 <h2 id="what-the-function-does-not-do">7. What the function does not do<a class="anchor" aria-label="anchor" href="#what-the-function-does-not-do"></a>
 </h2>
+<p>The chunk below records every <code><a href="https://readxl.tidyverse.org/reference/read_excel.html" class="external-link">readxl::read_excel()</a></code> call
+during one run of the function. It also lists the function’s arguments:
+none of them carries a diagnosis or a covariate.</p>
+<div class="sourceCode" id="cb58"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">calls</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/environment.html" class="external-link">new.env</a></span><span class="op">(</span><span class="op">)</span></span>
+<span><span class="va">calls</span><span class="op">$</span><span class="va">seen</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/character.html" class="external-link">character</a></span><span class="op">(</span><span class="fl">0</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/trace.html" class="external-link">trace</a></span><span class="op">(</span><span class="st">"read_excel"</span>, where <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/ns-internal.html" class="external-link">asNamespace</a></span><span class="op">(</span><span class="st">"readxl"</span><span class="op">)</span>, print <span class="op">=</span> <span class="cn">FALSE</span>, tracer <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/bquote.html" class="external-link">bquote</a></span><span class="op">(</span></span>
+<span>  <span class="fu"><a href="https://rdrr.io/r/base/assign.html" class="external-link">assign</a></span><span class="op">(</span><span class="st">"seen"</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/get.html" class="external-link">get</a></span><span class="op">(</span><span class="st">"seen"</span>, envir <span class="op">=</span> <span class="fu">.</span><span class="op">(</span><span class="va">calls</span><span class="op">)</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/basename.html" class="external-link">basename</a></span><span class="op">(</span><span class="va">path</span><span class="op">)</span>, <span class="va">sheet</span><span class="op">)</span><span class="op">)</span>, envir <span class="op">=</span> <span class="fu">.</span><span class="op">(</span><span class="va">calls</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="co">#&gt; Tracing function "read_excel" in package "namespace:readxl"</span></span>
+<span><span class="co">#&gt; [1] "read_excel"</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/invisible.html" class="external-link">invisible</a></span><span class="op">(</span><span class="fu">run_toy</span><span class="op">(</span><span class="fu">rx</span><span class="op">(</span><span class="st">"Divigel"</span>, <span class="fl">1</span>, <span class="fl">10</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/trace.html" class="external-link">untrace</a></span><span class="op">(</span><span class="st">"read_excel"</span>, where <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/ns-internal.html" class="external-link">asNamespace</a></span><span class="op">(</span><span class="st">"readxl"</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="co">#&gt; Untracing function "read_excel" in package "namespace:readxl"</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/sort.html" class="external-link">sort</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/unique.html" class="external-link">unique</a></span><span class="op">(</span><span class="va">calls</span><span class="op">$</span><span class="va">seen</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="co">#&gt; [1] "dataDictionary20260924.xlsx MHT_groups"   </span></span>
+<span><span class="co">#&gt; [2] "dataDictionary20260924.xlsx post_grouping"</span></span>
+<span><span class="co">#&gt; [3] "product_table_20260924.xlsx G"            </span></span>
+<span><span class="co">#&gt; [4] "product_table_20260924.xlsx other"</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/names.html" class="external-link">names</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/formals.html" class="external-link">formals</a></span><span class="op">(</span><span class="va">add_lmed_v20260924</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="co">#&gt; [1] "skeleton"  "lmed"      "id_name"   "create_rd" "verbose"</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/stopifnot.html" class="external-link">stopifnot</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/sets.html" class="external-link">setequal</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/unique.html" class="external-link">unique</a></span><span class="op">(</span><span class="va">calls</span><span class="op">$</span><span class="va">seen</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span></span>
+<span>  <span class="st">"dataDictionary20260924.xlsx MHT_groups"</span>, <span class="st">"dataDictionary20260924.xlsx post_grouping"</span>,</span>
+<span>  <span class="st">"product_table_20260924.xlsx G"</span>, <span class="st">"product_table_20260924.xlsx other"</span></span>
+<span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
 <ul>
 <li>It removes no person. The exclusion flag is the caller’s to act
 on.</li>
@@ -2397,9 +2695,9 @@ nothing.</li>
 <li>It gives approach 4 no separate level for a week that holds both
 progestogen types. The level started most recently is reported, as in
 section 4.</li>
-<li>It reads the <code>Rules</code>, <code>FDDD</code> and
-<code>covariates</code> sheets of the codebook, and the
-<code>README</code> sheet of the product table, not at all.</li>
+<li>It does not read the <code>Rules</code>, <code>FDDD</code> or
+<code>covariates</code> sheets of the codebook, or the
+<code>README</code> sheet of the product table.</li>
 </ul>
 </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
