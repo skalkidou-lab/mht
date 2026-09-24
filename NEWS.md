@@ -1,3 +1,7 @@
+# mht 26.9.25
+
+* **`vignette("lmed-v20260924")` now stands alone.** It states every step of `add_lmed_v20260924()`, in the structure of `vignette("lmed-v20260922")`, with approach 4 added to the sections on treatment levels and exposure variables. Its tables and checks read the two 2026-09-24 workbooks. The function and its workbooks are unchanged.
+
 # mht 26.9.24
 
 * **`add_lmed_v20260924()` is the 2026-09-24 entry point.** It reads `product_table_20260924.xlsx`, the 2026-09-22 table with one note cell reworded, and `dataDictionary20260924.xlsx`, and no other workbook. It writes every column that `add_lmed_v20260922()` writes, and adds `approach4`, `rd_approach4_single` and `rd_approach4_multiple`.
