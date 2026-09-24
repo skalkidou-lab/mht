@@ -1,5 +1,16 @@
 # Changelog
 
+## mht 26.9.25
+
+- **[`vignette("lmed-v20260924")`](https://skalkidou-lab.github.io/mht/articles/lmed-v20260924.md)
+  now stands alone.** It states every step of
+  [`add_lmed_v20260924()`](https://skalkidou-lab.github.io/mht/reference/add_lmed_v20260924.md),
+  in the structure of
+  [`vignette("lmed-v20260922")`](https://skalkidou-lab.github.io/mht/articles/lmed-v20260922.md),
+  with approach 4 added to the sections on treatment levels and exposure
+  variables. Its tables and checks read the two 2026-09-24 workbooks.
+  The function and its workbooks are unchanged.
+
 ## mht 26.9.24
 
 - **[`add_lmed_v20260924()`](https://skalkidou-lab.github.io/mht/reference/add_lmed_v20260924.md)
