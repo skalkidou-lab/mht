@@ -1,5 +1,11 @@
 # Changelog
 
+## mht 26.9.27
+
+- **[`vignette("lmed-v20260924")`](https://skalkidou-lab.github.io/mht/articles/lmed-v20260924.md)
+  shows how a short gap during a route switch is handled in approaches
+  2, 3 and 4.** The function and its workbooks are unchanged.
+
 ## mht 26.9.26
 
 - **[`vignette("lmed-v20260924")`](https://skalkidou-lab.github.io/mht/articles/lmed-v20260924.md)
