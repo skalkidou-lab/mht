@@ -16,13 +16,13 @@ Source:
 [`DESCRIPTION`](https://github.com/skalkidou-lab/mht/blob/main/DESCRIPTION)
 
 White RA (2026). *mht: Menopausal Hormone Therapy Exposure Definitions
-for Swedish Registry Data*. R package version 26.9.27,
+for Swedish Registry Data*. R package version 26.9.28,
 <https://github.com/skalkidou-lab/mht>.
 
     @Manual{,
       title = {mht: Menopausal Hormone Therapy Exposure Definitions for Swedish Registry Data},
       author = {Richard Aubrey White},
       year = {2026},
-      note = {R package version 26.9.27},
+      note = {R package version 26.9.28},
       url = {https://github.com/skalkidou-lab/mht},
     }

@@ -1,5 +1,13 @@
 # Changelog
 
+## mht 26.9.28
+
+- **[`vignette("lmed-v20260924")`](https://skalkidou-lab.github.io/mht/articles/lmed-v20260924.md)
+  states why the function bridges a gap of up to four weeks, and what a
+  gap becomes.** A new case shows a route switch after a 160-week
+  episode, and a table covers each kind of gap. The function and its
+  workbooks are unchanged.
+
 ## mht 26.9.27
 
 - **[`vignette("lmed-v20260924")`](https://skalkidou-lab.github.io/mht/articles/lmed-v20260924.md)
