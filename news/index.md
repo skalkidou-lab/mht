@@ -1,5 +1,30 @@
 # Changelog
 
+## mht 26.9.29
+
+- **The published product tables no longer show a count from 1 to 4.**
+  In `product_table_20260902.xlsx`, `product_table_20260922.xlsx` and
+  `product_table_20260924.xlsx`, each such count in the `people_*` and
+  `prescriptions_*` columns now reads `<5`: 53 cells on sheet `G` and
+  168 on sheet `other`. Two notes that quoted a small count are
+  reworded. No function reads these columns, so every entry point
+  returns what it returned before.
+- **The README sheet of each product table describes the right column.**
+  From `exclude_entire_person` onward, each description sat against the
+  wrong field.
+- **The vignettes of
+  [`add_lmed_v20260902()`](https://skalkidou-lab.github.io/mht/reference/add_lmed_v20260902.md)
+  and
+  [`add_lmed_v20260922()`](https://skalkidou-lab.github.io/mht/reference/add_lmed_v20260922.md)
+  moved to `archive/`** in the source repository. They are no longer
+  built or on the website.
+  [`vignette("lmed-v20260924")`](https://skalkidou-lab.github.io/mht/articles/lmed-v20260924.md)
+  is the one vignette.
+- **The website’s “Get started” button opens
+  [`vignette("lmed-v20260924")`](https://skalkidou-lab.github.io/mht/articles/lmed-v20260924.md).**
+  It pointed to the reference page of
+  [`add_lmed_v20250909()`](https://skalkidou-lab.github.io/mht/reference/add_lmed_v20250909.md).
+
 ## mht 26.9.28
 
 - **[`vignette("lmed-v20260924")`](https://skalkidou-lab.github.io/mht/articles/lmed-v20260924.md)
@@ -31,11 +56,10 @@
 - **[`vignette("lmed-v20260924")`](https://skalkidou-lab.github.io/mht/articles/lmed-v20260924.md)
   now stands alone.** It states every step of
   [`add_lmed_v20260924()`](https://skalkidou-lab.github.io/mht/reference/add_lmed_v20260924.md),
-  in the structure of
-  [`vignette("lmed-v20260922")`](https://skalkidou-lab.github.io/mht/articles/lmed-v20260922.md),
-  with approach 4 added to the sections on treatment levels and exposure
-  variables. Its tables and checks read the two 2026-09-24 workbooks.
-  The function and its workbooks are unchanged.
+  in the structure of `vignette("lmed-v20260922")`, with approach 4
+  added to the sections on treatment levels and exposure variables. Its
+  tables and checks read the two 2026-09-24 workbooks. The function and
+  its workbooks are unchanged.
 
 ## mht 26.9.24
 
@@ -92,8 +116,7 @@
 - **A flagged woman keeps her exposure columns.** The function removes
   nobody. A study removes her only through an exclusion that it names,
   which reads `ri_mht_excluded_product`.
-- **[`vignette("lmed-v20260922")`](https://skalkidou-lab.github.io/mht/articles/lmed-v20260922.md)
-  states what
+- **`vignette("lmed-v20260922")` states what
   [`add_lmed_v20260922()`](https://skalkidou-lab.github.io/mht/reference/add_lmed_v20260922.md)
   does.** Its [`stopifnot()`](https://rdrr.io/r/base/stopifnot.html)
   chunks check both changes on the shipped workbooks and the fixture, so
@@ -184,8 +207,7 @@
 - **The 2026-09-02 functions declare their data.table names**, so
   `R CMD check` reports no NOTE and the CI check job passes. No
   behaviour changed.
-- **[`vignette("lmed-v20260902")`](https://skalkidou-lab.github.io/mht/articles/lmed-v20260902.md)
-  states what
+- **`vignette("lmed-v20260902")` states what
   [`add_lmed_v20260902()`](https://skalkidou-lab.github.io/mht/reference/add_lmed_v20260902.md)
   does.** It lists every product of the table with its category and its
   exclusion flag, every duration rule and every approach rule. The
