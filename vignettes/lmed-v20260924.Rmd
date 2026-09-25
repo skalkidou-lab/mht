@@ -764,6 +764,8 @@ stopifnot(
 
 Before the resolver compares treatment variables, it bridges short gaps in each of them separately. For one variable, a run of up to four weeks in which it is unlit, between two weeks in which it is lit, becomes lit. A leading or a trailing run is not a gap, so bridging never moves a start or a stop. The category columns are not bridged: bridging happens inside the approach step.
 
+A duration is an estimate from the dispensed quantity, as section 2 shows. A woman who collects her next pack a few weeks late shows a short recorded gap. So does a woman who uses a pack more slowly than the estimate. She may still have been treated in that gap. The function therefore treats a run of up to four weeks as continued treatment. It treats a run of five weeks or more as a stop.
+
 ```{r bridge}
 gap4 <- run_toy(rbind(rx("Divigel", 1, 10), rx("Divigel", 15, 6)))
 episodes(gap4, "approach1")
@@ -1004,6 +1006,93 @@ Approach 3 puts oral and transdermal oestrogen with a synthetic progestogen in o
 Approaches 2 and 4 split by route, so each route has its own level. The oral level stops in week 12 and the transdermal level starts in week 16. Neither level has a gap, so the bridge fills nothing, and weeks 13 to 15 are untreated. The oral episode ran 12 weeks, under 156, so weeks 13 to 15 are `exclude`. After an episode of 156 weeks or more they would be `previous`, as in "Former user or excluded". In the `single` variant every week from the restart in week 16 is `exclude`. In the `multiple` variant she re-enters at the transdermal level in week 16, and stays there to week 40. Her weeks 41 to 52 are `exclude` in every variant shown, because no episode reached 156 weeks.
 
 This is the rule as implemented, and it is the same in approach 2 and in approach 4. Whether a short gap across routes ends an episode is a methods choice for the analysis. The function does not make that choice.
+
+The woman below makes the same switch after a longer first episode. She takes Progynon and Provera for weeks 1 to 160. After a 3-week gap she takes Divigel and Provera for weeks 164 to 187, and then stops. Her first episode holds four Provera prescriptions, each with `fddd = 40`. They cover weeks 1 to 40, 41 to 80, 81 to 120 and 121 to 160. Her Provera prescription in week 164 carries `fddd = 24` and covers weeks 164 to 187.
+
+```{r route-gap-long}
+long_switch <- function(gap) {
+  restart <- 161L + gap
+  return(run_toy(rbind(
+    rx("Progynon", 1, 160),
+    rx("Provera", 1, fddd = 40), rx("Provera", 41, fddd = 40),
+    rx("Provera", 81, fddd = 40), rx("Provera", 121, fddd = 40),
+    rx("Divigel", restart, 24), rx("Provera", restart, fddd = 24)
+  ), 220L))
+}
+long3 <- long_switch(3L)
+episodes(long3, "approach3")
+episodes(long3, "approach4")
+episodes(long3, "rd_approach4_single")
+episodes(long3, "rd_approach4_multiple")
+syn3 <- "estrogen_progesterone_synthetic"
+provera_weeks_220 <- function(start_week, fddd) which(run_toy(rx("Provera", start_week, fddd = fddd), 220L)$C4)
+stopifnot(
+  identical(provera_weeks_220(1, 40), 1:40),
+  identical(provera_weeks_220(41, 40), 41:80),
+  identical(provera_weeks_220(81, 40), 81:120),
+  identical(provera_weeks_220(121, 40), 121:160),
+  identical(provera_weeks_220(164, 24), 164:187),
+  identical(which(long3$A2), 1:160),
+  identical(which(long3$A1), 164:187),
+  identical(which(long3$C4), c(1:160, 164:187)),
+  identical(long3$approach4, runs(c(oral4, none, td4, none), c(160L, 3L, 24L, 33L))),
+  identical(long3$approach2, runs(c("peroral_estrogen", none, "transdermal_estrogen", none), c(160L, 3L, 24L, 33L))),
+  identical(long3$approach3, runs(c(syn3, none), c(187L, 33L))),
+  identical(long3$rd_approach3_single, runs(c(syn3, "previous"), c(187L, 33L))),
+  identical(long3$rd_approach4_single, runs(c(oral4, "previous", "exclude"), c(160L, 3L, 57L))),
+  identical(long3$rd_approach2_single, runs(c("peroral_estrogen", "previous", "exclude"), c(160L, 3L, 57L))),
+  identical(long3$rd_approach4_multiple, runs(c(oral4, "previous", td4, "exclude"), c(160L, 3L, 24L, 33L))),
+  identical(long3$rd_approach2_multiple, runs(c("peroral_estrogen", "previous", "transdermal_estrogen", "exclude"), c(160L, 3L, 24L, 33L)))
+)
+```
+
+Approaches 2 and 4 again do not bridge the gap, so weeks 161 to 163 are untreated. These weeks are `previous`, a former user, because her first episode reached 156 weeks. In the `single` variant every week from the restart in week 164 is `exclude`. In the `multiple` variant she re-enters at the transdermal level for weeks 164 to 187. Her weeks 188 to 220 are `exclude`, because the second episode ran 24 weeks, under 156.
+
+Approach 3 bridges the gap, and one episode runs from week 1 to week 187. That episode reached 156 weeks, so her weeks 188 to 220 are `previous`.
+
+The table below states what an untreated run between two treated weeks becomes. The `gap-table` chunk under it checks each row.
+
+| Gap | Within one level | Across levels (route switch in approach 2 or 4) |
+|---|---|---|
+| up to 4 weeks | bridged, no gap | untreated: `previous` after an episode of 156+ weeks, else `exclude` |
+| 5 weeks or more | untreated, as across levels | untreated, as for a gap of up to 4 weeks |
+
+After an untreated gap, the `single` variant is `exclude` from the restart. The `multiple` variant re-enters at the new level. A switch with no gap, where the two supplies overlap, moves her straight to the new level with no untreated week. The `switch` chunk of "One level per week: the most recent start wins" shows that case.
+
+```{r gap-table}
+# Row "up to 4 weeks", within one level: bridged. Chunks `bridge` (gap4), `route-gap` and `route-gap-long` (approach 3).
+stopifnot(all(gap4$approach1[11:14] == "systemic_mht"), all(long3$approach3[161:163] == syn3))
+# Row "up to 4 weeks", across levels: `exclude` after 12 weeks (`route-gap`), `previous` after 160 weeks (`route-gap-long`).
+stopifnot(
+  all(route_gap$rd_approach4_multiple[13:15] == "exclude"),
+  all(long3$rd_approach4_multiple[161:163] == "previous")
+)
+# Row "5 weeks or more", within one level: untreated. Chunk `bridge` (gap5, a 10-week episode, so `exclude`),
+# and the long case with a 5-week gap under approach 3 (a 160-week episode, so `previous`).
+long5 <- long_switch(5L)
+stopifnot(
+  identical(provera_weeks_220(166, 24), 166:189),
+  all(gap5$rd_approach1_single[11:15] == "exclude"),
+  identical(long5$approach3, runs(c(syn3, none, syn3, none), c(160L, 5L, 24L, 31L))),
+  identical(long5$rd_approach3_multiple, runs(c(syn3, "previous", syn3, "exclude"), c(160L, 5L, 24L, 31L)))
+)
+# Row "5 weeks or more", across levels: untreated. The short case with a 5-week gap (`exclude`),
+# and the long case with a 5-week gap under approach 4 (`previous`).
+short5 <- run_toy(rbind(
+  rx("Progynon", 1, 12), rx("Provera", 1, fddd = 12),
+  rx("Divigel", 18, 12), rx("Provera", 18, fddd = 12)
+), 52L)
+stopifnot(
+  identical(short5$rd_approach4_multiple, runs(c(oral4, "exclude", td4, "exclude"), c(12L, 5L, 12L, 23L))),
+  identical(long5$rd_approach4_multiple, runs(c(oral4, "previous", td4, "exclude"), c(160L, 5L, 24L, 31L)))
+)
+# No gap: the switch moves her straight to the new level (chunk `switch`, Progynon 1 to 30, Divigel from 11).
+overlap <- run_toy(rbind(rx("Progynon", 1, 30), rx("Divigel", 11, 20)))
+stopifnot(identical(
+  overlap$rd_approach2_multiple,
+  runs(c("peroral_estrogen", "transdermal_estrogen", "exclude"), c(10L, 20L, 10L))
+))
+```
 
 ### Approach 3b
 

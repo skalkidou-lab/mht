@@ -1,3 +1,7 @@
+# mht 26.9.28
+
+* **`vignette("lmed-v20260924")` states why the function bridges a gap of up to four weeks, and what a gap becomes.** A new case shows a route switch after a 160-week episode, and a table covers each kind of gap. The function and its workbooks are unchanged.
+
 # mht 26.9.27
 
 * **`vignette("lmed-v20260924")` shows how a short gap during a route switch is handled in approaches 2, 3 and 4.** The function and its workbooks are unchanged.
