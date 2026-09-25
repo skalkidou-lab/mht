@@ -92,7 +92,7 @@ error_of <- function(expr) {
 
 The product table is `product_table_20260924.xlsx`. The duration rules and the approach rules come from the codebook `dataDictionary20260924.xlsx`. Both workbooks are dated 2026-09-24 and ship with the package. The function reads no other workbook. The tables below are read from the two files when the vignette builds.
 
-Approach 4 is new in this function. It splits systemic oestrogen by its route and by the type of progestogen dispensed with it. Every helper that reads a workbook, directly or through another helper, has a 2026-09-24 copy. The exposure layer also has a copy, because it writes the two `rd_approach4` columns. Every other helper is an older dated one, called unchanged. Section 1 states the changes against `add_lmed_v20260922()`. Section 3 verifies on the fixture that the two functions agree in every column that both write. The vignette `lmed-v20260922` stays as the record of that frozen version.
+Approach 4 is new in this function. It splits systemic oestrogen by its route and by the type of progestogen dispensed with it. Every helper that reads a workbook, directly or through another helper, has a 2026-09-24 copy. The exposure layer also has a copy, because it writes the two `rd_approach4` columns. Every other helper is an older dated one, called unchanged. Section 1 states the changes against `add_lmed_v20260922()`. Section 3 verifies on the fixture that the two functions agree in every column that both write. The vignette of that frozen version, `lmed-v20260922.Rmd`, is kept in the `archive/` folder of the source repository.
 
 The function's arguments, the columns it owns and the conditions it rejects are in `?add_lmed_v20260924` and `?add_lmed_v20260922`.
 

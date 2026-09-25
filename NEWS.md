@@ -1,3 +1,10 @@
+# mht 26.9.29
+
+* **The published product tables no longer show a count from 1 to 4.** In `product_table_20260902.xlsx`, `product_table_20260922.xlsx` and `product_table_20260924.xlsx`, each such count in the `people_*` and `prescriptions_*` columns now reads `<5`: 53 cells on sheet `G` and 168 on sheet `other`. Two notes that quoted a small count are reworded. No function reads these columns, so every entry point returns what it returned before.
+* **The README sheet of each product table describes the right column.** From `exclude_entire_person` onward, each description sat against the wrong field.
+* **The vignettes of `add_lmed_v20260902()` and `add_lmed_v20260922()` moved to `archive/`** in the source repository. They are no longer built or on the website. `vignette("lmed-v20260924")` is the one vignette.
+* **The website's "Get started" button opens `vignette("lmed-v20260924")`.** It pointed to the reference page of `add_lmed_v20250909()`.
+
 # mht 26.9.28
 
 * **`vignette("lmed-v20260924")` states why the function bridges a gap of up to four weeks, and what a gap becomes.** A new case shows a route switch after a 160-week episode, and a table covers each kind of gap. The function and its workbooks are unchanged.

@@ -19,7 +19,7 @@ template:
       cta:
         primary:
           text: "Get started"
-          href: "reference/add_lmed_v20250909.html"
+          href: "articles/lmed-v20260924.html"
         secondary:
           text: "Browse the reference →"
           href: "reference/index.html"
@@ -66,5 +66,3 @@ articles:
   navbar: ~
   contents:
   - lmed-v20260924
-  - lmed-v20260922
-  - lmed-v20260902

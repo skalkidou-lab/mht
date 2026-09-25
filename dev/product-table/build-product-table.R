@@ -200,9 +200,13 @@ setcolorder(tab, c("atc", "produkt_raw", "produkt_clean", "lform", "route",
                    "source", "note"))
 setorder(tab, atc, produkt_raw)
 
-readme <- data.table(field = c(
-  "atc", "produkt_raw", "produkt_clean", "lform", "route", "classification",
-  "classification_meaning", "excluded", "source", "note", "exclusion_reason", "classification_previous", "exclude_entire_person_previous", "people_<delivery>", "prescriptions_<delivery>"),
+# One field per column, in the column order above. The two lists were once
+# written in different orders, so each meaning sat against the wrong field.
+readme <- data.table(
+  field = c("atc", "produkt_raw", "produkt_clean", "lform", "route", "classification",
+            "classification_meaning", "exclude_entire_person", "exclusion_reason",
+            "classification_previous", "exclude_entire_person_previous", "source", "note",
+            "people_<delivery>", "prescriptions_<delivery>"),
   meaning = c(
   "The ATC the register assigns. Not the codebook Detaljerad kod, which disagrees with it.",
   "The register product name, exactly as delivered. One row per raw name.",
@@ -212,13 +216,13 @@ readme <- data.table(field = c(
   "A codebook subgroup, or notmht. This is what the drug IS, never whether the study keeps it.",
   "What that code means, in English. OUR translation of the codebook Specifikation and Administrationssatt cells: the codebook itself carries no English.",
   "TRUE where this study removes the WHOLE PERSON, not the prescription. Separate from classification, because a reversed exclusion must not lose the category.",
+  "Why the person is removed. Empty when exclude_entire_person is FALSE. The reasons differ, and a sensitivity analysis may want only some of them.",
   "The classification this product carried in the previous table. Empty unless it changed.",
   "The exclusion flag it carried in the previous table. Empty unless it changed.",
-  "What decided the classification. An exact cleaned-name match, never a prefix: a prefix says only that another product looks similar.",
-  "REQUIRED where this row disagrees with another product of the same ATC and route. Says why.",
-  "Why the person is removed. Two distinct reasons exist, and a sensitivity analysis may want only one.",
-  "People holding the product per delivery. Not women: the query was sex-agnostic, so the H1 rows are men. Context only.",
-  "Dispensed prescriptions per delivery: register rows, not people. A column absent from a sheet was never measured for it."))
+  "What decided the classification: a codebook, a dated decision, or the mht R source. An exact cleaned-name match, never a prefix: a prefix says only that another product looks similar.",
+  "REQUIRED where this row disagrees with another product of the same ATC and route. Says why. Also records why a decision was taken.",
+  "People holding the product per delivery. Not women: the query was sex-agnostic, so the H1 rows are men. Context only. A count from 1 to 4 is shown as <5.",
+  "Dispensed prescriptions per delivery: register rows, not people. A column absent from a sheet was never measured for it. A count from 1 to 4 is shown as <5."))
 
 wb <- openxlsx::createWorkbook()
 for (s in unique(tab$sheet)) {
@@ -228,6 +232,12 @@ for (s in unique(tab$sheet)) {
   # 2026 prescriptions only.
   empty <- names(z)[vapply(z, function(v) all(is.na(v)), logical(1))]
   if (length(empty) > 0L) z[, (empty) := NULL]
+  # The table is published with the package. A count from 1 to 4 could point
+  # at a person, so it is written as <5.
+  for (col in grep("^(people|prescriptions)_", names(z), value = TRUE)) {
+    v <- z[[col]]
+    z[, (col) := ifelse(!is.na(v) & v >= 1 & v <= 4, "<5", as.character(v))]
+  }
   openxlsx::addWorksheet(wb, s)
   openxlsx::writeData(wb, s, z)
   openxlsx::freezePane(wb, s, firstActiveRow = 2)

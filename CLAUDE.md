@@ -30,6 +30,18 @@ So, to adopt a new codebook:
 **A new codebook that ships and is read by nothing is the correct intermediate state.**
 `dataDictionary20260803.xlsx` is exactly that today.
 
+**One exception: disclosure.** On 2026-09-25, by Richard's decision, every published product table
+had its counts from 1 to 4 replaced by `<5` and two notes reworded, in `inst/2023-mht/` and
+`dev/product-table/`. Only the `people_*`, `prescriptions_*` and `note` columns and the README sheet
+changed. No code reads them. The 20260902 table was edited, and the 20260922 and 20260924 tables were then regenerated from it by their own `dev/codebooks-*` scripts, so the byte-level relation that `test-v20260922-codebooks.R` checks still holds. A
+disclosure fix MAY edit a dated table in that way. A behaviour change still MUST NOT.
+
+**A published table MUST NOT carry a count from 1 to 4.** Write it as `<5`, in the cells and in any
+free-text note. `dev/product-table/build-product-table.R` does this when it writes a table.
+
+**Superseded vignettes live in `archive/`**, which `.Rbuildignore` excludes. Only the vignette of
+the newest entry point stays in `vignettes/` and on the pkgdown site.
+
 Read `NEWS.md` under the version that introduced a suffix before assuming what it dates. The
 `v<YYYYMMDD>` suffix on a function is **the date that methodology was created** — not the study
 year, not the release date, and not the delivery it serves.
