@@ -1,3 +1,7 @@
+# mht 26.9.27
+
+* **`vignette("lmed-v20260924")` shows how a short gap during a route switch is handled in approaches 2, 3 and 4.** The function and its workbooks are unchanged.
+
 # mht 26.9.26
 
 * **`vignette("lmed-v20260924")` shows each behaviour it states.** New worked cases cover name lookup, unknown products, table validation, week boundaries, refills, missing quantities and dates, skeleton errors, the four-week bridge, same-week starts, the 156-week cutoff, approach 3b, flag reasons and the workbook sheets the function reads. Each case has a `stopifnot()` check. The approach 1 to 4 rule descriptions are checked against categories read from the workbooks.

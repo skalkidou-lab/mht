@@ -960,6 +960,51 @@ stopifnot(
 
 Her treated episode ends with the Divigel, in week 10. It ran 10 weeks, under 156, so every later week is `exclude`. Approach 4 gives the same result.
 
+### A route switch with a short gap
+
+The four-week bridge of section 4, "Bridging a gap", fills a gap only within one treatment level. The woman below takes Progynon (`A2`) and Provera (`C4`) for weeks 1 to 12. After a 3-week gap she takes Divigel (`A1`) and Provera for weeks 16 to 40, and then stops. Provera takes the whole-months rule of section 2. Her three Provera prescriptions carry `fddd` values of 12, 16 and 12, and cover weeks 1 to 12, 16 to 31 and 29 to 40.
+
+```{r route-gap}
+route_gap <- run_toy(rbind(
+  rx("Progynon", 1, 12), rx("Provera", 1, fddd = 12),
+  rx("Divigel", 16, 25), rx("Provera", 16, fddd = 16), rx("Provera", 29, fddd = 12)
+), 52L)
+episodes(route_gap, "approach2")
+episodes(route_gap, "approach3")
+episodes(route_gap, "approach4")
+episodes(route_gap, "rd_approach2_single")
+episodes(route_gap, "rd_approach3_single")
+episodes(route_gap, "rd_approach4_single")
+episodes(route_gap, "rd_approach4_multiple")
+runs <- function(levels, n) rep(levels, n)
+oral4 <- "oral_estrogen_other_progestogen"
+td4 <- "transdermal_estrogen_other_progestogen"
+none <- "local_or_none_mht"
+provera_weeks <- function(start_week, fddd) which(run_toy(rx("Provera", start_week, fddd = fddd), 52L)$C4)
+stopifnot(
+  identical(provera_weeks(1, 12), 1:12),
+  identical(provera_weeks(16, 16), 16:31),
+  identical(provera_weeks(29, 12), 29:40),
+  identical(which(route_gap$A2), 1:12),
+  identical(which(route_gap$A1), 16:40),
+  identical(which(route_gap$C4), c(1:12, 16:40)),
+  identical(route_gap$approach3, runs(c("estrogen_progesterone_synthetic", none), c(40L, 12L))),
+  identical(route_gap$approach2, runs(c("peroral_estrogen", none, "transdermal_estrogen", none), c(12L, 3L, 25L, 12L))),
+  identical(route_gap$approach4, runs(c(oral4, none, td4, none), c(12L, 3L, 25L, 12L))),
+  identical(route_gap$rd_approach3_single, runs(c("estrogen_progesterone_synthetic", "exclude"), c(40L, 12L))),
+  identical(route_gap$rd_approach2_single, runs(c("peroral_estrogen", "exclude"), c(12L, 40L))),
+  identical(route_gap$rd_approach4_single, runs(c(oral4, "exclude"), c(12L, 40L))),
+  identical(route_gap$rd_approach2_multiple, runs(c("peroral_estrogen", "exclude", "transdermal_estrogen", "exclude"), c(12L, 3L, 25L, 12L))),
+  identical(route_gap$rd_approach4_multiple, runs(c(oral4, "exclude", td4, "exclude"), c(12L, 3L, 25L, 12L)))
+)
+```
+
+Approach 3 puts oral and transdermal oestrogen with a synthetic progestogen in one level, `estrogen_progesterone_synthetic`. The gap in weeks 13 to 15 lies within that level, so the bridge fills it. One episode runs from week 1 to week 40.
+
+Approaches 2 and 4 split by route, so each route has its own level. The oral level stops in week 12 and the transdermal level starts in week 16. Neither level has a gap, so the bridge fills nothing, and weeks 13 to 15 are untreated. The oral episode ran 12 weeks, under 156, so weeks 13 to 15 are `exclude`. After an episode of 156 weeks or more they would be `previous`, as in "Former user or excluded". In the `single` variant every week from the restart in week 16 is `exclude`. In the `multiple` variant she re-enters at the transdermal level in week 16, and stays there to week 40. Her weeks 41 to 52 are `exclude` in every variant shown, because no episode reached 156 weeks.
+
+This is the rule as implemented, and it is the same in approach 2 and in approach 4. Whether a short gap across routes ends an episode is a methods choice for the analysis. The function does not make that choice.
+
 ### Approach 3b
 
 `rd_approach3b_single` and `rd_approach3b_multiple` are the approach 3 columns with the two `estrogen_progesterone` levels collapsed into one. A switch between active levels never creates `previous`, so the relabel gives what a full second pass would give. Approach 4 has no such collapsed variant.
