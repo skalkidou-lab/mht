@@ -85,7 +85,9 @@ them.** A repaired baseline goes in a separate file.
 Two pipelines call this package, so **any change here changes both**:
 
 - one calls `add_lmed_v20230509()` with `id_name = "p1163_lopnr_personnr"`
-- one calls `add_lmed_v20250909()` with `id_name = "lopnr"`
+- one calls `add_lmed_v20260924()` with `id_name = "lopnr"`
+
+**When you add a new `add_lmed_*()`, update every consumer's agent file in the same session.** Each consuming repository's `AGENTS.md` or `CLAUDE.md` names the `add_lmed_*()` it calls, the installed `mht` version and the call site line. Nothing forces those lines to change, so they go stale silently and the next session trusts them. Grep each consumer for `add_lmed_v` and update what is out of date. Update the list above as well.
 
 **The consuming pipeline's phase hash does NOT follow the `mht::` call.** It hashes the body and
 formals of its own wrapper function only. So changing exposure logic here, reinstalling, and
