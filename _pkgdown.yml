@@ -19,7 +19,7 @@ template:
       cta:
         primary:
           text: "Get started"
-          href: "articles/lmed-v20260924.html"
+          href: "articles/lmed-v20261002.html"
         secondary:
           text: "Browse the reference →"
           href: "reference/index.html"
@@ -44,6 +44,7 @@ reference:
     they read, in how the product categories are flagged, and in whether the
     `rd_approach*` exposure variables are produced.
   contents:
+  - add_lmed_v20261002
   - add_lmed_v20260924
   - add_lmed_v20260922
   - add_lmed_v20260902
@@ -65,4 +66,4 @@ articles:
 - title: Methodology
   navbar: ~
   contents:
-  - lmed-v20260924
+  - lmed-v20261002

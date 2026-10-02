@@ -78,6 +78,6 @@ skeleton[, .N, keyby = .(approach5)]
 }
 \seealso{
 \code{\link{add_lmed_v20260924}}, which documents the behaviour the
-  two entry points share. `vignette("lmed-v20260924")` explains approaches 1
-  to 4.
+  two entry points share. `vignette("lmed-v20261002")` explains approaches 1
+  to 5.
 }

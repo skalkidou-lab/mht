@@ -1,3 +1,11 @@
+# mht 26.10.2
+
+* **`add_lmed_v20261002()` is the 2026-10-02 entry point.** It reads `product_table_20261002.xlsx`, a byte copy of the 2026-09-24 table, and `dataDictionary20261002.xlsx`, and no other workbook. It writes every column that `add_lmed_v20260924()` writes, and adds `approach5`, `rd_approach5_single` and `rd_approach5_multiple`.
+* **Approach 5 pools the oestrogen routes of approach 4 and gives the hormonal IUD (`E1`) its own level.** Its levels are `estrogen_progesterone`, `estrogen_other_progestogen`, `estrogen_iud`, `estrogen_only`, `tibolone` and `local_or_none_mht`. The codebook adds 47 approach 5 rules to the `post_grouping` sheet.
+* **The resolver of `add_lmed_v20260924()` is unchanged.** When two approach 5 levels are lit in one week, `approach5` reports the level that started most recently. An oestrogen week with `E1` and another progestogen lights two levels.
+* **`vignette("lmed-v20261002")` is the one vignette.** `vignette("lmed-v20260924")` moved to `archive/` in the source repository. Its approach 5 section checks each approach 5 rule, and the category of each product it names, against the workbooks. The website's "Get started" button opens it.
+* Approaches 1 to 4 and their 135 rules are unchanged. `add_lmed_v20260924()` and its two workbooks are unchanged.
+
 # mht 26.9.29
 
 * **The published product tables no longer show a count from 1 to 4.** In `product_table_20260902.xlsx`, `product_table_20260922.xlsx` and `product_table_20260924.xlsx`, each such count in the `people_*` and `prescriptions_*` columns now reads `<5`: 53 cells on sheet `G` and 168 on sheet `other`. Two notes that quoted a small count are reworded. No function reads these columns, so every entry point returns what it returned before.
