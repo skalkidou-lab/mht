@@ -7,7 +7,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">mht</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">26.9.29</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">26.10.2</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -18,7 +18,7 @@
       <ul class="navbar-nav me-auto"><li class="nav-item"><a class="nav-link" href="../reference/index.html">Reference</a></li>
 <li class="nav-item dropdown">
   <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
-  <ul class="dropdown-menu" aria-labelledby="dropdown-articles"><li><a class="dropdown-item" href="../articles/lmed-v20260924.html">What add_lmed_v20260924() does</a></li>
+  <ul class="dropdown-menu" aria-labelledby="dropdown-articles"><li><a class="dropdown-item" href="../articles/lmed-v20261002.html">What add_lmed_v20261002() does</a></li>
   </ul></li>
 <li class="active nav-item"><a class="nav-link" href="../news/index.html">Changelog</a></li>
       </ul><ul class="navbar-nav"><li class="nav-item"><form class="form-inline" role="search">
@@ -36,35 +36,47 @@
     </div>
 
     <div class="section level2">
+<h2 class="pkg-version" data-toc-text="26.10.2" id="mht-26102">mht 26.10.2<a class="anchor" aria-label="anchor" href="#mht-26102"></a></h2>
+<ul><li>
+<strong><code><a href="../reference/add_lmed_v20261002.html">add_lmed_v20261002()</a></code> is the 2026-10-02 entry point.</strong> It reads <code>product_table_20261002.xlsx</code>, a byte copy of the 2026-09-24 table, and <code>dataDictionary20261002.xlsx</code>, and no other workbook. It writes every column that <code><a href="../reference/add_lmed_v20260924.html">add_lmed_v20260924()</a></code> writes, and adds <code>approach5</code>, <code>rd_approach5_single</code> and <code>rd_approach5_multiple</code>.</li>
+<li>
+<strong>Approach 5 pools the oestrogen routes of approach 4 and gives the hormonal IUD (<code>E1</code>) its own level.</strong> Its levels are <code>estrogen_progesterone</code>, <code>estrogen_other_progestogen</code>, <code>estrogen_iud</code>, <code>estrogen_only</code>, <code>tibolone</code> and <code>local_or_none_mht</code>. The codebook adds 47 approach 5 rules to the <code>post_grouping</code> sheet.</li>
+<li>
+<strong>The resolver of <code><a href="../reference/add_lmed_v20260924.html">add_lmed_v20260924()</a></code> is unchanged.</strong> When two approach 5 levels are lit in one week, <code>approach5</code> reports the level that started most recently. An oestrogen week with <code>E1</code> and another progestogen lights two levels.</li>
+<li>
+<strong><code><a href="../articles/lmed-v20261002.html">vignette("lmed-v20261002")</a></code> is the one vignette.</strong> <code>vignette("lmed-v20260924")</code> moved to <code>archive/</code> in the source repository. Its approach 5 section checks each approach 5 rule, and the category of each product it names, against the workbooks. The website’s “Get started” button opens it.</li>
+<li>Approaches 1 to 4 and their 135 rules are unchanged. <code><a href="../reference/add_lmed_v20260924.html">add_lmed_v20260924()</a></code> and its two workbooks are unchanged.</li>
+</ul></div>
+    <div class="section level2">
 <h2 class="pkg-version" data-toc-text="26.9.29" id="mht-26929">mht 26.9.29<a class="anchor" aria-label="anchor" href="#mht-26929"></a></h2>
 <ul><li>
 <strong>The published product tables no longer show a count from 1 to 4.</strong> In <code>product_table_20260902.xlsx</code>, <code>product_table_20260922.xlsx</code> and <code>product_table_20260924.xlsx</code>, each such count in the <code>people_*</code> and <code>prescriptions_*</code> columns now reads <code>&lt;5</code>: 53 cells on sheet <code>G</code> and 168 on sheet <code>other</code>. Two notes that quoted a small count are reworded. No function reads these columns, so every entry point returns what it returned before.</li>
 <li>
 <strong>The README sheet of each product table describes the right column.</strong> From <code>exclude_entire_person</code> onward, each description sat against the wrong field.</li>
 <li>
-<strong>The vignettes of <code><a href="../reference/add_lmed_v20260902.html">add_lmed_v20260902()</a></code> and <code><a href="../reference/add_lmed_v20260922.html">add_lmed_v20260922()</a></code> moved to <code>archive/</code></strong> in the source repository. They are no longer built or on the website. <code><a href="../articles/lmed-v20260924.html">vignette("lmed-v20260924")</a></code> is the one vignette.</li>
+<strong>The vignettes of <code><a href="../reference/add_lmed_v20260902.html">add_lmed_v20260902()</a></code> and <code><a href="../reference/add_lmed_v20260922.html">add_lmed_v20260922()</a></code> moved to <code>archive/</code></strong> in the source repository. They are no longer built or on the website. <code>vignette("lmed-v20260924")</code> is the one vignette.</li>
 <li>
-<strong>The website’s “Get started” button opens <code><a href="../articles/lmed-v20260924.html">vignette("lmed-v20260924")</a></code>.</strong> It pointed to the reference page of <code><a href="../reference/add_lmed_v20250909.html">add_lmed_v20250909()</a></code>.</li>
+<strong>The website’s “Get started” button opens <code>vignette("lmed-v20260924")</code>.</strong> It pointed to the reference page of <code><a href="../reference/add_lmed_v20250909.html">add_lmed_v20250909()</a></code>.</li>
 </ul></div>
     <div class="section level2">
 <h2 class="pkg-version" data-toc-text="26.9.28" id="mht-26928">mht 26.9.28<a class="anchor" aria-label="anchor" href="#mht-26928"></a></h2>
 <ul><li>
-<strong><code><a href="../articles/lmed-v20260924.html">vignette("lmed-v20260924")</a></code> states why the function bridges a gap of up to four weeks, and what a gap becomes.</strong> A new case shows a route switch after a 160-week episode, and a table covers each kind of gap. The function and its workbooks are unchanged.</li>
+<strong><code>vignette("lmed-v20260924")</code> states why the function bridges a gap of up to four weeks, and what a gap becomes.</strong> A new case shows a route switch after a 160-week episode, and a table covers each kind of gap. The function and its workbooks are unchanged.</li>
 </ul></div>
     <div class="section level2">
 <h2 class="pkg-version" data-toc-text="26.9.27" id="mht-26927">mht 26.9.27<a class="anchor" aria-label="anchor" href="#mht-26927"></a></h2>
 <ul><li>
-<strong><code><a href="../articles/lmed-v20260924.html">vignette("lmed-v20260924")</a></code> shows how a short gap during a route switch is handled in approaches 2, 3 and 4.</strong> The function and its workbooks are unchanged.</li>
+<strong><code>vignette("lmed-v20260924")</code> shows how a short gap during a route switch is handled in approaches 2, 3 and 4.</strong> The function and its workbooks are unchanged.</li>
 </ul></div>
     <div class="section level2">
 <h2 class="pkg-version" data-toc-text="26.9.26" id="mht-26926">mht 26.9.26<a class="anchor" aria-label="anchor" href="#mht-26926"></a></h2>
 <ul><li>
-<strong><code><a href="../articles/lmed-v20260924.html">vignette("lmed-v20260924")</a></code> shows each behaviour it states.</strong> New worked cases cover name lookup, unknown products, table validation, week boundaries, refills, missing quantities and dates, skeleton errors, the four-week bridge, same-week starts, the 156-week cutoff, approach 3b, flag reasons and the workbook sheets the function reads. Each case has a <code><a href="https://rdrr.io/r/base/stopifnot.html" class="external-link">stopifnot()</a></code> check. The approach 1 to 4 rule descriptions are checked against categories read from the workbooks.</li>
+<strong><code>vignette("lmed-v20260924")</code> shows each behaviour it states.</strong> New worked cases cover name lookup, unknown products, table validation, week boundaries, refills, missing quantities and dates, skeleton errors, the four-week bridge, same-week starts, the 156-week cutoff, approach 3b, flag reasons and the workbook sheets the function reads. Each case has a <code><a href="https://rdrr.io/r/base/stopifnot.html" class="external-link">stopifnot()</a></code> check. The approach 1 to 4 rule descriptions are checked against categories read from the workbooks.</li>
 </ul></div>
     <div class="section level2">
 <h2 class="pkg-version" data-toc-text="26.9.25" id="mht-26925">mht 26.9.25<a class="anchor" aria-label="anchor" href="#mht-26925"></a></h2>
 <ul><li>
-<strong><code><a href="../articles/lmed-v20260924.html">vignette("lmed-v20260924")</a></code> now stands alone.</strong> It states every step of <code><a href="../reference/add_lmed_v20260924.html">add_lmed_v20260924()</a></code>, in the structure of <code>vignette("lmed-v20260922")</code>, with approach 4 added to the sections on treatment levels and exposure variables. Its tables and checks read the two 2026-09-24 workbooks. The function and its workbooks are unchanged.</li>
+<strong><code>vignette("lmed-v20260924")</code> now stands alone.</strong> It states every step of <code><a href="../reference/add_lmed_v20260924.html">add_lmed_v20260924()</a></code>, in the structure of <code>vignette("lmed-v20260922")</code>, with approach 4 added to the sections on treatment levels and exposure variables. Its tables and checks read the two 2026-09-24 workbooks. The function and its workbooks are unchanged.</li>
 </ul></div>
     <div class="section level2">
 <h2 class="pkg-version" data-toc-text="26.9.24" id="mht-26924">mht 26.9.24<a class="anchor" aria-label="anchor" href="#mht-26924"></a></h2>
@@ -78,7 +90,7 @@
 <strong>The resolver of <code><a href="../reference/add_lmed_v20260922.html">add_lmed_v20260922()</a></code> is unchanged.</strong> When two approach 4 levels are lit in one week, <code>approach4</code> reports the level that started most recently. Only two levels that start in the same week are a clash.</li>
 <li>Approaches 1 to 3 and their 88 rules are unchanged. <code><a href="../reference/add_lmed_v20260922.html">add_lmed_v20260922()</a></code>, its two workbooks and its vignette are unchanged.</li>
 <li>
-<strong><code><a href="../articles/lmed-v20260924.html">vignette("lmed-v20260924")</a></code> explains approach 4.</strong> Its <code><a href="https://rdrr.io/r/base/stopifnot.html" class="external-link">stopifnot()</a></code> chunks check the rules of each level and each worked case, so the vignette fails to build if a claim is false.</li>
+<strong><code>vignette("lmed-v20260924")</code> explains approach 4.</strong> Its <code><a href="https://rdrr.io/r/base/stopifnot.html" class="external-link">stopifnot()</a></code> chunks check the rules of each level and each worked case, so the vignette fails to build if a claim is false.</li>
 </ul></div>
     <div class="section level2">
 <h2 class="pkg-version" data-toc-text="26.9.23" id="mht-26923">mht 26.9.23<a class="anchor" aria-label="anchor" href="#mht-26923"></a></h2>

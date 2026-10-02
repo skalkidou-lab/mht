@@ -1,5 +1,34 @@
 # Changelog
 
+## mht 26.10.2
+
+- **[`add_lmed_v20261002()`](https://skalkidou-lab.github.io/mht/reference/add_lmed_v20261002.md)
+  is the 2026-10-02 entry point.** It reads
+  `product_table_20261002.xlsx`, a byte copy of the 2026-09-24 table,
+  and `dataDictionary20261002.xlsx`, and no other workbook. It writes
+  every column that
+  [`add_lmed_v20260924()`](https://skalkidou-lab.github.io/mht/reference/add_lmed_v20260924.md)
+  writes, and adds `approach5`, `rd_approach5_single` and
+  `rd_approach5_multiple`.
+- **Approach 5 pools the oestrogen routes of approach 4 and gives the
+  hormonal IUD (`E1`) its own level.** Its levels are
+  `estrogen_progesterone`, `estrogen_other_progestogen`, `estrogen_iud`,
+  `estrogen_only`, `tibolone` and `local_or_none_mht`. The codebook adds
+  47 approach 5 rules to the `post_grouping` sheet.
+- **The resolver of
+  [`add_lmed_v20260924()`](https://skalkidou-lab.github.io/mht/reference/add_lmed_v20260924.md)
+  is unchanged.** When two approach 5 levels are lit in one week,
+  `approach5` reports the level that started most recently. An oestrogen
+  week with `E1` and another progestogen lights two levels.
+- **[`vignette("lmed-v20261002")`](https://skalkidou-lab.github.io/mht/articles/lmed-v20261002.md)
+  is the one vignette.** `vignette("lmed-v20260924")` moved to
+  `archive/` in the source repository. Its approach 5 section checks
+  each approach 5 rule, and the category of each product it names,
+  against the workbooks. The website’s “Get started” button opens it.
+- Approaches 1 to 4 and their 135 rules are unchanged.
+  [`add_lmed_v20260924()`](https://skalkidou-lab.github.io/mht/reference/add_lmed_v20260924.md)
+  and its two workbooks are unchanged.
+
 ## mht 26.9.29
 
 - **The published product tables no longer show a count from 1 to 4.**
@@ -17,44 +46,40 @@
   and
   [`add_lmed_v20260922()`](https://skalkidou-lab.github.io/mht/reference/add_lmed_v20260922.md)
   moved to `archive/`** in the source repository. They are no longer
-  built or on the website.
-  [`vignette("lmed-v20260924")`](https://skalkidou-lab.github.io/mht/articles/lmed-v20260924.md)
-  is the one vignette.
+  built or on the website. `vignette("lmed-v20260924")` is the one
+  vignette.
 - **The website’s “Get started” button opens
-  [`vignette("lmed-v20260924")`](https://skalkidou-lab.github.io/mht/articles/lmed-v20260924.md).**
-  It pointed to the reference page of
+  `vignette("lmed-v20260924")`.** It pointed to the reference page of
   [`add_lmed_v20250909()`](https://skalkidou-lab.github.io/mht/reference/add_lmed_v20250909.md).
 
 ## mht 26.9.28
 
-- **[`vignette("lmed-v20260924")`](https://skalkidou-lab.github.io/mht/articles/lmed-v20260924.md)
-  states why the function bridges a gap of up to four weeks, and what a
-  gap becomes.** A new case shows a route switch after a 160-week
-  episode, and a table covers each kind of gap. The function and its
-  workbooks are unchanged.
+- **`vignette("lmed-v20260924")` states why the function bridges a gap
+  of up to four weeks, and what a gap becomes.** A new case shows a
+  route switch after a 160-week episode, and a table covers each kind of
+  gap. The function and its workbooks are unchanged.
 
 ## mht 26.9.27
 
-- **[`vignette("lmed-v20260924")`](https://skalkidou-lab.github.io/mht/articles/lmed-v20260924.md)
-  shows how a short gap during a route switch is handled in approaches
-  2, 3 and 4.** The function and its workbooks are unchanged.
+- **`vignette("lmed-v20260924")` shows how a short gap during a route
+  switch is handled in approaches 2, 3 and 4.** The function and its
+  workbooks are unchanged.
 
 ## mht 26.9.26
 
-- **[`vignette("lmed-v20260924")`](https://skalkidou-lab.github.io/mht/articles/lmed-v20260924.md)
-  shows each behaviour it states.** New worked cases cover name lookup,
-  unknown products, table validation, week boundaries, refills, missing
-  quantities and dates, skeleton errors, the four-week bridge, same-week
-  starts, the 156-week cutoff, approach 3b, flag reasons and the
-  workbook sheets the function reads. Each case has a
-  [`stopifnot()`](https://rdrr.io/r/base/stopifnot.html) check. The
-  approach 1 to 4 rule descriptions are checked against categories read
-  from the workbooks.
+- **`vignette("lmed-v20260924")` shows each behaviour it states.** New
+  worked cases cover name lookup, unknown products, table validation,
+  week boundaries, refills, missing quantities and dates, skeleton
+  errors, the four-week bridge, same-week starts, the 156-week cutoff,
+  approach 3b, flag reasons and the workbook sheets the function reads.
+  Each case has a [`stopifnot()`](https://rdrr.io/r/base/stopifnot.html)
+  check. The approach 1 to 4 rule descriptions are checked against
+  categories read from the workbooks.
 
 ## mht 26.9.25
 
-- **[`vignette("lmed-v20260924")`](https://skalkidou-lab.github.io/mht/articles/lmed-v20260924.md)
-  now stands alone.** It states every step of
+- **`vignette("lmed-v20260924")` now stands alone.** It states every
+  step of
   [`add_lmed_v20260924()`](https://skalkidou-lab.github.io/mht/reference/add_lmed_v20260924.md),
   in the structure of `vignette("lmed-v20260922")`, with approach 4
   added to the sections on treatment levels and exposure variables. Its
@@ -91,8 +116,7 @@
 - Approaches 1 to 3 and their 88 rules are unchanged.
   [`add_lmed_v20260922()`](https://skalkidou-lab.github.io/mht/reference/add_lmed_v20260922.md),
   its two workbooks and its vignette are unchanged.
-- **[`vignette("lmed-v20260924")`](https://skalkidou-lab.github.io/mht/articles/lmed-v20260924.md)
-  explains approach 4.** Its
+- **`vignette("lmed-v20260924")` explains approach 4.** Its
   [`stopifnot()`](https://rdrr.io/r/base/stopifnot.html) chunks check
   the rules of each level and each worked case, so the vignette fails to
   build if a claim is false.
