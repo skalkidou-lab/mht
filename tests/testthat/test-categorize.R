@@ -1,9 +1,8 @@
 # Pins the product-name ladder as it behaves TODAY, defects included.
 #
-# The known misclassifications below are FROZEN on purpose and tracked at
-# skalkidou-lab/structural-mht-registry-data#1. Do not "correct" an expectation
-# here: when the ladder is fixed, the diff of this file is the record of what
-# changed.
+# The known misclassifications below are FROZEN on purpose and tracked in a
+# private issue. Do not "correct" an expectation here: when the ladder is
+# fixed, the diff of this file is the record of what changed.
 
 categorize <- function(fn, produkt) {
   x <- data.table::data.table(produkt = produkt)
@@ -75,7 +74,7 @@ test_that("spaces are stripped from the product name but hyphens are not", {
 })
 
 test_that("PINNED DEFECT: `Depo-Provera` falls through to C4, never D1", {
-  # Issue #1. Two faults compound. The hyphen is never stripped, so the
+  # Two faults compound. The hyphen is never stripped, so the
   # `DepoProvera` pattern cannot match `Depo-Provera`; and even for the
   # unhyphenated spelling the `Provera` -> C4 rung sits ABOVE the
   # `DepoProvera` -> D1 rung, so D1 is unreachable for every input.
@@ -94,7 +93,7 @@ test_that("PINNED DEFECT: `Depo-Provera` falls through to C4, never D1", {
 })
 
 test_that("PINNED DEFECT: `Mini-Pe` is NA because the hyphen is never stripped", {
-  # Issue #1. The ladder holds `MiniPe` -> I1, but `produkt_clean` still
+  # The ladder holds `MiniPe` -> I1, but `produkt_clean` still
   # carries the hyphen, so the register spelling never matches.
   for (nm in names(both_ladders)) {
     expect_identical(
@@ -109,7 +108,7 @@ test_that("PINNED DEFECT: `Mini-Pe` is NA because the hyphen is never stripped",
 })
 
 test_that("PINNED DEFECT: `Primolut-Nor` is NA (hyphen and registered sign)", {
-  # Issue #1. `PrimolutNor` -> C4 exists, but neither the hyphen nor the
+  # `PrimolutNor` -> C4 exists, but neither the hyphen nor the
   # registered-trademark sign is removed from `produkt_clean`.
   for (nm in names(both_ladders)) {
     expect_identical(
@@ -126,7 +125,7 @@ test_that("PINNED DEFECT: `Primolut-Nor` is NA (hyphen and registered sign)", {
 })
 
 test_that("PINNED DEFECT: `Oestriol Aspen` is NA (matching is case-sensitive)", {
-  # Issue #1. Stripping the space yields `OestriolAspen`, but the ladder
+  # Stripping the space yields `OestriolAspen`, but the ladder
   # pattern is spelled `Oestriolaspen` and `stringr::str_detect()` is
   # case-sensitive by default.
   for (nm in names(both_ladders)) {

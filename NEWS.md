@@ -92,8 +92,7 @@
   products, and it checks the delivery BEFORE restricting to the people in the
   skeleton, so a product held only by people outside the cohort still has to be
   one somebody has ruled on. An unclassified product reads as no MHT, so the
-  woman enters as an unexposed control; that is how tibolone put roughly 91,000
-  women in the comparator.
+  woman enters as an unexposed control.
 * **The match is exact on the NORMALISED name, which is not the same as exact
   on the raw name.** Normalisation keeps the lowercase ASCII letters and drops
   everything else, so a raw spelling differing only in digits or punctuation
@@ -391,14 +390,12 @@
 * The `v<YYYYMMDD>` suffix is **not** the study year and **not** the release
   date. It is the date on which that definition's methodology was created:
     * `v20230509` — the approach layer (`post_grouping`, the approach
-      definitions) was created **2023-05-09**, in the `2022-mht` repository,
-      commit `ce396c2`.
+      definitions) was created **2023-05-09**, in a private analysis repository.
     * `v20250909` — the `rd_approach{1,2,3}_*` methodology and its sensitivity
-      variants were created **2025-09-09**, in the
-      `structural-mht-registry-data` repository, commit `3603214`. That is five
-      months before the code was written into `swereg`. The old `x2026` prefix
-      was therefore misleading: 2026 was the study year, not the year the
-      method was devised.
+      variants were created **2025-09-09**, in a private analysis
+      repository. That is five months before the code was written into
+      `swereg`. The old `x2026` prefix was therefore misleading: 2026 was the
+      study year, not the year the method was devised.
 * Behaviour is unchanged. This release is a rename only, proven against the
   frozen goldens in `inst/testdata/` with `identical()`.
 * See the three-column migration map in `README.md` if you are coming from

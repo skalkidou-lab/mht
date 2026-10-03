@@ -220,12 +220,12 @@ lmed_read_product_table_v20260902 <- function() {
 #'
 #' @details
 #' The match is EXACT on the normalised name, not a prefix. A prefix match
-#' guesses: it is how `Depo-Provera` reached the `Provera` duration rule for
-#' 72,767 people, and how `Evorel Micronor` reached oestrogen-only.
+#' guesses: it is how `Depo-Provera` reached the `Provera` duration rule,
+#' and how `Evorel Micronor` reached oestrogen-only.
 #'
 #' A delivered product with no row is an ERROR, not a silent `notmht`. An
 #' unclassified product reads as no MHT, so the woman enters as an unexposed
-#' control; that is how tibolone put roughly 91,000 women in the comparator.
+#' control.
 #' A delivery is a frozen file, so within one delivery this can fire only once,
 #' when the table is first built against it.
 #'
@@ -421,7 +421,7 @@ lmed_durations_v20260902 <- function(lmed, verbose = TRUE) {
 #'
 #' The function REPORTS. It removes nobody. Removing a person is a change to
 #' the cohort, and this layer owns columns of `skeleton`, never its rows. The
-#' caller decides, so paper 1 and the 2026 pipeline can act differently.
+#' caller decides, so two analyses can act differently.
 #'
 #' Where a person holds products flagged for different reasons, the reasons
 #' join in sorted order, so the value does not depend on row order.
