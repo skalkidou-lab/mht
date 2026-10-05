@@ -1,6 +1,6 @@
 # mht 26.10.5
 
-* **`vignette("lmed-v20261002")` opens with suggested methods text** for the exposure section of an article. Every number in it is measured from `add_lmed_v20261002()` or read from its two workbooks when the vignette builds, and a check stops the build where the function disagrees with a case the prose names. It cites the register, the national MHT guidelines behind the progestogen thresholds, and the gap-filling method. A list below it names what the study states itself: the new-user washout, the approach and variant analysed, and any follow-up limit. It links to the manuscript methods of `swereg` for the trial emulation design. The function and its workbooks are unchanged.
+* **`vignette("lmed-v20261002")` opens with suggested methods text** for the exposure section of an article. Every number in it is measured from `add_lmed_v20261002()` or read from its two workbooks when the vignette builds, and a check stops the build where the function disagrees with a case the prose names. It cites the register, the national MHT guidelines behind the progestogen thresholds (SFOG-råd 2019, updated 2021), and the gap-filling method. A list below it names what the study states itself: the new-user washout, the approach and variant analysed, and any follow-up limit. It links to the manuscript methods of `swereg` for the trial emulation design. The function and its workbooks are unchanged.
 
 # mht 26.10.2
 
