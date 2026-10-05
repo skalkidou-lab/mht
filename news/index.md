@@ -9,12 +9,11 @@
   or read from its two workbooks when the vignette builds, and a check
   stops the build where the function disagrees with a case the prose
   names. It cites the register, the national MHT guidelines behind the
-  progestogen thresholds (SFOG-råd 2019, updated 2021), and the
-  gap-filling method. A list below it names what the study states
-  itself: the new-user washout, the approach and variant analysed, and
-  any follow-up limit. It links to the manuscript methods of `swereg`
-  for the trial emulation design. The function and its workbooks are
-  unchanged.
+  progestogen thresholds, and the gap-filling method. A list below it
+  names what the study states itself: the new-user washout, the approach
+  and variant analysed, and any follow-up limit. It links to the
+  manuscript methods of `swereg` for the trial emulation design. The
+  function and its workbooks are unchanged.
 
 ## mht 26.10.2
 
