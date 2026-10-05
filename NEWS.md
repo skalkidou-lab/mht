@@ -1,3 +1,7 @@
+# mht 26.10.5
+
+* **`vignette("lmed-v20261002")` opens with suggested methods text** for the exposure section of an article. Every number in it is measured from `add_lmed_v20261002()` or read from its two workbooks when the vignette builds, and a check stops the build where the function disagrees with a case the prose names. Bracketed placeholders mark what the study states itself: the washout, the variant, and the handling of flagged women. It links to the manuscript methods of `swereg` for the trial emulation design. The function and its workbooks are unchanged.
+
 # mht 26.10.2
 
 * **`add_lmed_v20261002()` is the 2026-10-02 entry point.** It reads `product_table_20261002.xlsx`, a byte copy of the 2026-09-24 table, and `dataDictionary20261002.xlsx`, and no other workbook. It writes every column that `add_lmed_v20260924()` writes, and adds `approach5`, `rd_approach5_single` and `rd_approach5_multiple`.

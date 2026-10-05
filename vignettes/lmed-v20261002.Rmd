@@ -81,6 +81,111 @@ error_of <- function(expr) {
 }
 ```
 
+## Suggested methods text
+
+The text below describes the exposure definition of `add_lmed_v20261002()` for the methods section of an article. Copy it, and replace the bracketed placeholders. Every number in it is measured from the function or read from its workbooks when this vignette builds. A hidden chunk runs the function on the cases the prose names: the gap rule, the three-year rule, injected oestrogen, injected progesterone and a clash. It stops the build if the function disagrees. The rules of each approach are checked in sections 4 and 5. The sections after this one give the evidence for each sentence.
+
+The text covers the exposure definition only. For the target trial emulation design, the weights and the outcome model, use the manuscript methods of `swereg`: [`vignette("tte-methods", package = "swereg")`, Section 2](https://papadopoulos-lab.github.io/swereg/articles/tte-methods.html#manuscript-methods).
+
+```{r methods-values, include = FALSE}
+mt_table <- system.file("2023-mht", "product_table_20261002.xlsx", package = "mht")
+mt_codebook <- system.file("2023-mht", "dataDictionary20261002.xlsx", package = "mht")
+mt_products <- rbindlist(lapply(setdiff(readxl::excel_sheets(mt_table), "README"), function(s) {
+  setDT(suppressMessages(readxl::read_excel(mt_table, sheet = s, col_types = "text")))
+}), use.names = TRUE, fill = TRUE)
+mt_groups <- setDT(readxl::read_excel(mt_codebook, sheet = "MHT_groups", col_types = "text"))
+mt_groups <- mt_groups[!is.na(Preparatnamn)]
+mt_rules <- setDT(suppressMessages(readxl::read_excel(mt_codebook, sheet = "post_grouping", col_types = "text")))
+mt_rules <- mt_rules[!is.na(approach)]
+
+n_categories <- uniqueN(mt_products[classification != "notmht", classification])
+fixed <- mt_groups[!is.na(FDDD), .(produkt = Preparatnamn, category = Subgrupp, days = as.numeric(FDDD))]
+iud_names <- paste(sort(fixed[category == "E1", produkt]), collapse = ", ")
+implant_names <- paste(sort(fixed[category != "E1", produkt]), collapse = ", ")
+fixed_common <- as.numeric(names(which.max(table(fixed$days))))
+fixed_text <- paste0(fixed_common, " days", paste0(", or ", fixed[days != fixed_common, paste0(days, " days for ", produkt)], collapse = ""))
+excluded_reasons <- paste(sort(unique(mt_products[exclude_entire_person == "TRUE", exclusion_reason])), collapse = "; ")
+
+# The length of one whole month: 3 months of Provera at 4 days of supply per month.
+month_days <- mht:::lmed_durations_v20261002(
+  data.table(lopnr = 1L, produkt = "Provera", lnmn = NA_character_, edatum = monday, fddd = 12),
+  mht:::lmed_read_product_table_v20261002(),
+  verbose = FALSE
+)$duration_days / 3
+
+# The longest gap that is bridged: Divigel for weeks 1 to 10, then again after `g` weeks.
+approach_cols <- paste0("approach", 1:5)
+bridged <- vapply(1:8, function(g) {
+  skel <- run_toy(rbind(rx("Divigel", 1, 10), rx("Divigel", 11 + g, 6)))
+  return(all(vapply(approach_cols, function(a) uniqueN(skel[[a]][1:(16 + g)]) == 1L, logical(1))))
+}, logical(1))
+bridge_weeks <- max(which(bridged))
+
+# The shortest episode whose stop gives former use: Divigel for `n` weeks, then nothing.
+rd_cols <- c(outer(paste0("rd_approach", c(1:5, "3b")), c("_single", "_multiple"), paste0))
+gives_previous <- vapply(150:160, function(n) {
+  skel <- run_toy(rx("Divigel", 1, n), n + 4L)
+  after <- unlist(skel[n + 1L, ..rd_cols])
+  stopifnot(uniqueN(after) == 1L)
+  return(after[[1]] == "previous")
+}, logical(1))
+
+# A 3-week gap between two levels is not bridged: Progynon for weeks 1 to 10, Divigel from week 14.
+cross <- run_toy(rbind(rx("Progynon", 1, 10), rx("Divigel", 14, 6)))
+# Injected oestrogen alone is the reference level. Oestrogen with injected progesterone is "synthetic"
+# under approach 3 and the reference level under approaches 4 and 5.
+injected <- run_toy(rx("Neofollin", 1, 10))
+with_c2 <- run_toy(rbind(rx("Divigel", 1, 10), rx("Prolutex", 1, 10)))
+# A clash lasts to the last treated week of its episode: Progynon 1 to 30 and Divigel 1 to 20.
+clashed <- run_toy(rbind(rx("Progynon", 1, 30), rx("Divigel", 1, 20)))
+previous_weeks <- (150:160)[which(gives_previous)[1]]
+
+levels_of <- function(a) sort(setdiff(unique(mt_rules[approach == a, variable]), "local_or_none_mht"))
+stopifnot(
+  identical(bridged, seq_len(8) <= 4L),
+  identical(gives_previous, 150:160 >= 156L),
+  month_days == 28,
+  all(cross$approach2[11:13] == "local_or_none_mht"),
+  all(injected$approach1[1:10] == "local_or_none_mht"),
+  all(with_c2$approach3[1:10] == "estrogen_progesterone_synthetic"),
+  all(with_c2$approach4[1:10] == "local_or_none_mht"),
+  all(with_c2$approach5[1:10] == "local_or_none_mht"),
+  all(clashed$approach2[1:30] == "clashingprescriptions"),
+  clashed$approach2[31] == "local_or_none_mht",
+  mt_products[classification == "E1", .N] > 0L,
+  identical(levels_of("1"), c("systemic_mht", "tibolone")),
+  identical(levels_of("2"), c("peroral_estrogen", "tibolone", "transdermal_estrogen")),
+  identical(levels_of("3"), c("estrogen_only", "estrogen_progesterone_bioidentical",
+                              "estrogen_progesterone_synthetic", "tibolone")),
+  identical(levels_of("4"), c("estrogen_only", "oral_estrogen_other_progestogen", "oral_estrogen_progesterone",
+                              "tibolone", "transdermal_estrogen_other_progestogen",
+                              "transdermal_estrogen_progesterone")),
+  identical(levels_of("5"), c("estrogen_iud", "estrogen_only", "estrogen_other_progestogen",
+                              "estrogen_progesterone", "tibolone")),
+  all(mt_products[classification == "E1", atc] == "G02BA03"),
+  setequal(mt_products[classification %in% c("C1", "C5"), unique(atc)], c("G03DA04", "G03DB01"))
+)
+```
+
+> **Assessment of MHT exposure.** MHT exposure was derived from dispensations in the Swedish Prescribed Drug Register [reference], [dispensing window], using the R package mht (version `r packageVersion("mht")`, function `add_lmed_v20261002()`). Each dispensed product name was classified by a product table shipped with the package into one of `r n_categories` categories, defined by drug group, route of administration and progestogen type, or as not MHT. Products classified as not MHT did not contribute exposure.
+>
+> The duration of each dispensation was the dispensed amount in defined daily doses, read as days of supply. The levonorgestrel intrauterine systems (`r iud_names`) and the implant (`r implant_names`) were given fixed durations of `r fixed_text`. Sequentially dosed progestogens were converted to whole `r month_days`-day treatment months, using a product-specific minimum supply per month. A dispensation that did not reach a product-specific minimum number of months was discarded [justification and reference for the thresholds]. Dispensations with no date or no positive duration were discarded.
+>
+> Each dispensation covered the days from its dispensing date to the end of its supply, and was mapped to ISO weeks. A week was exposed to a category if a supply of that category covered at least one of its days. Overlapping supplies of one category were combined, and supply remaining at a refill was not carried forward. Within one treatment level, a gap of up to `r bridge_weeks` weeks between two exposed weeks was treated as continued use. A gap of `r bridge_weeks + 1L` weeks or more ended the treatment episode. A gap between two different levels was not bridged.
+>
+> Each person-week was assigned one treatment level under five definitions. Approach 1 compared oral or transdermal MHT with no such treatment. Approach 2 classified oral or transdermal oestrogen by route. Approach 3 classified it by the progestogen used with it: none, progesterone or dydrogesterone, or another progestogen. Injected progesterone was classified with the other progestogens. Approach 4 combined the route of approach 2 with the progestogen type of approach 3, but did not count injected progesterone. Approach 5 combined both routes, and separated oestrogen used with a levonorgestrel intrauterine system from oestrogen with another progestogen. In every approach, tibolone was a separate level. A progestogen counted as MHT only in a week with an oral or transdermal oestrogen. Weeks with none of these levels formed the reference level. These include weeks with only local oestrogen, injected oestrogen, a progestogen or an androgen. Under approaches 4 and 5 they also include weeks of oestrogen with injected progesterone. When two levels were in force in the same week, the week was assigned the level started most recently. Levels started in the same week were classified as a separate level of clashing prescriptions, which lasted until the end of that treatment episode.
+>
+> After a treatment episode ended, the subsequent untreated weeks were classified as former use if the episode had lasted at least `r previous_weeks` weeks (`r previous_weeks / 52` years of 52 weeks), and were excluded otherwise. [All person-time from a second initiation onward was excluded. / Women who reinitiated MHT re-entered the level they initiated, and the rule above was applied to each episode.] Women dispensed a product that the product table flags (`r excluded_reasons`) were identified across [the window of dispensations used], and [were excluded].
+
+The text deliberately leaves these to the study, because the function does not do them:
+
+- **The new-user requirement.** The function builds no treatment history before a person's first observed week, and does not remove prevalent users. A supply dispensed before that week reads as starting in it. State the washout, and the register coverage it relies on.
+- **Which approach, and which variant.** The bracketed sentence above offers the two variants. `rd_approach<N>_single` is the first, and `rd_approach<N>_multiple` is the second.
+- **What happens to flagged women.** The function sets `ri_mht_excluded_product` and removes nobody. State the exclusion the study applies, and the window of dispensations it reads.
+- **Any limit on follow-up after initiation or after stopping.** The function sets none.
+
+## Overview
+
 `add_lmed_v20261002()` takes a table of dispensed prescriptions and a person-week skeleton. It writes menopausal hormone therapy (MHT) exposure columns and two person-level exclusion columns onto the skeleton. Exposure here means dispensed supply, assumed used. The function reads the dispensed quantity and, for two strength-keyed rules, the strength. It reads no adherence and no indication. It runs six steps, in this order:
 
 1. It looks each product name up in a shipped product table. The table gives the product's MHT category, and whether the study removes its holders.
