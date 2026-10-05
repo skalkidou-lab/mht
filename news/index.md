@@ -1,5 +1,18 @@
 # Changelog
 
+## mht 26.10.5
+
+- **[`vignette("lmed-v20261002")`](https://skalkidou-lab.github.io/mht/articles/lmed-v20261002.md)
+  opens with suggested methods text** for the exposure section of an
+  article. Every number in it is measured from
+  [`add_lmed_v20261002()`](https://skalkidou-lab.github.io/mht/reference/add_lmed_v20261002.md)
+  or read from its two workbooks when the vignette builds, and a check
+  stops the build where the function disagrees with a case the prose
+  names. Bracketed placeholders mark what the study states itself: the
+  washout, the variant, and the handling of flagged women. It links to
+  the manuscript methods of `swereg` for the trial emulation design. The
+  function and its workbooks are unchanged.
+
 ## mht 26.10.2
 
 - **[`add_lmed_v20261002()`](https://skalkidou-lab.github.io/mht/reference/add_lmed_v20261002.md)
