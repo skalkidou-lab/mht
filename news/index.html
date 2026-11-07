@@ -7,7 +7,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">mht</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">26.10.5</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">26.11.5</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -18,7 +18,7 @@
       <ul class="navbar-nav me-auto"><li class="nav-item"><a class="nav-link" href="../reference/index.html">Reference</a></li>
 <li class="nav-item dropdown">
   <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
-  <ul class="dropdown-menu" aria-labelledby="dropdown-articles"><li><a class="dropdown-item" href="../articles/lmed-v20261002.html">What add_lmed_v20261002() does</a></li>
+  <ul class="dropdown-menu" aria-labelledby="dropdown-articles"><li><a class="dropdown-item" href="../articles/lmed-v20261105.html">What add_lmed_v20261105() does</a></li>
   </ul></li>
 <li class="active nav-item"><a class="nav-link" href="../news/index.html">Changelog</a></li>
       </ul><ul class="navbar-nav"><li class="nav-item"><form class="form-inline" role="search">
@@ -36,9 +36,23 @@
     </div>
 
     <div class="section level2">
+<h2 class="pkg-version" data-toc-text="26.11.5" id="mht-26115">mht 26.11.5<a class="anchor" aria-label="anchor" href="#mht-26115"></a></h2>
+<ul><li>
+<strong><code><a href="../reference/add_lmed_v20261105.html">add_lmed_v20261105()</a></code> is the 2026-11-05 entry point.</strong> It reads <code>product_table_20261105.xlsx</code>, a byte copy of the 2026-10-02 table, and <code>dataDictionary20261105.xlsx</code>, and no other workbook. It writes every column that <code><a href="../reference/add_lmed_v20261002.html">add_lmed_v20261002()</a></code> writes, unchanged, and adds <code>approach6</code>, <code>rd_approach6_single</code> and <code>rd_approach6_multiple</code>.</li>
+<li>
+<strong>Approach 6 is approach 1 with local treatment as a level.</strong> Its levels are <code>systemic_mht</code>, <code>local_mht</code>, <code>tibolone</code> and the reference level <code>no_local_or_systemic_mht</code>. <code>local_mht</code> is <code>A3</code>, <code>A4</code> or <code>A5</code>. The codebook adds 19 approach 6 rules to the <code>post_grouping</code> sheet.</li>
+<li>
+<strong>A week with a local product is <code>systemic_mht</code> when a systemic product is in force, and <code>tibolone</code> when tibolone is in force.</strong> Neither week is a clash.</li>
+<li>
+<strong>The <code>rd_approach6</code> columns treat a <code>local_mht</code> episode as a systemic one.</strong> A stop after 156 weeks or more gives <code>previous</code>, and a shorter one gives <code>exclude</code>.</li>
+<li>
+<strong><code><a href="../articles/lmed-v20261105.html">vignette("lmed-v20261105")</a></code> is the one vignette.</strong> <code>vignette("lmed-v20261002")</code> moved to <code>archive/</code> in the source repository. The website’s “Get started” button opens the new one.</li>
+<li>Approaches 1 to 5 and their 182 rules are unchanged. <code><a href="../reference/add_lmed_v20261002.html">add_lmed_v20261002()</a></code> and its two workbooks are unchanged.</li>
+</ul></div>
+    <div class="section level2">
 <h2 class="pkg-version" data-toc-text="26.10.5" id="mht-26105">mht 26.10.5<a class="anchor" aria-label="anchor" href="#mht-26105"></a></h2>
 <ul><li>
-<strong><code><a href="../articles/lmed-v20261002.html">vignette("lmed-v20261002")</a></code> opens with suggested methods text</strong> for the exposure section of an article. Every number in it is measured from <code><a href="../reference/add_lmed_v20261002.html">add_lmed_v20261002()</a></code> or read from its two workbooks when the vignette builds, and a check stops the build where the function disagrees with a case the prose names. It cites the register, the national MHT guidelines behind the progestogen thresholds, and the gap-filling method. A list below it names what the study states itself: the new-user washout, the approach and variant analysed, and any follow-up limit. It links to the manuscript methods of <code>swereg</code> for the trial emulation design. The function and its workbooks are unchanged.</li>
+<strong><code>vignette("lmed-v20261002")</code> opens with suggested methods text</strong> for the exposure section of an article. Every number in it is measured from <code><a href="../reference/add_lmed_v20261002.html">add_lmed_v20261002()</a></code> or read from its two workbooks when the vignette builds, and a check stops the build where the function disagrees with a case the prose names. It cites the register, the national MHT guidelines behind the progestogen thresholds (SFOG-råd 2019, updated 2021), and the gap-filling method. A list below it names what the study states itself: the new-user washout, the approach and variant analysed, and any follow-up limit. It links to the manuscript methods of <code>swereg</code> for the trial emulation design. The function and its workbooks are unchanged.</li>
 </ul></div>
     <div class="section level2">
 <h2 class="pkg-version" data-toc-text="26.10.2" id="mht-26102">mht 26.10.2<a class="anchor" aria-label="anchor" href="#mht-26102"></a></h2>
@@ -49,7 +63,7 @@
 <li>
 <strong>The resolver of <code><a href="../reference/add_lmed_v20260924.html">add_lmed_v20260924()</a></code> is unchanged.</strong> When two approach 5 levels are lit in one week, <code>approach5</code> reports the level that started most recently. An oestrogen week with <code>E1</code> and another progestogen lights two levels.</li>
 <li>
-<strong><code><a href="../articles/lmed-v20261002.html">vignette("lmed-v20261002")</a></code> is the one vignette.</strong> <code>vignette("lmed-v20260924")</code> moved to <code>archive/</code> in the source repository. Its approach 5 section checks each approach 5 rule, and the category of each product it names, against the workbooks. The website’s “Get started” button opens it.</li>
+<strong><code>vignette("lmed-v20261002")</code> is the one vignette.</strong> <code>vignette("lmed-v20260924")</code> moved to <code>archive/</code> in the source repository. Its approach 5 section checks each approach 5 rule, and the category of each product it names, against the workbooks. The website’s “Get started” button opens it.</li>
 <li>Approaches 1 to 4 and their 135 rules are unchanged. <code><a href="../reference/add_lmed_v20260924.html">add_lmed_v20260924()</a></code> and its two workbooks are unchanged.</li>
 </ul></div>
     <div class="section level2">
