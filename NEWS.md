@@ -1,3 +1,12 @@
+# mht 26.11.5
+
+* **`add_lmed_v20261105()` is the 2026-11-05 entry point.** It reads `product_table_20261105.xlsx`, a byte copy of the 2026-10-02 table, and `dataDictionary20261105.xlsx`, and no other workbook. It writes every column that `add_lmed_v20261002()` writes, unchanged, and adds `approach6`, `rd_approach6_single` and `rd_approach6_multiple`.
+* **Approach 6 is approach 1 with local treatment as a level.** Its levels are `systemic_mht`, `local_mht`, `tibolone` and the reference level `no_local_or_systemic_mht`. `local_mht` is `A3`, `A4` or `A5`. The codebook adds 19 approach 6 rules to the `post_grouping` sheet.
+* **A week with a local product is `systemic_mht` when a systemic product is in force, and `tibolone` when tibolone is in force.** Neither week is a clash.
+* **The `rd_approach6` columns treat a `local_mht` episode as a systemic one.** A stop after 156 weeks or more gives `previous`, and a shorter one gives `exclude`.
+* **`vignette("lmed-v20261105")` is the one vignette.** `vignette("lmed-v20261002")` moved to `archive/` in the source repository. The website's "Get started" button opens the new one.
+* Approaches 1 to 5 and their 182 rules are unchanged. `add_lmed_v20261002()` and its two workbooks are unchanged.
+
 # mht 26.10.5
 
 * **`vignette("lmed-v20261002")` opens with suggested methods text** for the exposure section of an article. Every number in it is measured from `add_lmed_v20261002()` or read from its two workbooks when the vignette builds, and a check stops the build where the function disagrees with a case the prose names. It cites the register, the national MHT guidelines behind the progestogen thresholds (SFOG-råd 2019, updated 2021), and the gap-filling method. A list below it names what the study states itself: the new-user washout, the approach and variant analysed, and any follow-up limit. It links to the manuscript methods of `swereg` for the trial emulation design. The function and its workbooks are unchanged.
