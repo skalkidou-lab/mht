@@ -1,3 +1,11 @@
+# mht 26.11.12
+
+* **`add_lmed_v20261112()` is the 2026-11-12 entry point.** It writes each `rd_approach*` column of `add_lmed_v20261105()` twice, once per rule for former use. The 28 columns are `rd_approach<N>_<variant>_prev3y` and `rd_approach<N>_<variant>_prevany`, for `N` from 1 to 6 and `3b`.
+* **`prev3y` is the rule of `add_lmed_v20261105()`.** A stop gives `previous` after an episode of 156 weeks or more, and `exclude` after a shorter one. Each `prev3y` column equals the `add_lmed_v20261105()` column of the same approach and variant.
+* **`prevany` gives `previous` after any stop.** The four-week gap bridge and steps 1, 2, 3 and 5 of the exposure layer are the same under both rules.
+* **No `rd_approach*` column without a rule suffix remains.** The function writes none, and deletes any that the skeleton already carries. It reads the two 2026-11-05 workbooks, which are unchanged, and every other column equals the output of `add_lmed_v20261105()`.
+* **`vignette("lmed-v20261112")` replaces `vignette("lmed-v20261105")`**, which moved to `archive/` in the source repository. Its methods text describes both rules, and section 5 shows them side by side.
+
 # mht 26.11.5
 
 * **`add_lmed_v20261105()` is the 2026-11-05 entry point.** It reads `product_table_20261105.xlsx`, a byte copy of the 2026-10-02 table, and `dataDictionary20261105.xlsx`, and no other workbook. It writes every column that `add_lmed_v20261002()` writes, unchanged, and adds `approach6`, `rd_approach6_single` and `rd_approach6_multiple`.
