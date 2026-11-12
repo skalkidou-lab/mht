@@ -1,5 +1,33 @@
 # Changelog
 
+## mht 26.11.12
+
+- **[`add_lmed_v20261112()`](https://skalkidou-lab.github.io/mht/reference/add_lmed_v20261112.md)
+  is the 2026-11-12 entry point.** It writes each `rd_approach*` column
+  of
+  [`add_lmed_v20261105()`](https://skalkidou-lab.github.io/mht/reference/add_lmed_v20261105.md)
+  twice, once per rule for former use. The 28 columns are
+  `rd_approach<N>_<variant>_prev3y` and
+  `rd_approach<N>_<variant>_prevany`, for `N` from 1 to 6 and `3b`.
+- **`prev3y` is the rule of
+  [`add_lmed_v20261105()`](https://skalkidou-lab.github.io/mht/reference/add_lmed_v20261105.md).**
+  A stop gives `previous` after an episode of 156 weeks or more, and
+  `exclude` after a shorter one. Each `prev3y` column equals the
+  [`add_lmed_v20261105()`](https://skalkidou-lab.github.io/mht/reference/add_lmed_v20261105.md)
+  column of the same approach and variant.
+- **`prevany` gives `previous` after any stop.** The four-week gap
+  bridge and steps 1, 2, 3 and 5 of the exposure layer are the same
+  under both rules.
+- **No `rd_approach*` column without a rule suffix remains.** The
+  function writes none, and deletes any that the skeleton already
+  carries. It reads the two 2026-11-05 workbooks, which are unchanged,
+  and every other column equals the output of
+  [`add_lmed_v20261105()`](https://skalkidou-lab.github.io/mht/reference/add_lmed_v20261105.md).
+- **[`vignette("lmed-v20261112")`](https://skalkidou-lab.github.io/mht/articles/lmed-v20261112.md)
+  replaces `vignette("lmed-v20261105")`**, which moved to `archive/` in
+  the source repository. Its methods text describes both rules, and
+  section 5 shows them side by side.
+
 ## mht 26.11.5
 
 - **[`add_lmed_v20261105()`](https://skalkidou-lab.github.io/mht/reference/add_lmed_v20261105.md)
@@ -20,10 +48,9 @@
 - **The `rd_approach6` columns treat a `local_mht` episode as a systemic
   one.** A stop after 156 weeks or more gives `previous`, and a shorter
   one gives `exclude`.
-- **[`vignette("lmed-v20261105")`](https://skalkidou-lab.github.io/mht/articles/lmed-v20261105.md)
-  is the one vignette.** `vignette("lmed-v20261002")` moved to
-  `archive/` in the source repository. The website’s “Get started”
-  button opens the new one.
+- **`vignette("lmed-v20261105")` is the one vignette.**
+  `vignette("lmed-v20261002")` moved to `archive/` in the source
+  repository. The website’s “Get started” button opens the new one.
 - Approaches 1 to 5 and their 182 rules are unchanged.
   [`add_lmed_v20261002()`](https://skalkidou-lab.github.io/mht/reference/add_lmed_v20261002.md)
   and its two workbooks are unchanged.
