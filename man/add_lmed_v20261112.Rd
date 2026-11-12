@@ -74,7 +74,10 @@ lmed <- lmed[produkt != "Paracetamol"]
 skeleton <- suppressWarnings(
   add_lmed_v20261112(skeleton, lmed, verbose = FALSE)
 )
-skeleton[, .N, keyby = .(rd_approach1_single_prev3y, rd_approach1_single_prevany)]
+skeleton[,
+  .N,
+  keyby = .(rd_approach1_single_prev3y, rd_approach1_single_prevany)
+]
 }
 \seealso{
 \code{\link{add_lmed_v20261105}}, which documents the approaches.

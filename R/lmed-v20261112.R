@@ -1,4 +1,4 @@
-# ================================================= the 2026-11-12 exposure layer ====
+# =========================================== the 2026-11-12 exposure layer ====
 #
 # This layer splits each `rd_approach*` column of the 2026-11-05 layer into two
 # columns, one per rule for former use. It reads the same two workbooks as the
@@ -189,6 +189,21 @@ create_exposure_variables_v20261112 <- function(skeleton, create_rd = TRUE) {
     }
   }
 
+  lmed_rd_approach3b_v20261112(skeleton)
+  return(invisible(skeleton))
+}
+
+#' Write the 2026-11-12 `rd_approach3b*` exposure variables
+#'
+#' Copies each `rd_approach3_<variant>_<rule>` column to
+#' `rd_approach3b_<variant>_<rule>`, and collapses the two progesterone levels
+#' of `approach3` into `estrogen_progesterone`, as in the 2026-08-28 layer.
+#'
+#' @param skeleton A person-week `data.table` carrying the four
+#'   `rd_approach3_<variant>_<rule>` columns.
+#' @return `skeleton`, modified by reference.
+#' @noRd
+lmed_rd_approach3b_v20261112 <- function(skeleton) {
   for (p in c("single", "multiple")) {
     for (r in names(previous_rules_v20261112)) {
       src <- paste0("rd_approach3_", p, "_", r)
@@ -264,7 +279,10 @@ create_exposure_variables_v20261112 <- function(skeleton, create_rd = TRUE) {
 #' skeleton <- suppressWarnings(
 #'   add_lmed_v20261112(skeleton, lmed, verbose = FALSE)
 #' )
-#' skeleton[, .N, keyby = .(rd_approach1_single_prev3y, rd_approach1_single_prevany)]
+#' skeleton[,
+#'   .N,
+#'   keyby = .(rd_approach1_single_prev3y, rd_approach1_single_prevany)
+#' ]
 #' @export
 add_lmed_v20261112 <- function(
   skeleton,

@@ -83,7 +83,7 @@ error_of <- function(expr) {
 
 ## Suggested methods text
 
-The text below describes the exposure definition of `add_lmed_v20261112()` for the methods section of an article. Copy it as it stands. The paper adds which approach, which variant and which rule for former use it analysed. Every number in it is measured from the function or read from its workbooks when this vignette builds. A hidden chunk runs the function on the cases the prose names: the gap rule, the two rules for former use, injected oestrogen, injected progesterone and a clash. It stops the build if the function disagrees. The rules of each approach are checked in sections 4 and 5. The sections after this one give the evidence for each sentence.
+The text below describes the exposure definition of `add_lmed_v20261112()` for the methods section of an article. Copy it as it stands. The paper adds which approach, which variant and which rule for former use it analysed. Every number in it is measured from the function or read from its workbooks when this vignette builds. A hidden chunk runs the function on each case that the prose names. These are the gap rule, the two rules for former use, injected oestrogen, injected progesterone and a clash. It stops the build if the function disagrees. The rules of each approach are checked in sections 4 and 5. The sections after this one give the evidence for each sentence.
 
 The text covers the exposure definition only. For the target trial emulation design, the weights and the outcome model, use the manuscript methods of `swereg`: [`vignette("tte-methods", package = "swereg")`, Section 2](https://papadopoulos-lab.github.io/swereg/articles/tte-methods.html#manuscript-methods).
 
@@ -123,9 +123,12 @@ bridge_weeks <- max(which(bridged))
 
 # The shortest episode whose stop gives former use: Divigel for `n` weeks, then nothing.
 # Under the `prev3y` rule. Under the `prevany` rule every stop gives former use.
-rd_base <- c(outer(paste0("rd_approach", c(1:6, "3b")), c("_single", "_multiple"), paste0))
-rd_cols <- paste0(rd_base, "_prev3y")
-rd_any <- paste0(rd_base, "_prevany")
+# The 14 `rd_approach*` columns of one rule.
+rd_rule <- function(rule) {
+  return(c(outer(paste0("rd_approach", c(1:6, "3b")), paste0(c("_single_", "_multiple_"), rule), paste0)))
+}
+rd_cols <- rd_rule("prev3y")
+rd_any <- rd_rule("prevany")
 gives_previous <- vapply(150:160, function(n) {
   skel <- run_toy(rx("Divigel", 1, n), n + 4L)
   after <- unlist(skel[n + 1L, ..rd_cols])
@@ -203,7 +206,7 @@ stopifnot(
 >
 > Each person-week was assigned one treatment level under six definitions. Approach 1 compared oral or transdermal MHT with no such treatment. Approach 2 classified oral or transdermal oestrogen by route. Approach 3 classified it by the progestogen used with it: none, progesterone or dydrogesterone, or another progestogen. Injected progesterone was classified with the other progestogens. Approach 4 combined the route of approach 2 with the progestogen type of approach 3, but did not count injected progesterone. Approach 5 combined both routes, and separated oestrogen used with a levonorgestrel intrauterine system from oestrogen with another progestogen. Approach 6 was approach 1 with local treatment as a separate level. Local treatment was vaginal oestradiol, vaginal oestriol or prasterone, or oral oestriol. A week with local treatment and another level of approach 6 took that other level. In every approach, tibolone was a separate level. A progestogen counted as MHT only in a week with an oral or transdermal oestrogen. Weeks with none of these levels formed the reference level. These include weeks with only injected oestrogen, a progestogen or an androgen. Under approaches 1 to 5 they also include weeks with only local treatment. Under approaches 4 and 5 they also include weeks of oestrogen with injected progesterone. When two levels were in force in the same week, the week was assigned the level started most recently. Levels started in the same week were classified as a separate level of clashing prescriptions, which lasted until the end of that treatment episode.
 >
-> After a treatment episode ended, the subsequent untreated weeks were classified as former use under one of two rules. Under the three-year rule, they were former use if the episode had lasted at least `r previous_weeks` weeks (`r previous_weeks / 52` years of 52 weeks), and were excluded otherwise. Under the any-duration rule, they were former use after an episode of any length. Under approach 6, both rules applied to an episode of local treatment as to any other episode. Two variants were derived for each approach. In the single-episode variant, all person-time from a second initiation onward was excluded. In the multiple-episode variant, women who reinitiated MHT re-entered the level they initiated, and the rule above was applied to each episode. Women with any dispensation of a product that the product table flags (`r excluded_reasons`) were excluded.
+> After a treatment episode ended, the subsequent untreated weeks were classified as former use under one of two rules. Under the three-year rule, they were former use if the episode had lasted at least `r previous_weeks` weeks (`r previous_weeks / 52` years of 52 weeks). Otherwise they were excluded. Under the any-duration rule, they were former use after an episode of any length. Under approach 6, both rules applied to an episode of local treatment as to any other episode. Two variants were derived for each approach. In the single-episode variant, all person-time from a second initiation onward was excluded. In the multiple-episode variant, women who reinitiated MHT re-entered the level they initiated, and the rule for former use was applied to each episode. Women with any dispensation of a product that the product table flags (`r excluded_reasons`) were excluded.
 
 References:
 
@@ -411,7 +414,7 @@ stopifnot(
 )
 ```
 
-Approach 6 gives the function the column `approach6` and four `rd_approach6` columns. Section 3 checks every column against `add_lmed_v20261105()`.
+Approach 6 gives the function the column `approach6` and four exposure columns: `rd_approach6_single_prev3y`, `rd_approach6_single_prevany`, `rd_approach6_multiple_prev3y` and `rd_approach6_multiple_prevany`. Section 3 checks every column against `add_lmed_v20261105()`.
 
 ### Categories that never change exposure
 
@@ -634,7 +637,7 @@ setnames(renamed, old_rd, paste0(old_rd, "_prev3y"))
 added <- setdiff(names(skeleton), names(renamed))
 added
 stopifnot(
-  setequal(old_rd, rd_base),
+  setequal(paste0(old_rd, "_prev3y"), rd_cols),
   setequal(added, rd_any),
   identical(skeleton[, names(renamed), with = FALSE], renamed)
 )
@@ -1349,21 +1352,23 @@ stopifnot(
 
 ### The two rules for former use
 
-The `prev3y` and `prevany` columns differ only after a stop from an episode shorter than 156 weeks. There `prev3y` gives `exclude` and `prevany` gives `previous`. The chunk below runs one woman per case: Divigel for 10, 155 or 156 weeks from week 5, and Divigel for 10 weeks, a 10-week stop and 10 weeks more.
+The `prev3y` and `prevany` columns differ only after a stop from an episode shorter than 156 weeks. There `prev3y` gives `exclude` and `prevany` gives `previous`. The chunk below adds two women to the 155-week and 156-week women of the chunk `cutoff`. One takes Divigel for 10 weeks from week 5. The other takes Divigel for 10 weeks, stops for 10 weeks, and takes it for 10 weeks more.
 
 ```{r two-rules}
 ten <- run_toy(rx("Divigel", 5, 10), 40L)
 restart <- run_toy(rbind(rx("Divigel", 1, 10), rx("Divigel", 21, 10)), 40L)
-side_by_side <- function(skel, base) {
-  return(skel[, .(week, prev3y = get(paste0(base, "_prev3y")), prevany = get(paste0(base, "_prevany")))][
+# One row per run of equal values in the two columns of one approach and variant.
+side_by_side <- function(skel, approach, variant) {
+  col <- paste0("rd_", approach, "_", variant, c("_prev3y", "_prevany"))
+  return(skel[, .(week, prev3y = get(col[1]), prevany = get(col[2]))][
     , .(from = week[1], to = week[.N], weeks = .N), by = .(prev3y, prevany, run = rleid(prev3y, prevany))
   ][, run := NULL][])
 }
-side_by_side(ten, "rd_approach1_single")
-side_by_side(short, "rd_approach1_single")
-side_by_side(long, "rd_approach1_single")
-side_by_side(restart, "rd_approach1_single")
-side_by_side(restart, "rd_approach1_multiple")
+side_by_side(ten, "approach1", "single")
+side_by_side(short, "approach1", "single")
+side_by_side(long, "approach1", "single")
+side_by_side(restart, "approach1", "single")
+side_by_side(restart, "approach1", "multiple")
 stopifnot(
   identical(ten$rd_approach1_single_prev3y, rep(c("local_or_none_mht", "systemic_mht", "exclude"), c(4L, 10L, 26L))),
   identical(ten$rd_approach1_single_prevany, rep(c("local_or_none_mht", "systemic_mht", "previous"), c(4L, 10L, 26L))),
@@ -1379,19 +1384,25 @@ stopifnot(
 
 After a 10-week episode, `prev3y` excludes the untreated weeks and `prevany` keeps them as former use. After 156 weeks the two rules agree. In the `single` variant both rules exclude every week from the restart onward. In the `multiple` variant she re-enters `systemic_mht` under both rules. A `local_mht` episode in approach 6 follows the same two rules.
 
-On the fixture, the chunk below counts the person-weeks where the two rules disagree. Every one is `exclude` under `prev3y` and `previous` under `prevany`.
+On the fixture, the chunk below counts the person-weeks where the two rules disagree, per approach and variant. Every one is `exclude` under `prev3y` and `previous` under `prevany`. No `rd_approach<N>_multiple_prevany` column holds `exclude`, because only steps 3 and 4 write it.
 
 ```{r two-rules-fixture}
-rule_diff <- rbindlist(lapply(rd_base, function(b) {
-  x <- skeleton[get(paste0(b, "_prev3y")) != get(paste0(b, "_prevany")),
-    .(prev3y = get(paste0(b, "_prev3y")), prevany = get(paste0(b, "_prevany")))]
-  return(x[, .(person_weeks = .N), by = .(column = b, prev3y, prevany)])
-}))
+pairs <- CJ(approach = paste0("approach", c(1:6, "3b")), variant = c("single", "multiple"), sorted = FALSE)
+rule_diff <- rbindlist(Map(function(approach, variant) {
+  col <- paste0("rd_", approach, "_", variant, c("_prev3y", "_prevany"))
+  x <- skeleton[get(col[1]) != get(col[2]), .(prev3y = get(col[1]), prevany = get(col[2]))]
+  x <- x[, .(person_weeks = .N), by = .(prev3y, prevany)]
+  return(x[, `:=`(approach = approach, variant = variant)][])
+}, pairs$approach, pairs$variant))
+setcolorder(rule_diff, c("approach", "variant"))
 rule_diff
+multiple_any <- grep("_multiple_prevany$", rd_any, value = TRUE)
 stopifnot(
   nrow(rule_diff) > 0L,
   all(rule_diff$prev3y == "exclude"),
-  all(rule_diff$prevany == "previous")
+  all(rule_diff$prevany == "previous"),
+  length(multiple_any) == 7L,
+  !any(unlist(skeleton[, ..multiple_any]) == "exclude")
 )
 ```
 
@@ -1560,14 +1571,14 @@ stopifnot(identical(
 
 ### Approach 3b
 
-`rd_approach3b_single_prev3y` and `rd_approach3b_multiple_prev3y` are the approach 3 columns with the two `estrogen_progesterone` levels collapsed into one. A switch between active levels never creates `previous`, so the relabel gives what a full second pass would give. Approaches 4 and 5 have no such collapsed variant.
+Each `rd_approach3b_<variant>_<rule>` column is the `rd_approach3_<variant>_<rule>` column with the two `estrogen_progesterone` levels collapsed into one. A switch between active levels never creates `previous`, so the relabel gives what a full second pass would give. Approaches 4 and 5 have no such collapsed variant.
 
 ```{r approach-3b}
 episodes(skeleton[id == 16], "rd_approach3_single_prev3y")
 episodes(skeleton[id == 16], "rd_approach3b_single_prev3y")
 ```
 
-The chunk below checks that claim. A woman takes Femoston (`B11`, the `bioidentical` level) for 10 weeks, then Cyclabil (`B12`, the `synthetic` level) for 10 weeks. The chunk collapses her `approach3` column, and every fixture person's, into the `approach3b` level, and runs the exposure layer again on the result. Its `rd_approach3` columns equal the `rd_approach3b` columns the function wrote.
+The chunk below checks that claim. A woman takes Femoston (`B11`, the `bioidentical` level) for 10 weeks, then Cyclabil (`B12`, the `synthetic` level) for 10 weeks. The chunk collapses her `approach3` column, and every fixture person's, into the `approach3b` level, and runs the exposure layer again on the result. Its four `rd_approach3_<variant>_<rule>` columns equal the `rd_approach3b_<variant>_<rule>` columns the function wrote.
 
 ```{r approach-3b-pass}
 switcher <- run_toy(rbind(rx("Femoston", 1, 10), rx("Cyclabil", 11, 10)))
@@ -1578,8 +1589,9 @@ second_pass <- function(skel) {
   x <- copy(skel)
   x[approach3 %like% "^estrogen_progesterone", approach3 := collapsed]
   mht:::create_exposure_variables_v20261112(x)
-  return(identical(x$rd_approach3_single_prev3y, skel$rd_approach3b_single_prev3y) &&
-    identical(x$rd_approach3_multiple_prev3y, skel$rd_approach3b_multiple_prev3y))
+  pass3 <- grep("^rd_approach3_", c(rd_cols, rd_any), value = TRUE)
+  stopifnot(length(pass3) == 4L)
+  return(identical(x[, ..pass3], setnames(skel[, sub("approach3_", "approach3b_", pass3), with = FALSE], pass3)))
 }
 stopifnot(
   identical(unique(switcher$approach3[1:20]), c("estrogen_progesterone_bioidentical", "estrogen_progesterone_synthetic")),

@@ -98,8 +98,14 @@ test_that("c1. Divigel for 155 weeks then a stop: prev3y exclude, prevany previo
   s <- run_toy(rx("Divigel", 1, 155), 160L)
   expect_identical(s$approach1[1:155], rep("systemic_mht", 155L))
   for (p in c("single", "multiple")) {
-    expect_identical(s[[paste0("rd_approach1_", p, "_prev3y")]][156:160], rep("exclude", 5L))
-    expect_identical(s[[paste0("rd_approach1_", p, "_prevany")]][156:160], rep("previous", 5L))
+    expect_identical(
+      s[[paste0("rd_approach1_", p, "_prev3y")]][156:160],
+      rep("exclude", 5L)
+    )
+    expect_identical(
+      s[[paste0("rd_approach1_", p, "_prevany")]][156:160],
+      rep("previous", 5L)
+    )
   }
 })
 
@@ -145,10 +151,22 @@ test_that("c5. approach 6: a local_mht episode follows the same two rules", {
   long <- run_toy(rx("Vagifem", 1, 156), 160L)
   expect_identical(short$approach6[1:155], rep("local_mht", 155L))
   for (p in c("single", "multiple")) {
-    expect_identical(short[[paste0("rd_approach6_", p, "_prev3y")]][156:160], rep("exclude", 5L))
-    expect_identical(short[[paste0("rd_approach6_", p, "_prevany")]][156:160], rep("previous", 5L))
-    expect_identical(long[[paste0("rd_approach6_", p, "_prev3y")]][157:160], rep("previous", 4L))
-    expect_identical(long[[paste0("rd_approach6_", p, "_prevany")]][157:160], rep("previous", 4L))
+    expect_identical(
+      short[[paste0("rd_approach6_", p, "_prev3y")]][156:160],
+      rep("exclude", 5L)
+    )
+    expect_identical(
+      short[[paste0("rd_approach6_", p, "_prevany")]][156:160],
+      rep("previous", 5L)
+    )
+    expect_identical(
+      long[[paste0("rd_approach6_", p, "_prev3y")]][157:160],
+      rep("previous", 4L)
+    )
+    expect_identical(
+      long[[paste0("rd_approach6_", p, "_prevany")]][157:160],
+      rep("previous", 4L)
+    )
   }
   # Approach 1 counts local treatment as untreated, so nothing stops.
   expect_true(all(short$rd_approach1_single_prevany == "local_or_none_mht"))
@@ -168,11 +186,13 @@ test_that("c6. untreated weeks before any treatment keep the reference level in 
     )
   )
   s <- run_toy(rx("Divigel", 5, 10), 30L)
-  for (r in c("prev3y", "prevany")) {
-    for (p in c("single", "multiple")) {
-      expect_identical(s[[paste0("rd_approach1_", p, "_", r)]][1:4], rep("local_or_none_mht", 4L))
-      expect_identical(s[[paste0("rd_approach6_", p, "_", r)]][1:4], rep("no_local_or_systemic_mht", 4L))
+  for (col in RD_NEW) {
+    reference <- if (startsWith(col, "rd_approach6_")) {
+      "no_local_or_systemic_mht"
+    } else {
+      "local_or_none_mht"
     }
+    expect_identical(s[[col]][1:4], rep(reference, 4L), info = col)
   }
 })
 

@@ -1,11 +1,10 @@
 # mht 26.11.12
 
-* **`add_lmed_v20261112()` is the 2026-11-12 entry point.** It writes each `rd_approach*` column of `add_lmed_v20261105()` twice, once per rule for former use, and names the rule in the column: `rd_approach<N>_<variant>_prev3y` and `rd_approach<N>_<variant>_prevany`, for `N` from 1 to 6 and `3b`. That is 28 `rd_approach*` columns. It writes no `rd_approach*` column without a rule suffix, and deletes any that the skeleton already carries.
-* **`prev3y` is the rule of `add_lmed_v20261105()`.** An untreated week after a stop is `previous` only after an episode of 156 weeks or more, and `exclude` after a shorter one. Each `prev3y` column equals the `add_lmed_v20261105()` column of the same approach and variant.
-* **`prevany` gives `previous` after any stop.** The two rules differ only after an episode shorter than 156 weeks. The `single` variant excludes every week from a re-initiation onward under both rules, and the four-week gap bridge is the same for both.
-* The function reads the two 2026-11-05 workbooks. No workbook is added. Every column other than the `rd_approach*` columns equals the output of `add_lmed_v20261105()`.
-* **`vignette("lmed-v20261112")` is the one vignette.** Its methods text describes both rules, and a new section of "5. The exposure variables" shows them side by side. `vignette("lmed-v20261105")` moved to `archive/` in the source repository. The website's "Get started" button opens the new one.
-* `add_lmed_v20261105()` and its two workbooks are unchanged.
+* **`add_lmed_v20261112()` is the 2026-11-12 entry point.** It writes each `rd_approach*` column of `add_lmed_v20261105()` twice, once per rule for former use. The 28 columns are `rd_approach<N>_<variant>_prev3y` and `rd_approach<N>_<variant>_prevany`, for `N` from 1 to 6 and `3b`.
+* **`prev3y` is the rule of `add_lmed_v20261105()`.** A stop gives `previous` after an episode of 156 weeks or more, and `exclude` after a shorter one. Each `prev3y` column equals the `add_lmed_v20261105()` column of the same approach and variant.
+* **`prevany` gives `previous` after any stop.** The four-week gap bridge and steps 1, 2, 3 and 5 of the exposure layer are the same under both rules.
+* **No `rd_approach*` column without a rule suffix remains.** The function writes none, and deletes any that the skeleton already carries. It reads the two 2026-11-05 workbooks, which are unchanged, and every other column equals the output of `add_lmed_v20261105()`.
+* **`vignette("lmed-v20261112")` replaces `vignette("lmed-v20261105")`**, which moved to `archive/` in the source repository. Its methods text describes both rules, and section 5 shows them side by side.
 
 # mht 26.11.5
 
