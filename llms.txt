@@ -37,6 +37,8 @@ columns onto the skeleton BY REFERENCE. They differ in the LMED
 identifier column they read, in how the product categories are flagged,
 and in whether the `rd_approach*` exposure variables are produced.
 
+- [`add_lmed_v20261113()`](https://skalkidou-lab.github.io/mht/reference/add_lmed_v20261113.md)
+  : Add 2026-11-13 MHT exposure to a person-week skeleton
 - [`add_lmed_v20261112()`](https://skalkidou-lab.github.io/mht/reference/add_lmed_v20261112.md)
   : Add 2026-11-12 MHT exposure to a person-week skeleton
 - [`add_lmed_v20261105()`](https://skalkidou-lab.github.io/mht/reference/add_lmed_v20261105.md)
@@ -73,5 +75,5 @@ the name of the person identifier column.
 
 ### Methodology
 
-- [What add_lmed_v20261112()
-  does](https://skalkidou-lab.github.io/mht/articles/lmed-v20261112.md):
+- [What add_lmed_v20261113()
+  does](https://skalkidou-lab.github.io/mht/articles/lmed-v20261113.md):

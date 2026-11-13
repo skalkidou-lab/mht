@@ -1,5 +1,23 @@
 # Changelog
 
+## mht 26.11.13
+
+- **[`add_lmed_v20261113()`](https://skalkidou-lab.github.io/mht/reference/add_lmed_v20261113.md)
+  is the 2026-11-13 entry point.** A former-use week is `previous3y` in
+  the 14 `_prev3y` columns and `previousany` in the 14 `_prevany`
+  columns.
+  [`add_lmed_v20261112()`](https://skalkidou-lab.github.io/mht/reference/add_lmed_v20261112.md)
+  writes `previous` in both.
+- **A value now names its rule.** Each `rd_approach*` column equals the
+  [`add_lmed_v20261112()`](https://skalkidou-lab.github.io/mht/reference/add_lmed_v20261112.md)
+  column of the same name, with `previous` mapped to the value of its
+  rule. Every other column is identical. No column holds `previous`.
+- **[`vignette("lmed-v20261113")`](https://skalkidou-lab.github.io/mht/articles/lmed-v20261113.md)
+  replaces `vignette("lmed-v20261112")`**, which moved to `archive/` in
+  the source repository.
+  [`add_lmed_v20261112()`](https://skalkidou-lab.github.io/mht/reference/add_lmed_v20261112.md)
+  and the two 2026-11-05 workbooks are unchanged.
+
 ## mht 26.11.12
 
 - **[`add_lmed_v20261112()`](https://skalkidou-lab.github.io/mht/reference/add_lmed_v20261112.md)
@@ -23,10 +41,10 @@
   carries. It reads the two 2026-11-05 workbooks, which are unchanged,
   and every other column equals the output of
   [`add_lmed_v20261105()`](https://skalkidou-lab.github.io/mht/reference/add_lmed_v20261105.md).
-- **[`vignette("lmed-v20261112")`](https://skalkidou-lab.github.io/mht/articles/lmed-v20261112.md)
-  replaces `vignette("lmed-v20261105")`**, which moved to `archive/` in
-  the source repository. Its methods text describes both rules, and
-  section 5 shows them side by side.
+- **`vignette("lmed-v20261112")` replaces
+  `vignette("lmed-v20261105")`**, which moved to `archive/` in the
+  source repository. Its methods text describes both rules, and section
+  5 shows them side by side.
 
 ## mht 26.11.5
 
